@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <mem.h>
 #include "symbols.h"
 #include "types.h"
 #include "y.tab.h"
@@ -36,7 +37,18 @@ int widenNodes(node* a, node* b) {
 
 node* ex(node* p);
 
-node* def(node* p, node* result) {
+
+node* var(node* p, node* result) {
+	const char* name = p->oper.op[0]->variable.name;
+	node* value = ex(p->oper.op[1]);
+	int index = addSymbolNode(p->oper.op[0]->variable, value->constant.type);
+
+	result->constant.type = symbolTypes[index];
+
+	return result;
+}
+
+node* fun(node *p, node *result) {
 	const char* name = p->oper.op[0]->variable.name;
 	node* params = ex(p->oper.op[1]);
 	node* root = p->oper.op[2];
@@ -81,14 +93,6 @@ node* comma(node* p, node* result) {
 	*/
 	
 	debug("\tnode: Operand Comma\n");
-	return result;
-}
-
-node* local(node* p, node* result) {
-	
-	// TODO: allocate local variable
-
-	debug("\tnode: Operand Local\n");
 	return result;
 }
 
@@ -175,7 +179,7 @@ node* delimiter(node* p, node* result) {
 	}
 	
 	result->type = typeOperator;
-	result->oper.oper = DELIMITER;
+	result->oper.oper = ';';
 	debug("\tnode: Operand Delimiter\n");
 	return result;
 }
@@ -184,13 +188,19 @@ node* assign(node* p, node* result) {
 	const char* name = p->oper.op[0]->variable.name;
 	node* value = ex(p->oper.op[1]);
 	int index = addSymbolNode(p->oper.op[0]->variable, value->constant.type);
-	result->constant.type = symbolTypes[index];
-	if (result->constant.type == typeInt) {
+
+	typeEnum type = symbolTypes[index];
+	result->constant.type = type;
+	
+	if (type == typeInt) {
 		result->constant.intVal = intVariables[index] = value->constant.intVal;
 		debug("\tnode: Operand Assign int %s %d\n", name, value->constant.intVal);
-	} else if (result->constant.type == typeDouble) {
+	} else if (type == typeDouble) {
 		result->constant.doubleVal = doubleVariables[index] = value->constant.doubleVal;
 		debug("\tnode: Operand Assign double %s %f\n", name, value->constant.doubleVal);
+	} else if (type == typeString) {
+		result->constant.stringVal = stringVariables[index] = value->constant.stringVal;
+		debug("\tnode: Operand Assign string %s %s\n", name, value->constant.stringVal);
 	}
 	return result;
 }
@@ -207,6 +217,7 @@ node* uminus(node* p, node* result) {
 	}
 	return result;
 }
+
 
 node* plus(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
@@ -264,6 +275,7 @@ node* divide(node* p, node* result) {
 	return result;
 }
 
+
 node* lt(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
@@ -284,7 +296,7 @@ node* gt(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
 	result->constant.intVal = left->constant.intVal > right->constant.intVal;
-	debug("\tnode: Operand GT %d\n", result->constant.intVal);
+	debug("\tnode: Operand GT\n");
 	return result;
 }
 
@@ -317,7 +329,7 @@ node* ex(node* p) {
 
 	const char* name;
 	int index;
-	int type;
+	typeEnum type;
 	
 	node* result = malloc(sizeof(node));
 	result->type = typeEmpty;
@@ -338,21 +350,30 @@ node* ex(node* p) {
 									result->constant.type = typeDouble;
 									result->constant.doubleVal = p->constant.doubleVal;
 									return result;
+
+				case typeString:	debug("\tnode: Constant String %s\n", p->constant.stringVal);
+									result->constant.type = typeString;
+									result->constant.stringVal = p->constant.stringVal;
+									return result;
 			}
 		
 		case typeVariable:
 			name = p->variable.name;
 			index = findSymbol(name);
 			type = symbolTypes[index];
-			
+
 			result->type = typeConstant;
 			result->constant.type = type;
+
 			if (type == typeInt) {
 				result->constant.intVal = intVariables[index];
 				debug("\tnode: Identifier %s %d\n", name, intVariables[index]);
 			} else if (type == typeDouble) {
 				result->constant.doubleVal = doubleVariables[index];
 				debug("\tnode: Identifier %s %f\n", name, doubleVariables[index]);
+			} else if (type == typeString) {
+				result->constant.stringVal = stringVariables[index];
+				debug("\tnode: Identifier %s %s\n", name, stringVariables[index]);
 			}
 			
 			return result;
@@ -363,22 +384,22 @@ node* ex(node* p) {
 			result->constant.intVal = 0;
 			
 			switch (p->oper.oper) {
-				case DEF:		return def(p, result);
+				case VAR:		return var(p, result);
+				case FUN:		return fun(p, result);
 				case RETURN:	return returnx(p, result);
-				case COMMA:		return comma(p, result);
-				case LOCAL:		return local(p, result);
-				
+				case ',':		return comma(p, result);
+
 				case WHILE:		return whilex(p, result);
 				case IF:		return ifx(p, result);
-		        case DELIMITER: return delimiter(p, result);
+		        case ';':		return delimiter(p, result);
 				case ASSIGN:	return assign(p, result);
 
 				case UMINUS:	return uminus(p, result);
 
-				case PLUS:		return plus(p, result);
-				case MINUS:		return minus(p, result);
-				case MULTIPLY:	return multiply(p, result);
-				case DIVIDE:	return divide(p, result);
+				case '+':		return plus(p, result);
+				case '-':		return minus(p, result);
+				case '*':		return multiply(p, result);
+				case '/':		return divide(p, result);
 
 				case LT:		return lt(p, result);
 				case LE:		return le(p, result);

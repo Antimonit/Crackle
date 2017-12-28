@@ -11,7 +11,7 @@ extern int yylex (void);
 
 int yyerror(const char* message);
 
-extern int freshNewline;
+extern int lineCounter;
 
 %}
 
@@ -23,13 +23,14 @@ integer		(0|[1-9]{digit}*)
 identifier	({underscore}+({alpha}|{digit})+|{alpha})({underscore}|{digit}|{alpha})*
 whitespace	[ \t]+
 double		({digit}+)?\.{digit}*
+string      \"(\\.|[^\\"])*\"
 
 %%
 
-"+"			return PLUS;
-"-"			return MINUS;
-"*"			return MULTIPLY;
-"/"			return DIVIDE;
+"+"			return '+';
+"-"			return '-';
+"*"			return '*';
+"/"			return '/';
 
 "<"			return LT;
 "<="		return LE;
@@ -47,27 +48,30 @@ double		({digit}+)?\.{digit}*
 "while"		return WHILE;
 "if"		return IF;
 "else"		return ELSE;
-"end"		return END;
 
-"def"		return DEF;
-"local"		return LOCAL;
+"int"       return INT_TYPE;
+"double"    return DOUBLE_TYPE;
+"bool"      return BOOL_TYPE;
+"string"    return STRING_TYPE;
+
+"var"       return VAR;
+"fun"		return FUN;
 "return"	return RETURN;
 
 "="			return ASSIGN;
 
-"("			return LPAREN;
-")"			return RPAREN;
+"("			return '(';
+")"			return ')';
 
-";"			return DELIMITER;
-","			return COMMA;
+"{"			return '{';
+"}"			return '}';
+
+":"         return ':';
+";"			return ';';
+","			return ',';
 
 "\n" {
-	if (freshNewline) {
-		printf("?- ");
-		freshNewline = 0;
-	} else {
-		printf("> ");
-	}
+    lineCounter++;
 }
 
 {bad_integer} {
@@ -81,13 +85,21 @@ double		({digit}+)?\.{digit}*
 	}
 	int val = atoi(yytext);
 	yylval.intVal = val;
-	return INTEGER_VALUE;
+	return INT_VALUE;
 }
 
 {double} {
 	double val = atof(yytext);
 	yylval.doubleVal = val;
 	return DOUBLE_VALUE;
+}
+
+{string} {
+	char* text = (char*) malloc(sizeof(char) * (yyleng - 1));
+	strncpy(text, yytext+1, yyleng - 1);
+	text[yyleng-2] = '\0';
+    yylval.stringVal = text;
+    return STRING_VALUE;
 }
 
 {identifier} {

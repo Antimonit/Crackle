@@ -8,6 +8,20 @@
 int symbolId = 0;
 int funcSymbolId = 0;
 
+void printAllSymbols() {
+	printf("----ALL SYMBOLS----\n");
+	for (int i = 0; i < symbolId; ++i) {
+		if (symbolTypes[i] == typeInt) {
+			printf("Int %s: %d\n", symbols[i], intVariables[i]);
+		} else if (symbolTypes[i] == typeDouble) {
+			printf("Double %s: %f\n", symbols[i], doubleVariables[i]);
+		} else if (symbolTypes[i] == typeString) {
+			printf("String %s: %s\n", symbols[i], stringVariables[i]);
+		}
+	}
+	printf("----END ALL SYMBOLS----\n");
+}
+
 int findSymbol(const char* symbol) {
     for (int i = 0; i < symbolId; i++) {
         if (strcmp(symbols[i], symbol) == 0) {
@@ -17,22 +31,24 @@ int findSymbol(const char* symbol) {
     return -1;
 }
 
-int addSymbolNode(variableNode variable, int type) {
+int addSymbolNode(variableNode variable, typeEnum type) {
 	int index = findSymbol(variable.name);
 	if (index == -1) {	// new symbol
 		strncpy(symbols[symbolId], variable.name, strlen(variable.name));
 		symbolTypes[symbolId] = type;
 		return symbolId++;
 	} else {			// existing symbol
-		if (type == typeDouble && symbolTypes[index] == typeInt) {
-			debug("\tChange variable from int to double\n", index);
-			doubleVariables[index] = (double) intVariables[index];
-			symbolTypes[index] = typeDouble;
-		} else if (type == typeInt && symbolTypes[index] == typeDouble) {
-			debug("\tChange variable from double to int\n", index);
-			intVariables[index] = (int) doubleVariables[index];
-			symbolTypes[index] = typeInt;
-		}
+		debug("Variable %s already defined\n", variable.name);
+
+//		if (type == typeDouble && symbolTypes[index] == typeInt) {
+//			debug("\tChange variable from int to double\n");
+//			doubleVariables[index] = (double) intVariables[index];
+//			symbolTypes[index] = typeDouble;
+//		} else if (type == typeInt && symbolTypes[index] == typeDouble) {
+//			debug("\tChange variable from double to int\n");
+//			intVariables[index] = (int) doubleVariables[index];
+//			symbolTypes[index] = typeInt;
+//		}
 		return index;
 	}
 }

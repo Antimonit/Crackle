@@ -13,7 +13,8 @@ typedef enum {
 
 typedef enum {
     typeInt,
-    typeDouble
+    typeDouble,
+	typeString
 } typeEnum;
 
 
@@ -24,6 +25,7 @@ typedef struct {
     union {
         int intVal;
         double doubleVal;
+		char* stringVal;
     };
 } constantNode;
 

@@ -7,9 +7,10 @@
 #define MAX_VAR_NAME_LENGTH 16
 
 char symbols[MAX_VARS][MAX_VAR_NAME_LENGTH];
-int symbolTypes[MAX_VARS];
+typeEnum symbolTypes[MAX_VARS];
 int intVariables[MAX_VARS];
 double doubleVariables[MAX_VARS];
+char* stringVariables[MAX_VARS];
 
 char funcSymbols[MAX_VARS][MAX_VAR_NAME_LENGTH];
 node* funcRoots[MAX_VARS];
@@ -17,8 +18,9 @@ node* funcRoots[MAX_VARS];
 
 int findSymbol(const char* symbol);
 
-int addSymbolNode(variableNode variable, int type);
+int addSymbolNode(variableNode variable, typeEnum type);
 
+void printAllSymbols();
 
 int findFunctionSymbol(const char* symbol);
 

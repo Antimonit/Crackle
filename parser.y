@@ -12,9 +12,10 @@ int yyerror(const char* message);
 int yylex(void);
 
 node* empty();
-node* fun(const char* value, node* params);
+node* funCall(const char* value, node* params);
 node* constantInt(int value);
 node* constantDouble(double value);
+node* constantString(char* value);
 node* variable(const char* value);
 node* op(int oper, int opCount, ...);
 node* ex(node* p);
@@ -22,13 +23,14 @@ void freeNode(node* p);
 
 char temp[100];
 
-int freshNewline;
+int lineCounter;
 
 %}
- 
+
 %union {
 	int intVal;
 	double doubleVal;
+	char* stringVal;
 	char* identifier;
     node* node;
 }
@@ -36,31 +38,36 @@ int freshNewline;
 
 %token LEX_ERROR
 
-%token <intVal> INTEGER_VALUE
+%token <intVal> INT_VALUE
 %token <doubleVal> DOUBLE_VALUE
+%token <stringVal> STRING_VALUE
 %token <identifier> IDENTIFIER
 
-%token DEF LOCAL RETURN
+%token VAR FUN RETURN
 %nonassoc LT LE GT GE EQ NE
 %left OR
 %left AND
 %right NEG
 %right ASSIGN
 %token TRUE FALSE
-%left PLUS MINUS
-%left MULTIPLY DIVIDE
+%left '+' '-'
+%left '*' '/'
 %nonassoc UMINUS
-%token LPAREN RPAREN
-%token DELIMITER COMMA
-%token IF ELSE WHILE END
+%token '(' ')'
+%token '{' '}'
+%token ';' ','
+%token IF ELSE WHILE
+%token INT_TYPE DOUBLE_TYPE BOOL_TYPE STRING_TYPE
 
 %type <node> value expression lex_error
 %type <node> statement statement_list
 %type <node> if_statement while_statement
-%type <node> func_definition func_param_list
+%type <node> var_definition
+%type <node> fun_definition func_param_list
 %type <node> func_call argument_expression_list
-%type <node> return_statement local_statement
+%type <node> return_statement
 %type <node> bool comparison_operand
+%type <node> type
 
 %%
 
@@ -69,7 +76,7 @@ program
 			node* resultP = ex($1);
 			node result = *resultP;
 			//freeNode($1);
-			
+
 			switch (result.type) {
 				case typeOperator:
 					switch (result.oper.oper) {
@@ -79,8 +86,11 @@ program
 						case IF:
 							printf("if\n");
 							break;
-						case DEF:
+						case FUN:
 							printf("Function defined\n");
+							break;
+						case VAR:
+							printf("Variable defined\n");
 							break;
 						default:
 							printf("WRONG OPERATOR\n");
@@ -94,6 +104,9 @@ program
 						case typeDouble:
 							printf("%f\n", result.constant.doubleVal);
 							break;
+						case typeString:
+							printf("%s\n", result.constant.stringVal);
+							break;
 					}
 					break;
 				case typeFunctionDef:
@@ -104,39 +117,41 @@ program
 				default:
 					printf("WRONG TYPE\n");
 			}
-			
-			freshNewline = 1;
 		} program
 		|
 
 statement
-		: expression DELIMITER	{ $$ = $1; }
+		: expression ';'	    { $$ = $1; }
 	 	| if_statement			{ $$ = $1; }
 	 	| while_statement		{ $$ = $1; }
-	 	| func_definition		{ $$ = $1; }
+	 	| var_definition        { $$ = $1; }
+	 	| fun_definition		{ $$ = $1; }
 	 	| return_statement		{ $$ = $1; }
-	 	| local_statement		{ $$ = $1; }
 		| error					{ printf("\n"); }
 
 statement_list
 		: statement					{ $$ = $1; }
-        | statement_list statement	{ $$ = op(DELIMITER, 2, $1, $2); }
+        | statement_list statement	{ $$ = op(';', 2, $1, $2); }
 
 if_statement
-		: IF LPAREN bool RPAREN statement_list END						{ $$ = op(IF, 2, $3, $5); }
-		| IF LPAREN bool RPAREN statement_list ELSE statement_list END	{ $$ = op(IF, 3, $3, $5, $7); }
+		: IF '(' bool ')' '{' statement_list '}' {
+		    $$ = op(IF, 2, $3, $6);
+        }
+		| IF '(' bool ')' '{' statement_list '}' ELSE '{' statement_list '}' {
+		    $$ = op(IF, 3, $3, $6, $10);
+		}
 
 while_statement
-		: WHILE LPAREN bool RPAREN statement_list END 	{ $$ = op(WHILE, 2, $3, $5); }
+		: WHILE '(' bool ')' '{' statement_list '}' 	{ $$ = op(WHILE, 2, $3, $6); }
 
 bool
-		: bool OR bool			{ $$ = op(OR, 2, $1, $3); }
-		| bool AND bool			{ $$ = op(AND, 2, $1, $3); }
-		| NEG bool				{ $$ = op(NEG, 1, $2); }
-		| LPAREN bool RPAREN	{ $$ = $2; }
+		: bool OR bool		{ $$ = op(OR, 2, $1, $3); }
+		| bool AND bool		{ $$ = op(AND, 2, $1, $3); }
+		| NEG bool			{ $$ = op(NEG, 1, $2); }
+		| '(' bool ')'	    { $$ = $2; }
 		| expression comparison_operand expression { $$ = op($2->oper.oper, 2, $1, $3); }
-		| TRUE					{ $$ = constantInt(1); }
-		| FALSE					{ $$ = constantInt(0); }
+		| TRUE				{ $$ = constantInt(1); }
+		| FALSE				{ $$ = constantInt(0); }
 
 comparison_operand
 		: LT { $$ = op(LT, 0); }
@@ -146,36 +161,42 @@ comparison_operand
 		| EQ { $$ = op(EQ, 0); }
 		| NE { $$ = op(NE, 0); }
 
-func_definition
-		: DEF IDENTIFIER LPAREN func_param_list RPAREN statement_list END	{ $$ = op(DEF, 3, variable($2), $4, $6); }
-		| DEF IDENTIFIER LPAREN RPAREN statement_list END					{ $$ = op(DEF, 3, variable($2), NULL, $5); }
+type
+        : INT_TYPE      { $$ = op(INT_TYPE, 0); }
+        | DOUBLE_TYPE   { $$ = op(DOUBLE_TYPE, 0); }
+        | BOOL_TYPE     { $$ = op(BOOL_TYPE, 0); }
+        | STRING_TYPE   { $$ = op(STRING_TYPE, 0); }
+
+var_definition
+        : VAR IDENTIFIER ':' type ';' { $$ = op(VAR, 2, variable($2), $4); }
+
+fun_definition
+		: FUN IDENTIFIER '(' func_param_list ')' ':' type '{' statement_list '}'	{ $$ = op(FUN, 4, variable($2), $4, $7, $9); }
+		| FUN IDENTIFIER '(' ')' ':' type '{' statement_list '}'					{ $$ = op(FUN, 4, variable($2), NULL, $6, $8); }
 
 func_param_list
 		: IDENTIFIER							{ $$ = variable($1); }
-		| func_param_list COMMA IDENTIFIER		{ $$ = op(COMMA, 2, $1, variable($3)); }
+		| func_param_list ',' IDENTIFIER		{ $$ = op(',', 2, $1, variable($3)); }
 
 return_statement
-		: RETURN expression DELIMITER			{ $$ = op(RETURN, 1, $2); }
-
-local_statement
-		: LOCAL IDENTIFIER DELIMITER			{ $$ = op(LOCAL, 0); }
+		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
 
 func_call
-		: IDENTIFIER LPAREN argument_expression_list RPAREN	{ $$ = fun($1, $3); }
-		| IDENTIFIER LPAREN RPAREN 							{ $$ = fun($1, NULL); }
-		
+		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = funCall($1, $3); }
+		| IDENTIFIER '(' ')' 							{ $$ = funCall($1, NULL); }
+
 argument_expression_list
 		: expression								{ $$ = $1; }
-		| argument_expression_list COMMA expression	{ $$ = op(COMMA, 2, $1, $3); }
+		| argument_expression_list ',' expression	{ $$ = op(',', 2, $1, $3); }
 
 expression
-		: expression PLUS     expression	{ $$ = op(PLUS    , 2, $1, $3); }
-		| expression MINUS    expression	{ $$ = op(MINUS   , 2, $1, $3); }
-		| expression MULTIPLY expression	{ $$ = op(MULTIPLY, 2, $1, $3); }
-		| expression DIVIDE   expression	{ $$ = op(DIVIDE  , 2, $1, $3); }
-		| MINUS expression %prec UMINUS		{ $$ = op(UMINUS  , 1, $2); }
-		| LPAREN expression RPAREN			{ $$ = $2; }
-		| IDENTIFIER ASSIGN expression		{ $$ = op(ASSIGN  , 2, variable($1), $3); }
+		: expression '+' expression	{ $$ = op('+', 2, $1, $3); }
+		| expression '-' expression	{ $$ = op('-', 2, $1, $3); }
+		| expression '*' expression	{ $$ = op('*', 2, $1, $3); }
+		| expression '/' expression	{ $$ = op('/', 2, $1, $3); }
+		| '-' expression %prec UMINUS   { $$ = op(UMINUS, 1, $2); }
+		| '(' expression ')'			{ $$ = $2; }
+		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
 		| IDENTIFIER {
 			int index = findSymbol($1);
 			if (index == -1) {
@@ -192,8 +213,9 @@ expression
 		| lex_error		{ $$ = $1; }
 
 value
-		: INTEGER_VALUE	{ $$ = constantInt($1); }
+		: INT_VALUE		{ $$ = constantInt($1); }
 		| DOUBLE_VALUE	{ $$ = constantDouble($1); }
+		| STRING_VALUE	{ $$ = constantString($1); }
 
 lex_error
 		: LEX_ERROR {
@@ -209,21 +231,21 @@ node* newNode() {
 
 	if (p == NULL)
 		yyerror("out of memory");
-	
+
 	return p;
 }
 
 node* empty() {
 	node* node = newNode();
-	
+
 	node->type = typeEmpty;
-	
+
 	return node;
 }
 
-node* fun(const char* value, node* params) {
+node* funCall(const char* value, node* params) {
 	node* node = newNode();
-	
+
 	node->type = typeFunctionCall;
 	node->function.name = value;
 
@@ -250,6 +272,16 @@ node* constantDouble(double value) {
 	return node;
 }
 
+node* constantString(char* value) {
+	node* node = newNode();
+
+	node->type = typeConstant;
+	node->constant.type = typeString;
+	node->constant.stringVal = value;
+
+	return node;
+}
+
 node* variable(const char* value) {
 	node* node = newNode();
 
@@ -269,21 +301,21 @@ node* op(int oper, int opCount, ...) {
     p->type = typeOperator;
     p->oper.oper = oper;
     p->oper.opCount = opCount;
-    
+
     va_list ap;
     va_start(ap, opCount);
     for (int i = 0; i < opCount; i++) {
         p->oper.op[i] = va_arg(ap, node*);
 	}
     va_end(ap);
-    
+
     return p;
 }
 
 void freeNode(node* node) {
     if (!node)
     	return;
-    	
+
     if (node->type == typeOperator) {
         for (int i = 0; i < node->oper.opCount; i++) {
             freeNode(node->oper.op[i]);
@@ -293,7 +325,6 @@ void freeNode(node* node) {
 }
 
 int main(void) {
-	printf("?- ");
 	yyparse();
 	return 0;
 }

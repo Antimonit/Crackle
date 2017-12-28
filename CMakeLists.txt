@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(clap_interpreter)
+project(crackle_interpreter)
 
 set(CMAKE_C_STANDARD 11)
 
@@ -13,7 +13,7 @@ add_flex_bison_dependency(Scanner Parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(Clap
+add_executable(Crackle
         debug.h
         interpreter.h
         symbols.h
