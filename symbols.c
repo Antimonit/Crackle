@@ -33,6 +33,14 @@ int findSymbol(const char* symbol) {
     return -1;
 }
 
+int findTypedSymbolNode(variableNode variable, dataTypeEnum type) {
+    int index = findSymbol(variable.name);
+    if (index != -1 && symbolTypes[index] == type) {
+        return index;
+    }
+    return -1;
+}
+
 int addSymbolNode(variableNode variable, dataTypeEnum type) {
 	int index = findSymbol(variable.name);
 	if (index == -1) {	// new symbol

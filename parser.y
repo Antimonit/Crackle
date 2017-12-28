@@ -72,7 +72,7 @@ int lineCounter;
 %type <node> func_call argument_expression_list
 %type <node> return_statement
 %type <node> bool comparison_operand
-%type <node> type
+%type <node> data_type
 
 %%
 
@@ -160,20 +160,20 @@ comparison_operand
 		| EQ { $$ = op(EQ, 0); }
 		| NE { $$ = op(NE, 0); }
 
-type
+data_type
         : INT_TYPE      { $$ = op(INT_TYPE, 0); }
         | DOUBLE_TYPE   { $$ = op(DOUBLE_TYPE, 0); }
         | BOOL_TYPE     { $$ = op(BOOL_TYPE, 0); }
         | STRING_TYPE   { $$ = op(STRING_TYPE, 0); }
 
 var_definition
-        : VAR IDENTIFIER ':' type ';' { $$ = op(VAR, 2, variable($2), $4); }
+        : VAR IDENTIFIER ':' data_type ';' { $$ = op(VAR, 2, variable($2), $4); }
 
 fun_definition
-		: FUN IDENTIFIER '(' func_param_list ')' ':' type '{' statement_list '}' {
+		: FUN IDENTIFIER '(' func_param_list ')' ':' data_type '{' statement_list '}' {
             $$ = op(FUN, 4, variable($2), $4, $7, $9);
 		}
-		| FUN IDENTIFIER '(' ')' ':' type '{' statement_list '}' {
+		| FUN IDENTIFIER '(' ')' ':' data_type '{' statement_list '}' {
 		$$ = op(FUN, 4, variable($2), NULL, $6, $8);
 		}
 

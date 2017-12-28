@@ -19,6 +19,8 @@ node* funcRoots[MAX_VARS];
 
 int findSymbol(const char* symbol);
 
+int findTypedSymbolNode(variableNode variable, dataTypeEnum type);
+
 int addSymbolNode(variableNode variable, dataTypeEnum type);
 
 void printAllSymbols();

@@ -7,7 +7,7 @@
 #include "debug.h"
 
 
-int maxType(node* a, node* b) {
+dataTypeEnum maxType(node* a, node* b) {
 	int typeA = a->constant.type;
 	int typeB = b->constant.type;
 	if (typeA == typeInt && typeB == typeInt) {
@@ -28,8 +28,8 @@ void widenNode(node* a, int maxType) {
 	}
 }
 
-int widenNodes(node* a, node* b) {
-	int max = maxType(a, b);
+dataTypeEnum widenNodes(node* a, node* b) {
+    dataTypeEnum max = maxType(a, b);
 	widenNode(a, max);
 	widenNode(b, max);
 	return max;
@@ -39,12 +39,26 @@ node* ex(node* p);
 
 
 node* var(node* p, node* result) {
-	const char* name = p->oper.op[0]->variable.name;
+    variableNode variable = p->oper.op[0]->variable;
 	node* type = ex(p->oper.op[1]);
-	int index = addSymbolNode(p->oper.op[0]->variable, type->constant.type);
+	int index = addSymbolNode(variable, type->dataType.type);
 
-	result->constant.type = symbolTypes[index];
+    dataTypeEnum dataType = symbolTypes[index];
+    result->constant.type = dataType;
 
+    if (dataType == typeInt) {
+        result->constant.intVal = intVariables[index] = 0;
+        debug("\tnode: Operand Var int %s %d\n", variable.name, intVariables[index]);
+    } else if (dataType == typeDouble) {
+        result->constant.doubleVal = doubleVariables[index] = 0.0;
+        debug("\tnode: Operand Var double %s %f\n", variable.name, doubleVariables[index]);
+    } else if (dataType == typeString) {
+        result->constant.stringVal = stringVariables[index] = "";
+        debug("\tnode: Operand Var string %s %s\n", variable.name, stringVariables[index]);
+    } else if (dataType == typeBool) {
+        result->constant.boolVal = boolVariables[index] = false;
+        debug("\tnode: Operand Var bool %s %s\n", variable.name, boolVariables[index] == true ? "true" : "false");
+    }
 	return result;
 }
 
@@ -58,7 +72,7 @@ node* fun(node *p, node *result) {
 	result->function.name = name;
     result->function.dataType = type->dataType.type;
 	result->function.root = root;
-//	result->function.params =
+//	result->function.params = TODO
 
 	addFuncRoot(name, root);
 	
@@ -147,7 +161,7 @@ node* ifx(node* p, node* result) {
 		if (left->type == typeReturn) {
 			result->type = left->type;
 			result->ret.value = left->ret.value;
-			debug("\tnode: Operand If\n");
+			debug("\tnode: Operand IF\n");
 			return result;
 		}
 	} else if (p->oper.opCount > 2) {
@@ -155,14 +169,14 @@ node* ifx(node* p, node* result) {
 		if (right->type == typeReturn) {
 			result->type = right->type;
 			result->ret.value = right->ret.value;
-			debug("\tnode: Operand If\n");
+			debug("\tnode: Operand IF\n");
 			return result;
 		}
 	}
 	
 	result->type = typeOperator;
 	result->oper.oper = IF;
-	debug("\tnode: Operand If\n");
+	debug("\tnode: Operand IF\n");
 	return result;
 }
 
@@ -190,25 +204,28 @@ node* delimiter(node* p, node* result) {
 }
 
 node* assign(node* p, node* result) {
-	const char* name = p->oper.op[0]->variable.name;
+    variableNode variable = p->oper.op[0]->variable;
 	node* value = ex(p->oper.op[1]);
-	int index = addSymbolNode(p->oper.op[0]->variable, value->constant.type);
+    int index = findTypedSymbolNode(variable, value->constant.type);
+    if (index == -1) {
+        printf("Symbol not found.\n");
+    }
 
 	dataTypeEnum type = symbolTypes[index];
 	result->constant.type = type;
 	
 	if (type == typeInt) {
 		result->constant.intVal = intVariables[index] = value->constant.intVal;
-		debug("\tnode: Operand Assign int %s %d\n", name, value->constant.intVal);
+		debug("\tnode: Operand Assign int %s %d\n", variable.name, value->constant.intVal);
 	} else if (type == typeDouble) {
 		result->constant.doubleVal = doubleVariables[index] = value->constant.doubleVal;
-		debug("\tnode: Operand Assign double %s %f\n", name, value->constant.doubleVal);
+		debug("\tnode: Operand Assign double %s %f\n", variable.name, value->constant.doubleVal);
 	} else if (type == typeString) {
 		result->constant.stringVal = stringVariables[index] = value->constant.stringVal;
-		debug("\tnode: Operand Assign string %s %s\n", name, value->constant.stringVal);
+		debug("\tnode: Operand Assign string %s %s\n", variable.name, value->constant.stringVal);
 	} else if (type == typeBool) {
 		result->constant.boolVal = boolVariables[index] = value->constant.boolVal;
-		debug("\tnode: Operand Assign bool %s %s\n", name, value->constant.boolVal == true ? "true" : "false");
+		debug("\tnode: Operand Assign bool %s %s\n", variable.name, value->constant.boolVal == true ? "true" : "false");
 	}
 	return result;
 }
@@ -226,7 +243,6 @@ node* uminus(node* p, node* result) {
 	return result;
 }
 
-
 node* plus(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
@@ -240,7 +256,6 @@ node* plus(node* p, node* result) {
 	}
 	return result;
 }
-
 node* minus(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
@@ -254,7 +269,6 @@ node* minus(node* p, node* result) {
 	}
 	return result;
 }
-
 node* multiply(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
@@ -268,7 +282,6 @@ node* multiply(node* p, node* result) {
 	}
 	return result;
 }
-
 node* divide(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
@@ -283,7 +296,6 @@ node* divide(node* p, node* result) {
 	return result;
 }
 
-
 node* andx(node* p, node* result) {
     node* left = ex(p->oper.op[0]);
     node* right = ex(p->oper.op[1]);
@@ -291,7 +303,6 @@ node* andx(node* p, node* result) {
     debug("\tnode: Operand OR\n");
     return result;
 }
-
 node* orx(node* p, node* result) {
     node* left = ex(p->oper.op[0]);
     node* right = ex(p->oper.op[1]);
@@ -299,7 +310,6 @@ node* orx(node* p, node* result) {
     debug("\tnode: Operand OR\n");
     return result;
 }
-
 node* neg(node* p, node* result) {
     node* value = ex(p->oper.op[0]);
     result->constant.boolVal = (value->constant.boolVal) == true ? false : true;
@@ -310,51 +320,45 @@ node* neg(node* p, node* result) {
 node* lt(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
-	result->constant.intVal = left->constant.intVal < right->constant.intVal;
+	result->constant.boolVal = (left->constant.intVal < right->constant.intVal) ? true : false;
 	debug("\tnode: Operand LT\n");
 	return result;
 }
-
 node* le(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
-	result->constant.intVal = left->constant.intVal <= right->constant.intVal;
+	result->constant.boolVal = (left->constant.intVal <= right->constant.intVal) ? true : false;
 	debug("\tnode: Operand LE\n");
 	return result;
 }
-
 node* gt(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
-	result->constant.intVal = left->constant.intVal > right->constant.intVal;
+	result->constant.boolVal = (left->constant.intVal > right->constant.intVal) ? true : false;
 	debug("\tnode: Operand GT\n");
 	return result;
 }
-
 node* ge(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
-	result->constant.intVal = left->constant.intVal >= right->constant.intVal;
+	result->constant.boolVal = (left->constant.intVal >= right->constant.intVal) ? true : false;
 	debug("\tnode: Operand GE\n");
 	return result;
 }
-
 node* eq(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
-	result->constant.intVal = left->constant.intVal == right->constant.intVal;
+	result->constant.boolVal = (left->constant.intVal == right->constant.intVal) ? true : false;
 	debug("\tnode: Operand EQ\n");
 	return result;
 }
-
 node* ne(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
-	result->constant.intVal = left->constant.intVal != right->constant.intVal;
+	result->constant.boolVal = (left->constant.intVal != right->constant.intVal) ? true : false;
 	debug("\tnode: Operand NE\n");
 	return result;
 }
-
 
 node* int_type(node* p, node* result) {
     result->dataType.type = typeInt;
