@@ -16,6 +16,7 @@ node* funCall(const char* value, node* params);
 node* constantInt(int value);
 node* constantDouble(double value);
 node* constantString(char* value);
+node* constantBool(bool value);
 node* variable(const char* value);
 node* op(int oper, int opCount, ...);
 node* ex(node* p);
@@ -31,6 +32,7 @@ int lineCounter;
 	int intVal;
 	double doubleVal;
 	char* stringVal;
+	bool boolVal;
 	char* identifier;
     node* node;
 }
@@ -41,6 +43,8 @@ int lineCounter;
 %token <intVal> INT_VALUE
 %token <doubleVal> DOUBLE_VALUE
 %token <stringVal> STRING_VALUE
+%token <boolVal> TRUE
+%token <boolVal> FALSE
 %token <identifier> IDENTIFIER
 
 %token VAR FUN RETURN
@@ -49,7 +53,6 @@ int lineCounter;
 %left AND
 %right NEG
 %right ASSIGN
-%token TRUE FALSE
 %left '+' '-'
 %left '*' '/'
 %nonassoc UMINUS
@@ -58,6 +61,8 @@ int lineCounter;
 %token ';' ','
 %token IF ELSE WHILE
 %token INT_TYPE DOUBLE_TYPE BOOL_TYPE STRING_TYPE
+
+%token PRINT
 
 %type <node> value expression lex_error
 %type <node> statement statement_list
@@ -80,20 +85,11 @@ program
 			switch (result.type) {
 				case typeOperator:
 					switch (result.oper.oper) {
-						case WHILE:
-							printf("while\n");
-							break;
-						case IF:
-							printf("if\n");
-							break;
-						case FUN:
-							printf("Function defined\n");
-							break;
-						case VAR:
-							printf("Variable defined\n");
-							break;
-						default:
-							printf("WRONG OPERATOR\n");
+						case WHILE: break;
+						case IF:    break;
+						case FUN:   break;
+						case VAR:   break;
+						default:    printf("WRONG OPERATOR\n");
 					}
 					break;
 				case typeConstant:
@@ -106,6 +102,9 @@ program
 							break;
 						case typeString:
 							printf("%s\n", result.constant.stringVal);
+							break;
+						case typeBool:
+							printf("%s\n", result.constant.boolVal == true ? "true" : "false");
 							break;
 					}
 					break;
@@ -130,8 +129,8 @@ statement
 		| error					{ printf("\n"); }
 
 statement_list
-		: statement					{ $$ = $1; }
-        | statement_list statement	{ $$ = op(';', 2, $1, $2); }
+		: statement_list statement	{ $$ = op(';', 2, $1, $2); }
+        | { $$ = op(';', 0); }
 
 if_statement
 		: IF '(' bool ')' '{' statement_list '}' {
@@ -150,8 +149,8 @@ bool
 		| NEG bool			{ $$ = op(NEG, 1, $2); }
 		| '(' bool ')'	    { $$ = $2; }
 		| expression comparison_operand expression { $$ = op($2->oper.oper, 2, $1, $3); }
-		| TRUE				{ $$ = constantInt(1); }
-		| FALSE				{ $$ = constantInt(0); }
+		| TRUE				{ $$ = constantBool(true); }
+		| FALSE				{ $$ = constantBool(false); }
 
 comparison_operand
 		: LT { $$ = op(LT, 0); }
@@ -171,8 +170,12 @@ var_definition
         : VAR IDENTIFIER ':' type ';' { $$ = op(VAR, 2, variable($2), $4); }
 
 fun_definition
-		: FUN IDENTIFIER '(' func_param_list ')' ':' type '{' statement_list '}'	{ $$ = op(FUN, 4, variable($2), $4, $7, $9); }
-		| FUN IDENTIFIER '(' ')' ':' type '{' statement_list '}'					{ $$ = op(FUN, 4, variable($2), NULL, $6, $8); }
+		: FUN IDENTIFIER '(' func_param_list ')' ':' type '{' statement_list '}' {
+            $$ = op(FUN, 4, variable($2), $4, $7, $9);
+		}
+		| FUN IDENTIFIER '(' ')' ':' type '{' statement_list '}' {
+		$$ = op(FUN, 4, variable($2), NULL, $6, $8);
+		}
 
 func_param_list
 		: IDENTIFIER							{ $$ = variable($1); }
@@ -216,6 +219,8 @@ value
 		: INT_VALUE		{ $$ = constantInt($1); }
 		| DOUBLE_VALUE	{ $$ = constantDouble($1); }
 		| STRING_VALUE	{ $$ = constantString($1); }
+		| TRUE          { $$ = constantBool(true); }
+		| FALSE         { $$ = constantBool(false); }
 
 lex_error
 		: LEX_ERROR {
@@ -278,6 +283,16 @@ node* constantString(char* value) {
 	node->type = typeConstant;
 	node->constant.type = typeString;
 	node->constant.stringVal = value;
+
+	return node;
+}
+
+node* constantBool(bool value) {
+	node* node = newNode();
+
+	node->type = typeConstant;
+	node->constant.type = typeBool;
+	node->constant.boolVal = value;
 
 	return node;
 }

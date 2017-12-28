@@ -40,8 +40,8 @@ node* ex(node* p);
 
 node* var(node* p, node* result) {
 	const char* name = p->oper.op[0]->variable.name;
-	node* value = ex(p->oper.op[1]);
-	int index = addSymbolNode(p->oper.op[0]->variable, value->constant.type);
+	node* type = ex(p->oper.op[1]);
+	int index = addSymbolNode(p->oper.op[0]->variable, type->constant.type);
 
 	result->constant.type = symbolTypes[index];
 
@@ -51,16 +51,18 @@ node* var(node* p, node* result) {
 node* fun(node *p, node *result) {
 	const char* name = p->oper.op[0]->variable.name;
 	node* params = ex(p->oper.op[1]);
-	node* root = p->oper.op[2];
+    node* type = p->oper.op[2];
+	node* root = p->oper.op[3];
 	
 	result->type = typeFunctionDef;
 	result->function.name = name;
-//	result->function.params =
+    result->function.dataType = type->dataType.type;
 	result->function.root = root;
-	
+//	result->function.params =
+
 	addFuncRoot(name, root);
 	
-	debug("\tnode: Operand Def\n");
+	debug("\tnode: Operand Fun %s\n", name);
 	return result;
 }
 
@@ -165,19 +167,22 @@ node* ifx(node* p, node* result) {
 }
 
 node* delimiter(node* p, node* result) {
-	node* left = ex(p->oper.op[0]);
-	if (left->type == typeReturn) {
-		result->type = left->type;
-		result->ret.value = left->ret.value;
-		return result;
-	}
-	node* right = ex(p->oper.op[1]);
-	if (right->type == typeReturn) {
-		result->type = right->type;
-		result->ret.value = right->ret.value;
-		return result;
-	}
-	
+    if (p->oper.opCount > 0) {
+        node *left = ex(p->oper.op[0]);
+        if (left->type == typeReturn) {
+            result->type = typeReturn;
+            result->ret.value = left->ret.value;
+            return result;
+        }
+    }
+    if (p->oper.opCount > 1) {
+        node *right = ex(p->oper.op[1]);
+        if (right->type == typeReturn) {
+            result->type = typeReturn;
+            result->ret.value = right->ret.value;
+            return result;
+        }
+    }
 	result->type = typeOperator;
 	result->oper.oper = ';';
 	debug("\tnode: Operand Delimiter\n");
@@ -189,7 +194,7 @@ node* assign(node* p, node* result) {
 	node* value = ex(p->oper.op[1]);
 	int index = addSymbolNode(p->oper.op[0]->variable, value->constant.type);
 
-	typeEnum type = symbolTypes[index];
+	dataTypeEnum type = symbolTypes[index];
 	result->constant.type = type;
 	
 	if (type == typeInt) {
@@ -201,6 +206,9 @@ node* assign(node* p, node* result) {
 	} else if (type == typeString) {
 		result->constant.stringVal = stringVariables[index] = value->constant.stringVal;
 		debug("\tnode: Operand Assign string %s %s\n", name, value->constant.stringVal);
+	} else if (type == typeBool) {
+		result->constant.boolVal = boolVariables[index] = value->constant.boolVal;
+		debug("\tnode: Operand Assign bool %s %s\n", name, value->constant.boolVal == true ? "true" : "false");
 	}
 	return result;
 }
@@ -276,6 +284,29 @@ node* divide(node* p, node* result) {
 }
 
 
+node* andx(node* p, node* result) {
+    node* left = ex(p->oper.op[0]);
+    node* right = ex(p->oper.op[1]);
+    result->constant.boolVal = ((left->constant.boolVal == true) && (right->constant.boolVal == true)) ? true : false;
+    debug("\tnode: Operand OR\n");
+    return result;
+}
+
+node* orx(node* p, node* result) {
+    node* left = ex(p->oper.op[0]);
+    node* right = ex(p->oper.op[1]);
+    result->constant.boolVal = ((left->constant.boolVal == true) || (right->constant.boolVal == true)) ? true : false;
+    debug("\tnode: Operand OR\n");
+    return result;
+}
+
+node* neg(node* p, node* result) {
+    node* value = ex(p->oper.op[0]);
+    result->constant.boolVal = (value->constant.boolVal) == true ? false : true;
+    debug("\tnode: Operand NEG\n");
+    return result;
+}
+
 node* lt(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
@@ -325,11 +356,33 @@ node* ne(node* p, node* result) {
 }
 
 
+node* int_type(node* p, node* result) {
+    result->dataType.type = typeInt;
+	debug("\tnode: Operand INT_TYPE\n");
+	return result;
+}
+node* double_type(node* p, node* result) {
+    result->dataType.type = typeDouble;
+	debug("\tnode: Operand DOUBLE_TYPE\n");
+	return result;
+}
+node* bool_type(node* p, node* result) {
+    result->dataType.type = typeBool;
+	debug("\tnode: Operand BOOL_TYPE\n");
+	return result;
+}
+node* string_type(node* p, node* result) {
+    result->dataType.type = typeString;
+	debug("\tnode: Operand STRING_TYPE\n");
+	return result;
+}
+
+
 node* ex(node* p) {
 
 	const char* name;
 	int index;
-	typeEnum type;
+	dataTypeEnum type;
 	
 	node* result = malloc(sizeof(node));
 	result->type = typeEmpty;
@@ -340,22 +393,22 @@ node* ex(node* p) {
 	switch (p->type) {
 		case typeConstant:
 			result->type = typeConstant;
+            result->constant.type = p->constant.type;
 			switch (p->constant.type) {
 				case typeInt:		debug("\tnode: Constant Int %d\n", p->constant.intVal);
-									result->constant.type = typeInt;
 									result->constant.intVal = p->constant.intVal;
-									return result;
-				
+                                    break;
 				case typeDouble:	debug("\tnode: Constant Double %f\n", p->constant.doubleVal);
-									result->constant.type = typeDouble;
 									result->constant.doubleVal = p->constant.doubleVal;
-									return result;
-
+                                    break;
 				case typeString:	debug("\tnode: Constant String %s\n", p->constant.stringVal);
-									result->constant.type = typeString;
 									result->constant.stringVal = p->constant.stringVal;
-									return result;
+                                    break;
+				case typeBool:	    debug("\tnode: Constant Bool %s\n", p->constant.boolVal == true ? "true" : "false");
+									result->constant.boolVal = p->constant.boolVal;
+                                    break;
 			}
+            return result;
 		
 		case typeVariable:
 			name = p->variable.name;
@@ -374,6 +427,9 @@ node* ex(node* p) {
 			} else if (type == typeString) {
 				result->constant.stringVal = stringVariables[index];
 				debug("\tnode: Identifier %s %s\n", name, stringVariables[index]);
+			} else if (type == typeBool) {
+				result->constant.boolVal = boolVariables[index];
+				debug("\tnode: Identifier %s %s\n", name, boolVariables[index] == true ? "true" : "false");
 			}
 			
 			return result;
@@ -401,12 +457,21 @@ node* ex(node* p) {
 				case '*':		return multiply(p, result);
 				case '/':		return divide(p, result);
 
+                case AND:       return andx(p, result);
+                case OR:        return orx(p, result);
+                case NEG:       return neg(p, result);
+
 				case LT:		return lt(p, result);
 				case LE:		return le(p, result);
 				case GT:		return gt(p, result);
 				case GE:		return ge(p, result);
 				case EQ:		return eq(p, result);
 				case NE:		return ne(p, result);
+
+                case INT_TYPE:      return int_type(p, result);
+                case DOUBLE_TYPE:   return double_type(p, result);
+                case BOOL_TYPE:     return bool_type(p, result);
+                case STRING_TYPE:   return string_type(p, result);
 			}
 			
 		case typeFunctionCall:
