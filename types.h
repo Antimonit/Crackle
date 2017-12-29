@@ -1,6 +1,8 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
+
+
 typedef enum {
 	false,
 	true
@@ -78,5 +80,11 @@ typedef struct nodeTag {
         dataTypeNode dataType;
     };
 } node;
+
+
+const char* getDataTypeString(dataTypeEnum type);
+
+const char* getConstantValueString(constantNode constant);
+
 
 #endif

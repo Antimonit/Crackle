@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mem.h>
-#include "symbols.h"
+#include "symbol_table.h"
+#include "function_symbol_table.h"
 #include "types.h"
 #include "y.tab.h"
 #include "debug.h"
@@ -40,31 +41,36 @@ dataTypeEnum widenNodes(node* a, node* b) {
 
 
 node* var(node* p, node* result) {
-    variableNode variable = p->oper.op[0]->variable;
-	node* type = ex(p->oper.op[1]);
-	int index = addSymbolNode(variable, type->dataType.type);
+    variableNode variableNode = p->oper.op[0]->variable;
+	node* typeNode = ex(p->oper.op[1]);
+	constantNode* variable = addSymbolNode(variableNode, typeNode->dataType.type);
+    if (variable == NULL) {
+        // TODO
+        return result;
+    }
+	const char* name = variableNode.name;
+    dataTypeEnum type = variable->type;
 
-    dataTypeEnum dataType = variables[index].type;
-    result->constant.type = dataType;
-
-    if (dataType == typeInt) {
-        result->constant.intVal = variables[index].intVal = 0;
-        debug("\tnode: Operand Var int %s %d\n", variable.name, variables[index].intVal);
-    } else if (dataType == typeDouble) {
-        result->constant.doubleVal = variables[index].doubleVal = 0.0;
-        debug("\tnode: Operand Var double %s %f\n", variable.name, variables[index].doubleVal);
-    } else if (dataType == typeString) {
-        result->constant.stringVal = variables[index].stringVal = "";
-        debug("\tnode: Operand Var string %s %s\n", variable.name, variables[index].stringVal);
-    } else if (dataType == typeBool) {
-        result->constant.boolVal = variables[index].boolVal = false;
-        debug("\tnode: Operand Var bool %s %s\n", variable.name, variables[index].boolVal == true ? "true" : "false");
+    result->constant.type = type;
+    if (type == typeInt) {
+        result->constant.intVal = variable->intVal = 0;
+        debug("\tnode: Operand Var int %s %d\n", name, variable->intVal);
+    } else if (type == typeDouble) {
+        result->constant.doubleVal = variable->doubleVal = 0.0;
+        debug("\tnode: Operand Var double %s %f\n", name, variable->doubleVal);
+    } else if (type == typeString) {
+        result->constant.stringVal = variable->stringVal = "";
+        debug("\tnode: Operand Var string %s %s\n", name, variable->stringVal);
+    } else if (type == typeBool) {
+        result->constant.boolVal = variable->boolVal = false;
+        debug("\tnode: Operand Var bool %s %s\n", name, variable->boolVal == true ? "true" : "false");
     }
 	return result;
 }
 
 node* fun(node *p, node *result) {
-	const char* name = p->oper.op[0]->variable.name;
+	variableNode variableNode = p->oper.op[0]->variable;
+	const char* name = variableNode.name;
 	node* params = ex(p->oper.op[1]);
     node* type = p->oper.op[2];
 	node* root = p->oper.op[3];
@@ -75,7 +81,7 @@ node* fun(node *p, node *result) {
 	result->function.root = root;
 //	result->function.params = TODO
 
-	addFuncRoot(name, root);
+	addFunctionRoot(name, root);
 	
 	debug("\tnode: Operand Fun %s\n", name);
 	return result;
@@ -86,11 +92,9 @@ node* returnx(node* p, node* result) {
 	
 	result->type = typeReturn;
 	result->ret.value = value->constant;
-	if (result->ret.value.type == typeInt) {
-		debug("\tnode: Operand Return %d\n", result->ret.value.intVal);
-	} else if (result->ret.value.type == typeDouble) {
-		debug("\tnode: Operand Return %f\n", result->ret.value.doubleVal);
-	}
+
+    debug("\tnode: Operand Return %s\n", getConstantValueString(result->ret.value));
+
 	return result;
 }
 
@@ -116,26 +120,21 @@ node* comma(node* p, node* result) {
 node* functionCall(node* p, node* result) {
 	const char* name = p->function.name;
 	
-	int index = findFunctionSymbol(name);
-	if (index == -1) {
+	node* root = findFunctionRoot(name);
+	if (root == NULL) {
 		printf("Function %s is undefined.\n", name);
 		return result;
 	}
-	
-	// TODO: pass arguments to function
-		
-	node* res = ex(funcRoots[index]);
+
+    node* res = ex(root);
+
+    // TODO: pass arguments to function
 
 	result->type = typeConstant;
 	result->constant.type = res->constant.type;
-	if (result->constant.type == typeInt) {
-		result->constant.intVal = res->constant.intVal;
-		debug("\tnode: Function Call %s %d\n", name, result->constant.intVal);
-	} else if (result->constant.type == typeDouble) {
-		result->constant.doubleVal = res->constant.doubleVal;
-		debug("\tnode: Function Call %s %f\n", name, result->constant.doubleVal);
-	}
-	
+    result->constant = res->constant;
+    debug("\tnode: Function Call %s %s\n", name, getConstantValueString(result->constant));
+
 	return result;
 }
 
@@ -205,29 +204,23 @@ node* delimiter(node* p, node* result) {
 }
 
 node* assign(node* p, node* result) {
-    variableNode variable = p->oper.op[0]->variable;
+	variableNode variableNode = p->oper.op[0]->variable;
 	node* value = ex(p->oper.op[1]);
-    int index = findTypedSymbolNode(variable, value->constant.type);
-    if (index == -1) {
-        printf("Symbol not found.\n");
+	constantNode* variable = findTypedSymbolNode(variableNode, value->dataType.type);
+    if (variable == NULL) {
+        printf("Undefined variable '%s'.\n", variableNode.name);
+		return result;
     }
 
-	dataTypeEnum type = variables[index].type;
+	const char* name = variableNode.name;
+	dataTypeEnum type = variable->type;
+
 	result->constant.type = type;
-	
-	if (type == typeInt) {
-		result->constant.intVal = variables[index].intVal = value->constant.intVal;
-		debug("\tnode: Operand Assign int %s %d\n", variable.name, value->constant.intVal);
-	} else if (type == typeDouble) {
-		result->constant.doubleVal = variables[index].doubleVal = value->constant.doubleVal;
-		debug("\tnode: Operand Assign double %s %f\n", variable.name, value->constant.doubleVal);
-	} else if (type == typeString) {
-		result->constant.stringVal = variables[index].stringVal = value->constant.stringVal;
-		debug("\tnode: Operand Assign string %s %s\n", variable.name, value->constant.stringVal);
-	} else if (type == typeBool) {
-		result->constant.boolVal = variables[index].boolVal = value->constant.boolVal;
-		debug("\tnode: Operand Assign bool %s %s\n", variable.name, value->constant.boolVal == true ? "true" : "false");
-	}
+    result->constant = *variable = value->constant;
+
+    debug("\tnode: Operand Assign %s %s %s\n",
+          getDataTypeString(value->constant.type), name, getConstantValueString(value->constant));
+
 	return result;
 }
 
@@ -280,7 +273,8 @@ node* multiply(node* p, node* result) {
 	} else if (result->constant.type == typeDouble) {
 		result->constant.doubleVal = left->constant.doubleVal * right->constant.doubleVal;
 		debug("\tnode: Operand Multiply %f\n", result->constant.doubleVal);
-	}
+    }
+
 	return result;
 }
 node* divide(node* p, node* result) {
@@ -384,10 +378,6 @@ node* string_type(node* p, node* result) {
 
 node* ex(node* p) {
 
-	const char* name;
-	int index;
-	dataTypeEnum type;
-	
 	node* result = malloc(sizeof(node));
 	result->type = typeEmpty;
 
@@ -397,45 +387,20 @@ node* ex(node* p) {
 	switch (p->type) {
 		case typeConstant:
 			result->type = typeConstant;
-            result->constant.type = p->constant.type;
-			switch (p->constant.type) {
-				case typeInt:		debug("\tnode: Constant Int %d\n", p->constant.intVal);
-									result->constant.intVal = p->constant.intVal;
-                                    break;
-				case typeDouble:	debug("\tnode: Constant Double %f\n", p->constant.doubleVal);
-									result->constant.doubleVal = p->constant.doubleVal;
-                                    break;
-				case typeString:	debug("\tnode: Constant String %s\n", p->constant.stringVal);
-									result->constant.stringVal = p->constant.stringVal;
-                                    break;
-				case typeBool:	    debug("\tnode: Constant Bool %s\n", p->constant.boolVal == true ? "true" : "false");
-									result->constant.boolVal = p->constant.boolVal;
-                                    break;
-			}
+            result->constant = p->constant;
+            debug("\tnode: Constant %s %s\n", getDataTypeString(p->constant.type),
+                  getConstantValueString(p->constant));
             return result;
 		
 		case typeVariable:
-			name = p->variable.name;
-			index = findSymbol(name);
-			type = variables[index].type;
+			;
+			const char* name = p->variable.name;
+			constantNode* variable = findSymbolNode(name);
 
-			result->type = typeConstant;
-			result->constant.type = type;
+            result->constant = *variable;
+            result->type = typeConstant;
 
-			if (type == typeInt) {
-				result->constant.intVal = variables[index].intVal;
-				debug("\tnode: Identifier %s %d\n", name, variables[index].intVal);
-			} else if (type == typeDouble) {
-				result->constant.doubleVal = variables[index].doubleVal;
-				debug("\tnode: Identifier %s %f\n", name, variables[index].doubleVal);
-			} else if (type == typeString) {
-				result->constant.stringVal = variables[index].stringVal;
-				debug("\tnode: Identifier %s %s\n", name, variables[index].stringVal);
-			} else if (type == typeBool) {
-				result->constant.boolVal = variables[index].boolVal;
-				debug("\tnode: Identifier %s %s\n", name, variables[index].boolVal == true ? "true" : "false");
-			}
-			
+            debug("\tnode: Identifier %s %s\n", name, getConstantValueString(*variable));
 			return result;
 
 		case typeOperator:

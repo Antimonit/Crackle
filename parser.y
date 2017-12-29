@@ -6,7 +6,7 @@
 #include <math.h>
 #include "types.h"
 #include "interpreter.h"
-#include "symbols.h"
+#include "symbol_table.h"
 
 int yylex(void);
 int yyerror(const char* message);
@@ -63,7 +63,7 @@ char temp[100];
 
 %token PRINT
 
-%type <node> value expression lex_error
+%type <node> primitive_value expression lex_error
 %type <node> statement statement_list
 %type <node> if_statement while_statement
 %type <node> var_definition
@@ -92,23 +92,10 @@ program
 					}
 					break;
 				case typeConstant:
-					switch (result.constant.type) {
-						case typeInt:
-							printf("%d\n", result.constant.intVal);
-							break;
-						case typeDouble:
-							printf("%f\n", result.constant.doubleVal);
-							break;
-						case typeString:
-							printf("%s\n", result.constant.stringVal);
-							break;
-						case typeBool:
-							printf("%s\n", result.constant.boolVal == true ? "true" : "false");
-							break;
-					}
+				    printf("%s\n", getConstantValueString(result.constant));
 					break;
 				case typeFunctionDef:
-					printf("%s defined\n", result.function.name);
+					printf("Function %s defined\n", result.function.name);
 					break;
 				case typeEmpty:
 					break;
@@ -200,8 +187,8 @@ expression
 		| '(' expression ')'			{ $$ = $2; }
 		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
 		| IDENTIFIER {
-			int index = findSymbol($1);
-			if (index == -1) {
+			constantNode* symbol = findSymbolNode($1);
+			if (symbol == NULL) {
 				$$ = empty();
 				sprintf(temp, "%s is undefined", $1);
 				yyerror(temp);
@@ -210,11 +197,11 @@ expression
 				$$ = variable($1);
 			}
 		}
-	 	| func_call		{ $$ = $1; }
-		| value			{ $$ = $1; }
-		| lex_error		{ $$ = $1; }
+	 	| func_call			{ $$ = $1; }
+		| primitive_value	{ $$ = $1; }
+		| lex_error			{ $$ = $1; }
 
-value
+primitive_value
 		: INT_VALUE		{ $$ = constantInt($1); }
 		| DOUBLE_VALUE	{ $$ = constantDouble($1); }
 		| STRING_VALUE	{ $$ = constantString($1); }
