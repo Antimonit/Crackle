@@ -1,15 +1,16 @@
 %{
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
+#include <stdarg.h>
 #include <math.h>
 #include "types.h"
 #include "interpreter.h"
 #include "symbols.h"
 
-int yyerror(const char* message);
 int yylex(void);
+int yyerror(const char* message);
+int lineCounter;
 
 node* empty();
 node* funCall(const char* value, node* params);
@@ -23,8 +24,6 @@ node* ex(node* p);
 void freeNode(node* p);
 
 char temp[100];
-
-int lineCounter;
 
 %}
 

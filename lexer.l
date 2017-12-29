@@ -1,16 +1,15 @@
 %{
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "types.h"
 #include "y.tab.h"
 
+
 extern int yylex (void);
-
-int yyerror(const char* message);
-
+extern int yyerror(const char* message);
 extern int lineCounter;
 
 %}
