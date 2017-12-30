@@ -33,7 +33,7 @@ char temp[100];
 	char* stringVal;
 	bool boolVal;
 	char* identifier;
-    node* node;
+	 node* node;
 }
 
 
@@ -85,14 +85,14 @@ program
 				case typeOperator:
 					switch (result.oper.oper) {
 						case WHILE: break;
-						case IF:    break;
-						case FUN:   break;
-						case VAR:   break;
-						default:    printf("WRONG OPERATOR\n");
+						case IF:	 break;
+						case FUN:	break;
+						case VAR:	break;
+						default:	 printf("WRONG OPERATOR\n");
 					}
 					break;
 				case typeConstant:
-				    printf("%s\n", getConstantValueString(result.constant));
+					printf("%s\n", getConstantValueString(result.constant));
 					break;
 				case typeFunctionDef:
 					printf("Function %s defined\n", result.function.name);
@@ -106,24 +106,24 @@ program
 		|
 
 statement
-		: expression ';'	    { $$ = $1; }
+		: expression ';'		{ $$ = $1; }
 	 	| if_statement			{ $$ = $1; }
 	 	| while_statement		{ $$ = $1; }
-	 	| var_definition        { $$ = $1; }
+	 	| var_definition		{ $$ = $1; }
 	 	| fun_definition		{ $$ = $1; }
 	 	| return_statement		{ $$ = $1; }
 		| error					{ printf("\n"); }
 
 statement_list
 		: statement_list statement	{ $$ = op(';', 2, $1, $2); }
-        | { $$ = op(';', 0); }
+		| { $$ = op(';', 0); }
 
 if_statement
 		: IF '(' bool ')' '{' statement_list '}' {
-		    $$ = op(IF, 2, $3, $6);
-        }
+			 $$ = op(IF, 2, $3, $6);
+		}
 		| IF '(' bool ')' '{' statement_list '}' ELSE '{' statement_list '}' {
-		    $$ = op(IF, 3, $3, $6, $10);
+			 $$ = op(IF, 3, $3, $6, $10);
 		}
 
 while_statement
@@ -133,7 +133,7 @@ bool
 		: bool OR bool		{ $$ = op(OR, 2, $1, $3); }
 		| bool AND bool		{ $$ = op(AND, 2, $1, $3); }
 		| NEG bool			{ $$ = op(NEG, 1, $2); }
-		| '(' bool ')'	    { $$ = $2; }
+		| '(' bool ')'		 { $$ = $2; }
 		| expression comparison_operand expression { $$ = op($2->oper.oper, 2, $1, $3); }
 		| TRUE				{ $$ = constantBool(true); }
 		| FALSE				{ $$ = constantBool(false); }
@@ -147,25 +147,25 @@ comparison_operand
 		| NE { $$ = op(NE, 0); }
 
 data_type
-        : INT_TYPE      { $$ = op(INT_TYPE, 0); }
-        | DOUBLE_TYPE   { $$ = op(DOUBLE_TYPE, 0); }
-        | BOOL_TYPE     { $$ = op(BOOL_TYPE, 0); }
-        | STRING_TYPE   { $$ = op(STRING_TYPE, 0); }
+		: INT_TYPE		{ $$ = op(INT_TYPE, 0); }
+		| DOUBLE_TYPE	{ $$ = op(DOUBLE_TYPE, 0); }
+		| BOOL_TYPE	  { $$ = op(BOOL_TYPE, 0); }
+		| STRING_TYPE	{ $$ = op(STRING_TYPE, 0); }
 
 var_definition
-        : VAR IDENTIFIER ':' data_type ';' { $$ = op(VAR, 2, variable($2), $4); }
+		: VAR IDENTIFIER ':' data_type ';' { $$ = op(VAR, 2, variable($2), $4); }
 
 fun_definition
 		: FUN IDENTIFIER '(' func_param_list ')' ':' data_type '{' statement_list '}' {
-            $$ = op(FUN, 4, variable($2), $4, $7, $9);
+			$$ = op(FUN, 4, variable($2), $4, $7, $9);
 		}
 		| FUN IDENTIFIER '(' ')' ':' data_type '{' statement_list '}' {
-		$$ = op(FUN, 4, variable($2), NULL, $6, $8);
+			$$ = op(FUN, 4, variable($2), NULL, $6, $8);
 		}
 
 func_param_list
-		: IDENTIFIER							{ $$ = variable($1); }
-		| func_param_list ',' IDENTIFIER		{ $$ = op(',', 2, $1, variable($3)); }
+		: IDENTIFIER ':' data_type							{ $$ = variable($1); }
+		| func_param_list ',' IDENTIFIER ':' data_type		{ $$ = op(',', 2, $1, variable($3)); }
 
 return_statement
 		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
@@ -183,11 +183,11 @@ expression
 		| expression '-' expression	{ $$ = op('-', 2, $1, $3); }
 		| expression '*' expression	{ $$ = op('*', 2, $1, $3); }
 		| expression '/' expression	{ $$ = op('/', 2, $1, $3); }
-		| '-' expression %prec UMINUS   { $$ = op(UMINUS, 1, $2); }
+		| '-' expression %prec UMINUS	{ $$ = op(UMINUS, 1, $2); }
 		| '(' expression ')'			{ $$ = $2; }
 		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
 		| IDENTIFIER {
-            $$ = variable($1);
+			$$ = variable($1);
 //			constantNode* symbol = findSymbolNode($1);
 //			if (symbol == NULL) {
 //				$$ = empty();
@@ -197,6 +197,7 @@ expression
 //			} else {
 //				$$ = variable($1);
 //			}
+
 		}
 	 	| func_call			{ $$ = $1; }
 		| primitive_value	{ $$ = $1; }
@@ -206,8 +207,8 @@ primitive_value
 		: INT_VALUE		{ $$ = constantInt($1); }
 		| DOUBLE_VALUE	{ $$ = constantDouble($1); }
 		| STRING_VALUE	{ $$ = constantString($1); }
-		| TRUE          { $$ = constantBool(true); }
-		| FALSE         { $$ = constantBool(false); }
+		| TRUE			{ $$ = constantBool(true); }
+		| FALSE			{ $$ = constantBool(false); }
 
 lex_error
 		: LEX_ERROR {
@@ -295,35 +296,35 @@ node* variable(const char* value) {
 
 node* op(int oper, int opCount, ...) {
 	/* allocate node, extending op array */
-    node* p = malloc(sizeof(node) + (opCount-1) * sizeof(node*));
+	 node* p = malloc(sizeof(node) + (opCount-1) * sizeof(node*));
 
-    if (p == NULL)
-        yyerror("out of memory");
+	 if (p == NULL)
+		  yyerror("out of memory");
 
-    p->type = typeOperator;
-    p->oper.oper = oper;
-    p->oper.opCount = opCount;
+	 p->type = typeOperator;
+	 p->oper.oper = oper;
+	 p->oper.opCount = opCount;
 
-    va_list ap;
-    va_start(ap, opCount);
-    for (int i = 0; i < opCount; i++) {
-        p->oper.op[i] = va_arg(ap, node*);
+	 va_list ap;
+	 va_start(ap, opCount);
+	 for (int i = 0; i < opCount; i++) {
+		  p->oper.op[i] = va_arg(ap, node*);
 	}
-    va_end(ap);
+	 va_end(ap);
 
-    return p;
+	 return p;
 }
 
 void freeNode(node* node) {
-    if (!node)
-    	return;
+	 if (!node)
+	 	return;
 
-    if (node->type == typeOperator) {
-        for (int i = 0; i < node->oper.opCount; i++) {
-            freeNode(node->oper.op[i]);
+	 if (node->type == typeOperator) {
+		  for (int i = 0; i < node->oper.opCount; i++) {
+				freeNode(node->oper.op[i]);
 		}
-    }
-    free(node);
+	 }
+	 free(node);
 }
 
 int main(void) {

@@ -70,11 +70,12 @@ node* var(node* p, node* result) {
 
 node* fun(node *p, node *result) {
 	variableNode variableNode = p->oper.op[0]->variable;
-	const char* name = variableNode.name;
 	node* params = ex(p->oper.op[1]);
     node* type = p->oper.op[2];
 	node* root = p->oper.op[3];
-	
+
+	const char* name = variableNode.name;
+
 	result->type = typeFunctionDef;
 	result->function.name = name;
     result->function.dataType = type->dataType.type;
@@ -386,7 +387,9 @@ node* string_type(node* p, node* result) {
 }
 
 node* ex(node* p) {
-
+	printf("executing a node\n");
+	if (p == NULL)
+		printf("node is null\n");
 	node* result = malloc(sizeof(node));
 	result->type = typeEmpty;
 
