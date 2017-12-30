@@ -15,9 +15,10 @@ typedef struct symbolTable {
 } symbolTable;
 
 
-symbolTable globalSymbolTable;
+void pushSymbolTableScope();
 
-symbolTable* currentSymbolTable;
+void popSymbolTableScope();
+
 
 
 constantNode* findSymbolNode(const char *symbol);

@@ -126,29 +126,34 @@ node* functionCall(node* p, node* result) {
 		return result;
 	}
 
-    node* res = ex(root);
+	pushSymbolTableScope();
 
-    // TODO: pass arguments to function
+	// TODO: pass arguments to function
+    node* res = ex(root);
 
 	result->type = typeConstant;
 	result->constant.type = res->constant.type;
     result->constant = res->constant;
+	popSymbolTableScope();
     debug("\tnode: Function Call %s %s\n", name, getConstantValueString(result->constant));
 
 	return result;
 }
 
 node* whilex(node* p, node* result) {
+	pushSymbolTableScope();
 	while (ex(p->oper.op[0])->constant.intVal) {
 		node* left = ex(p->oper.op[1]);
 		if (left->type == typeReturn) {
 			result->type = left->type;
 			result->ret.value = left->ret.value;
+			popSymbolTableScope();
 			debug("\tnode: Operand While\n");
 			return result;
 		}
 	}
-	
+	popSymbolTableScope();
+
 	result->type = typeOperator;
 	result->oper.oper = WHILE;
 	debug("\tnode: Operand While\n");
@@ -156,11 +161,13 @@ node* whilex(node* p, node* result) {
 }
 
 node* ifx(node* p, node* result) {
+	pushSymbolTableScope();
 	if (ex(p->oper.op[0])->constant.intVal) {
 		node* left = ex(p->oper.op[1]);
 		if (left->type == typeReturn) {
 			result->type = left->type;
 			result->ret.value = left->ret.value;
+			popSymbolTableScope();
 			debug("\tnode: Operand IF\n");
 			return result;
 		}
@@ -169,13 +176,15 @@ node* ifx(node* p, node* result) {
 		if (right->type == typeReturn) {
 			result->type = right->type;
 			result->ret.value = right->ret.value;
+			popSymbolTableScope();
 			debug("\tnode: Operand IF\n");
 			return result;
 		}
 	}
-	
+
 	result->type = typeOperator;
 	result->oper.oper = IF;
+	popSymbolTableScope();
 	debug("\tnode: Operand IF\n");
 	return result;
 }
@@ -388,17 +397,16 @@ node* ex(node* p) {
 		case typeConstant:
 			result->type = typeConstant;
             result->constant = p->constant;
-            debug("\tnode: Constant %s %s\n", getDataTypeString(p->constant.type),
-                  getConstantValueString(p->constant));
+            debug("\tnode: Constant %s %s\n", getDataTypeString(p->constant.type), getConstantValueString(p->constant));
             return result;
 		
 		case typeVariable:
-			;
+            result->type = typeConstant;
+
 			const char* name = p->variable.name;
 			constantNode* variable = findSymbolNode(name);
 
             result->constant = *variable;
-            result->type = typeConstant;
 
             debug("\tnode: Identifier %s %s\n", name, getConstantValueString(*variable));
 			return result;

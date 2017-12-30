@@ -9,6 +9,7 @@ symbolTable globalSymbolTable;
 
 symbolTable* currentSymbolTable = &globalSymbolTable;
 
+
 void printAllSymbols() {
 	symbolTable* table = currentSymbolTable;
 	printf("----ALL SYMBOLS----\n");
@@ -29,6 +30,7 @@ void printAllSymbols() {
 
 void pushSymbolTableScope() {
     symbolTable* table = malloc(sizeof(symbolTable));
+	table->symbolId = 0;
     table->parentTable = currentSymbolTable;
     currentSymbolTable = table;
 }
@@ -40,15 +42,22 @@ void popSymbolTableScope() {
 }
 
 
+constantNode* findSymbolNodeInTable(symbolTable* table, const char *symbol) {
+    for (int i = 0; i < table->symbolId; i++) {
+        if (strcmp(table->symbols[i], symbol) == 0) {
+            return &table->variables[i];
+        }
+    }
+    return NULL;
+}
 
 constantNode* findSymbolNode(const char *symbol) {
 	symbolTable* table = currentSymbolTable;
 	while (table != NULL) {
-		for (int i = 0; i < table->symbolId; i++) {
-			if (strcmp(table->symbols[i], symbol) == 0) {
-				return &table->variables[i];
-			}
-		}
+        constantNode *res = findSymbolNodeInTable(table, symbol);
+        if (res != NULL) {
+            return res;
+        }
 		table = table->parentTable;
 	}
     return NULL;
@@ -66,8 +75,8 @@ constantNode* findTypedSymbolNode(variableNode variableNode, dataTypeEnum type) 
 constantNode* addSymbolNode(variableNode variableNode, dataTypeEnum type) {
 	symbolTable *table = currentSymbolTable;
 	constantNode* variables = table->variables;
-	
-	constantNode* symbolNode = findSymbolNode(variableNode.name);
+
+	constantNode* symbolNode = findSymbolNodeInTable(table, variableNode.name);
 	if (symbolNode == NULL) {	// new symbol
 		strncpy(table->symbols[table->symbolId], variableNode.name, strlen(variableNode.name));
 		constantNode* variable = &variables[table->symbolId];

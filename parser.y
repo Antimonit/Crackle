@@ -187,15 +187,16 @@ expression
 		| '(' expression ')'			{ $$ = $2; }
 		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
 		| IDENTIFIER {
-			constantNode* symbol = findSymbolNode($1);
-			if (symbol == NULL) {
-				$$ = empty();
-				sprintf(temp, "%s is undefined", $1);
-				yyerror(temp);
-				YYERROR;
-			} else {
-				$$ = variable($1);
-			}
+            $$ = variable($1);
+//			constantNode* symbol = findSymbolNode($1);
+//			if (symbol == NULL) {
+//				$$ = empty();
+//				sprintf(temp, "%s is undefined", $1);
+//				yyerror(temp);
+//				YYERROR;
+//			} else {
+//				$$ = variable($1);
+//			}
 		}
 	 	| func_call			{ $$ = $1; }
 		| primitive_value	{ $$ = $1; }
