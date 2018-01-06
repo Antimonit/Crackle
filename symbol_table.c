@@ -26,13 +26,13 @@ void printAllSymbols() {
 	symbolTable* table = currentSymbolTable;
 	printf("----ALL SYMBOLS----\n");
 	for (int i = 0; i < table->symbolId; ++i) {
-		if (table->variables[i].type == typeInt) {
+		if (table->variables[i].dataType == typeInt) {
 			printf("Int %s: %d\n", table->symbols[i], table->variables[i].intVal);
-		} else if (table->variables[i].type == typeDouble) {
+		} else if (table->variables[i].dataType == typeDouble) {
 			printf("Double %s: %f\n", table->symbols[i], table->variables[i].doubleVal);
-		} else if (table->variables[i].type == typeString) {
+		} else if (table->variables[i].dataType == typeString) {
 			printf("String %s: %s\n", table->symbols[i], table->variables[i].stringVal);
-		} else if (table->variables[i].type == typeBool) {
+		} else if (table->variables[i].dataType == typeBool) {
 			printf("Bool %s: %s\n", table->symbols[i], table->variables[i].boolVal ? "true" : "false");
 		}
 	}
@@ -75,22 +75,25 @@ constantNode* findSymbolNode(const char *symbol) {
     return NULL;
 }
 
-constantNode* addSymbolNode(variableNode variableNode, dataTypeEnum type) {
+constantNode* addSymbolNode(variableNode variableNode) {
 	symbolTable *table = currentSymbolTable;
 	constantNode* variables = table->variables;
 
-	constantNode* symbolNode = findSymbolNodeInTable(table, variableNode.name);
+	const char *name = variableNode.name;
+	dataTypeEnum dataType = variableNode.dataType;
+
+	constantNode* symbolNode = findSymbolNodeInTable(table, name);
 	if (symbolNode == NULL) {	// new symbol
-		strncpy(table->symbols[table->symbolId], variableNode.name, strlen(variableNode.name));
+		strncpy(table->symbols[table->symbolId], name, strlen(name));
 		constantNode* variable = &variables[table->symbolId];
 		table->symbolId++;
-		variable->type = type;
+		variable->dataType = dataType;
 		return variable;
 	} else {			// existing symbol
 		printf("Warning: Trying to redeclare variable '%s' of type %s to type %s.\n",
-			  variableNode.name,
-              getDataTypeString(variables->type),
-              getDataTypeString(type));
+			   name,
+              getDataTypeString(variables->dataType),
+              getDataTypeString(dataType));
 
 //		if (dataType == typeDouble && symbolTypes[index] == typeInt) {
 //			debug("\tChange variableNode from int to double\n");

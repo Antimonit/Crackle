@@ -10,6 +10,6 @@ void popSymbolTableScope();
 
 constantNode* findSymbolNode(const char *symbol);
 
-constantNode* addSymbolNode(variableNode variableNode, dataTypeEnum type);
+constantNode* addSymbolNode(variableNode variableNode);
 
 #endif

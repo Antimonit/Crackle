@@ -14,7 +14,7 @@ int yyerror(const char* message);
 int lineCounter;
 
 node* empty();
-node* funCall(const char* value, node* params);
+node* functionCall(const char* value, node* params);
 node* constantInt(int value);
 node* constantDouble(double value);
 node* constantString(char* value);
@@ -33,7 +33,7 @@ void freeNode(node* p);
 	bool boolVal;
 	char* identifier;
 	node* node;
-	nodeTypeEnum type;
+	dataTypeEnum dataType;
 }
 
 %token LEX_ERROR
@@ -69,7 +69,7 @@ void freeNode(node* p);
 %type <node> func_call argument_expression_list
 %type <node> return_statement
 %type <node> typed_identifier
-%type <type> type_specifier
+%type <dataType> type_specifier
 
 %%
 
@@ -117,25 +117,25 @@ var_declaration
 
 fun_definition
 		: typed_identifier '(' fun_param_list ')' '{' statement_list '}' {
-			$$ = op(FUN, 3, $1, $3, $6);
+			$$ = function($1, $3, $6);
 		}
 		| typed_identifier '(' ')' '{' statement_list '}' {
-			$$ = op(FUN, 3, $1, NULL, $5);
+			$$ = function($1, NULL, $5);
 		}
 
 fun_param_list
-		: typed_identifier							{ $$ = op(',', 2, $1, NULL); }
+		: typed_identifier							{ $$ = op(',', 2, NULL, $1); }
 		| fun_param_list ',' typed_identifier		{ $$ = op(',', 2, $1, $3); }
 
 return_statement
 		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
 
 func_call
-		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = funCall($1, $3); }
-		| IDENTIFIER '(' ')' 							{ $$ = funCall($1, NULL); }
+		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = functionCall($1, $3); }
+		| IDENTIFIER '(' ')' 							{ $$ = functionCall($1, NULL); }
 
 argument_expression_list
-		: expression								{ $$ = $1; }
+		: expression								{ $$ = op(',', 2, NULL, $1; }
 		| argument_expression_list ',' expression	{ $$ = op(',', 2, $1, $3); }
 
 expression

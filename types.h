@@ -20,12 +20,13 @@ typedef enum {
     typeInt,
     typeDouble,
 	typeString,
-	typeBool
+	typeBool,
+	typeUndefined
 } dataTypeEnum;
 
 
-typedef struct {
-    dataTypeEnum type;
+typedef struct constantNodeTag {
+    dataTypeEnum dataType;
     union {
         int intVal;
         double doubleVal;
@@ -34,7 +35,7 @@ typedef struct {
     };
 } constantNode;
 
-typedef struct {
+typedef struct variableNodeTag {
 	dataTypeEnum dataType;
     const char* name;
 } variableNode;
@@ -42,19 +43,21 @@ typedef struct {
 typedef struct {
     int oper;
     int opCount;
-    struct nodeTag* op[1];	/* operands, extended at runtime */
+    struct nodeTag* op[0];	/* operands, extended at runtime */
 } operatorNode;
 
 typedef struct {
 	const char* name;
 	dataTypeEnum dataType;
-	variableNode* params[1];
 	struct nodeTag* root;
+	int paramCount;
+	variableNode* params[0];	/* params, extended at runtime */
 } functionNode;
 
 typedef struct {
 	const char* name;
-	constantNode* params[1];
+	int paramCount;
+	constantNode* params[0];	/* params, extended at runtime */
 } functionCallNode;
 
 typedef struct {

@@ -8,21 +8,12 @@
 #define MAX_VAR_NAME_LENGTH 16
 
 typedef struct {
-	char name[MAX_VAR_NAME_LENGTH];
-	node* rootNode;
-	dataTypeEnum returnType;
-	int paramCount;
-	variableNode* params;
-} functionRecord;
-
-typedef struct {
 	int symbolId;
-	functionRecord functions[MAX_VARS];
+	functionNode* functions[MAX_VARS];
 } functionSymbolTable;
 
+functionNode* findFunction(const char *symbol);
 
-functionRecord* findFunction(const char *symbol);
-
-void addFunction(const char *symbol, node *root, dataTypeEnum returnType);
+void addFunction(functionNode* function);
 
 #endif

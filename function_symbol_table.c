@@ -8,10 +8,9 @@
 functionSymbolTable functionTable;
 
 
-functionRecord* findFunction(const char *symbol) {
-	functionSymbolTable* table = &functionTable;
-	for (int i = 0; i < table->symbolId; i++) {
-		functionRecord* function = &table->functions[i];
+functionNode* findFunction(const char *symbol) {
+	for (int i = 0; i < functionTable.symbolId; i++) {
+		functionNode* function = functionTable.functions[i];
 		if (strcmp(function->name, symbol) == 0) {
 			return function;
 		}
@@ -19,16 +18,12 @@ functionRecord* findFunction(const char *symbol) {
 	return NULL;
 }
 
-void addFunction(const char *symbol, node *root, dataTypeEnum returnType) {
-	if (findFunction(symbol) != NULL) {
-		printf("Warning: Trying to redeclare function '%s'\n", symbol);
+void addFunction(functionNode* function) {
+	if (findFunction(function->name) != NULL) {
+		printf("Warning: Trying to redeclare function '%s'\n", function->name);
 		return;
 	}
 	// new symbol
-	functionSymbolTable* table = &functionTable;
-	functionRecord* function = &table->functions[table->symbolId];
-	strncpy(function->name, symbol, strlen(symbol));
-	function->rootNode = root;
-	function->returnType = returnType;
-	table->symbolId++;
+	functionTable.functions[functionTable.symbolId] = function;
+	functionTable.symbolId++;
 }
