@@ -60,6 +60,8 @@ string      \"(\\.|[^\\"])*\"
 "fun"		return FUN;
 "return"	return RETURN;
 
+"print"		return PRINT;
+
 "="			return ASSIGN;
 
 "("			return '(';

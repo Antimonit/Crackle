@@ -46,6 +46,7 @@ void freeNode(node* p);
 %token <identifier> IDENTIFIER
 
 %token VAR FUN RETURN
+%token PRINT
 %nonassoc LT LE GT GE EQ NE
 %left OR
 %left AND
@@ -60,8 +61,6 @@ void freeNode(node* p);
 %token IF ELSE WHILE DO FOR
 %token INT DOUBLE BOOL STRING
 
-%token PRINT
-
 %type <node> primitive_value expression lex_error
 %type <node> statement statement_list
 %type <node> if_statement while_statement
@@ -69,20 +68,17 @@ void freeNode(node* p);
 %type <node> fun_definition fun_param_list
 %type <node> func_call argument_expression_list
 %type <node> return_statement
-%type <node> bool comparison_operand
 %type <node> type_specifier
 
 %%
 
 program
-		: statement {
-			node* resultP = ex($1);
-			node result = *resultP;
-			//freeNode($1);
+		: PRINT statement {
+			node* result = ex($2);
 
-			switch (result.type) {
+			switch (result->type) {
 				case typeOperator:
-					switch (result.oper.oper) {
+					switch (result->oper.oper) {
 						case WHILE: break;
 						case IF:	break;
 						case FUN:	break;
@@ -91,21 +87,28 @@ program
 					}
 					break;
 				case typeConstant:
-					printf("%s\n", getConstantValueString(result.constant));
+					printf("%s\n", getConstantValueString(result->constant));
 					break;
 				case typeFunctionDef:
-					printf("Function %s defined\n", result.function.name);
+					printf("Function %s defined\n", result->function.name);
 					break;
 				case typeEmpty:
 					break;
 				default:
 					printf("WRONG TYPE\n");
 			}
+			freeNode(result);
+			freeNode($2);
+		} program
+		| statement {
+			node* result = ex($1);
+			freeNode(result);
+			freeNode($1);
 		} program
 		|
 
 statement
-		: expression ';'		{ $$ = $1; }
+		: expression ';'        { $$ = $1; }
 	 	| if_statement			{ $$ = $1; }
 	 	| while_statement		{ $$ = $1; }
 	 	| var_declaration		{ $$ = $1; }
@@ -118,32 +121,11 @@ statement_list
 		| { $$ = op(';', 0); }
 
 if_statement
-		: IF '(' bool ')' '{' statement_list '}' {
-			 $$ = op(IF, 2, $3, $6);
-		}
-		| IF '(' bool ')' '{' statement_list '}' ELSE '{' statement_list '}' {
-			 $$ = op(IF, 3, $3, $6, $10);
-		}
+		: IF '(' expression ')' '{' statement_list '}'                                { $$ = op(IF, 2, $3, $6); }
+		| IF '(' expression ')' '{' statement_list '}' ELSE '{' statement_list '}'    { $$ = op(IF, 3, $3, $6, $10); }
 
 while_statement
-		: WHILE '(' bool ')' '{' statement_list '}' 	{ $$ = op(WHILE, 2, $3, $6); }
-
-bool
-		: bool OR bool		{ $$ = op(OR, 2, $1, $3); }
-		| bool AND bool		{ $$ = op(AND, 2, $1, $3); }
-		| NEG bool			{ $$ = op(NEG, 1, $2); }
-		| '(' bool ')'		 { $$ = $2; }
-		| expression comparison_operand expression { $$ = op($2->oper.oper, 2, $1, $3); }
-		| TRUE				{ $$ = constantBool(true); }
-		| FALSE				{ $$ = constantBool(false); }
-
-comparison_operand
-		: LT { $$ = op(LT, 0); }
-		| LE { $$ = op(LE, 0); }
-		| GT { $$ = op(GT, 0); }
-		| GE { $$ = op(GE, 0); }
-		| EQ { $$ = op(EQ, 0); }
-		| NE { $$ = op(NE, 0); }
+		: WHILE '(' expression ')' '{' statement_list '}' 	{ $$ = op(WHILE, 2, $3, $6); }
 
 type_specifier
 		: INT		{ $$ = type(INT); }
@@ -152,19 +134,19 @@ type_specifier
 		| STRING	{ $$ = type(STRING); }
 
 var_declaration
-		: VAR IDENTIFIER ':' type_specifier ';' { $$ = op(VAR, 1, typedVariable($2, $4->dataType.type)); }
+		: type_specifier IDENTIFIER ';' { $$ = op(VAR, 1, typedVariable($2, $1->dataType.type)); }
 
 fun_definition
-		: FUN IDENTIFIER '(' fun_param_list ')' ':' type_specifier '{' statement_list '}' {
-			$$ = op(FUN, 3, typedVariable($2, $7->dataType.type), $4, $9);
+		: type_specifier IDENTIFIER '(' fun_param_list ')' '{' statement_list '}' {
+			$$ = op(FUN, 3, typedVariable($2, $1->dataType.type), $4, $7);
 		}
-		| FUN IDENTIFIER '(' ')' ':' type_specifier '{' statement_list '}' {
-			$$ = op(FUN, 3, typedVariable($2, $6->dataType.type), NULL, $8);
+		| type_specifier IDENTIFIER '(' ')' '{' statement_list '}' {
+			$$ = op(FUN, 3, typedVariable($2, $1->dataType.type), NULL, $6);
 		}
 
 fun_param_list
-		: IDENTIFIER ':' type_specifier							{ $$ = op(',', 2, typedVariable($1, $3->dataType.type), NULL); }
-		| fun_param_list ',' IDENTIFIER ':' type_specifier		{ $$ = op(',', 2, $1, typedVariable($3, $5->dataType.type)); }
+		: type_specifier IDENTIFIER							{ $$ = op(',', 2, typedVariable($2, $1->dataType.type), NULL); }
+		| fun_param_list ',' type_specifier IDENTIFIER		{ $$ = op(',', 2, $1, typedVariable($4, $3->dataType.type)); }
 
 return_statement
 		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
@@ -178,13 +160,22 @@ argument_expression_list
 		| argument_expression_list ',' expression	{ $$ = op(',', 2, $1, $3); }
 
 expression
-		: expression '+' expression	{ $$ = op('+', 2, $1, $3); }
-		| expression '-' expression	{ $$ = op('-', 2, $1, $3); }
-		| expression '*' expression	{ $$ = op('*', 2, $1, $3); }
-		| expression '/' expression	{ $$ = op('/', 2, $1, $3); }
-		| expression '%' expression	{ $$ = op('%', 2, $1, $3); }
+		: '(' expression ')'			{ $$ = $2; }
+		| expression OR expression		{ $$ = op(OR, 2, $1, $3); }
+		| expression AND expression		{ $$ = op(AND, 2, $1, $3); }
+		| NEG expression				{ $$ = op(NEG, 1, $2); }
+		| expression LT expression		{ $$ = op(LT, 2, $1, $3); }
+		| expression LE expression		{ $$ = op(LE, 2, $1, $3); }
+		| expression GT expression		{ $$ = op(GT, 2, $1, $3); }
+		| expression GE expression		{ $$ = op(GE, 2, $1, $3); }
+		| expression EQ expression		{ $$ = op(EQ, 2, $1, $3); }
+		| expression NE expression		{ $$ = op(NE, 2, $1, $3); }
+		| expression '+' expression		{ $$ = op('+', 2, $1, $3); }
+		| expression '-' expression		{ $$ = op('-', 2, $1, $3); }
+		| expression '*' expression		{ $$ = op('*', 2, $1, $3); }
+		| expression '/' expression		{ $$ = op('/', 2, $1, $3); }
+		| expression '%' expression		{ $$ = op('%', 2, $1, $3); }
 		| '-' expression %prec UMINUS	{ $$ = op(UMINUS, 1, $2); }
-		| '(' expression ')'			{ $$ = $2; }
 		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
 		| IDENTIFIER                    { $$ = variable($1); }
 	 	| func_call			{ $$ = $1; }
