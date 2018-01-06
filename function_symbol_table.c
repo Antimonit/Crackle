@@ -19,15 +19,7 @@ functionRecord* findFunction(const char *symbol) {
 	return NULL;
 }
 
-node* findFunctionRoot(const char *symbol) {
-	functionRecord* function = findFunction(symbol);
-	if (function == NULL)
-		return NULL;
-	else
-		return function->rootNode;
-}
-
-void addFunctionRoot(const char *symbol, node *root, dataTypeEnum returnType) {
+void addFunction(const char *symbol, node *root, dataTypeEnum returnType) {
 	if (findFunction(symbol) != NULL) {
 		printf("Warning: Trying to redeclare function '%s'\n", symbol);
 		return;

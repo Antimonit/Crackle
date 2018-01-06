@@ -52,7 +52,7 @@ node* funCall(const char* value, node* params) {
 	node* node = newNode();
 
 	node->type = typeFunctionCall;
-	node->function.name = value;
+	node->functionCall.name = value;
 
 	return node;
 }

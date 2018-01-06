@@ -19,27 +19,45 @@ node* var(node* p, node* result) {
 		result->type = typeEmpty;
 		return result;
 	}
-	const char* name = variableNode.name;
-	dataTypeEnum type = variable->type;
 
-	result->constant.type = type;
-	if (type == typeInt) {
-		result->constant.intVal = variable->intVal = 0;
-		debug("\tnode: Operand Var int %s %d\n", name, variable->intVal);
-	} else if (type == typeDouble) {
-		result->constant.doubleVal = variable->doubleVal = 0.0;
-		debug("\tnode: Operand Var double %s %f\n", name, variable->doubleVal);
-	} else if (type == typeString) {
-		result->constant.stringVal = variable->stringVal = "";
-		debug("\tnode: Operand Var string %s %s\n", name, variable->stringVal);
-	} else if (type == typeBool) {
-		result->constant.boolVal = variable->boolVal = false;
-		debug("\tnode: Operand Var bool %s %s\n", name, variable->boolVal == true ? "true" : "false");
+	const char* name = variableNode.name;
+	dataTypeEnum varType = variable->type;
+
+	if (p->oper.opCount > 1) {
+		node* defaultValue = ex(p->oper.op[1]);
+		dataTypeEnum exType = defaultValue->constant.type;
+		if (varType != exType) {
+			printf("Warning: Incompatible assignment of type '%s' to type '%s'\n",
+				getDataTypeString(exType), getDataTypeString(varType));
+			result->type = typeEmpty;
+			return result;
+		}
+
+		result->constant = *variable = defaultValue->constant;
+		debug("\tnode: Operand Var %s %s %d\n",
+			  getDataTypeString(result->constant.type), name, getConstantValueString(variable));
+
+	} else {
+		result->constant.type = varType;
+		if (varType == typeInt) {
+			result->constant.intVal = variable->intVal = 0;
+			debug("\tnode: Operand Var int %s %d\n", name, variable->intVal);
+		} else if (varType == typeDouble) {
+			result->constant.doubleVal = variable->doubleVal = 0.0;
+			debug("\tnode: Operand Var double %s %f\n", name, variable->doubleVal);
+		} else if (varType == typeString) {
+			result->constant.stringVal = variable->stringVal = "";
+			debug("\tnode: Operand Var string %s %s\n", name, variable->stringVal);
+		} else if (varType == typeBool) {
+			result->constant.boolVal = variable->boolVal = false;
+			debug("\tnode: Operand Var bool %s %s\n", name, variable->boolVal == true ? "true" : "false");
+		}
 	}
+
 	return result;
 }
 
-node* fun(node *p, node *result) {
+node* fun(node* p, node* result) {
 	variableNode variableNode = p->oper.op[0]->variable;
 	node* params = p->oper.op[1];
 	node* root = p->oper.op[2];
@@ -53,7 +71,7 @@ node* fun(node *p, node *result) {
 	result->function.root = root;
 //	result->function.params = TODO
 
-	addFunctionRoot(name, root, returnType);
+	addFunction(name, root, returnType);
 
 	debug("\tnode: Operand Fun %s\n", name);
 	return result;
@@ -92,16 +110,20 @@ node* comma(node* p, node* result) {
 node* functionCall(node* p, node* result) {
 	const char* name = p->function.name;
 
-	node* root = findFunctionRoot(name);
-	if (root == NULL) {
-		printf("Function %s is undefined.\n", name);
+	functionRecord* function = findFunction(name);
+	if (function == NULL) {
+		printf("Warning: Undefined function '%s'.\n", name);
 		return result;
 	}
 
 	pushSymbolTableScope();
 
+//	for (int i = 0; i < function->paramCount; ++i) {
+//		function->params[i].name;
+//	}
+
 	// TODO: pass arguments to function
-	node* res = ex(root);
+	node* res = ex(function->rootNode);
 
 	result->type = typeConstant;
 	result->constant.type = res->constant.type;
@@ -163,7 +185,7 @@ node* ifx(node* p, node* result) {
 
 node* delimiter(node* p, node* result) {
 	if (p->oper.opCount > 0) {
-		node *left = ex(p->oper.op[0]);
+		node* left = ex(p->oper.op[0]);
 		if (left->type == typeReturn) {
 			result->type = typeReturn;
 			result->ret.value = left->ret.value;
@@ -171,7 +193,7 @@ node* delimiter(node* p, node* result) {
 		}
 	}
 	if (p->oper.opCount > 1) {
-		node *right = ex(p->oper.op[1]);
+		node* right = ex(p->oper.op[1]);
 		if (right->type == typeReturn) {
 			result->type = typeReturn;
 			result->ret.value = right->ret.value;
@@ -362,10 +384,14 @@ node* print(node* p, node* result) {
 	switch (value->type) {
 		case typeOperator:
 			switch (value->oper.oper) {
-				case WHILE: break;
-				case IF:	break;
-				case FUN:	break;
-				case VAR:	break;
+				case WHILE: printf("WHILE\n");
+							break;
+				case IF:	printf("IF\n");
+							break;
+				case FUN:	printf("FUN\n");
+							break;
+				case VAR:	printf("VAR\n");
+							break;
 				default:	printf("WRONG OPERATOR\n");
 			}
 			break;
@@ -407,11 +433,8 @@ node* ex(node* p) {
 			constantNode* variable = findSymbolNode(name);
 
 			if (variable == NULL) {
-				printf("Variable %s is not defined.\n", name);
+				printf("Warning: Undefined variable '%s'.\n", name);
 				result->type = typeEmpty;
-//				sprintf(temp, "%s is undefined", $1);
-//				yyerror(temp);
-//				YYERROR;
 				return result;
 			}
 
@@ -435,7 +458,7 @@ node* ex(node* p) {
 				case WHILE:		return whilex(p, result);
 				case IF:		return ifx(p, result);
 				case ';':		return delimiter(p, result);
-				case ASSIGN:	return assign(p, result);
+				case '=':		return assign(p, result);
 
 				case UMINUS:	return uminus(p, result);
 

@@ -35,7 +35,7 @@ typedef struct {
 } constantNode;
 
 typedef struct {
-	dataTypeEnum dataType; // TODO add type and use it to infer types from function parameters
+	dataTypeEnum dataType;
     const char* name;
 } variableNode;
 

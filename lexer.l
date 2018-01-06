@@ -62,7 +62,7 @@ string      \"(\\.|[^\\"])*\"
 
 "print"		return PRINT;
 
-"="			return ASSIGN;
+"="			return '=';
 
 "("			return '(';
 ")"			return ')';

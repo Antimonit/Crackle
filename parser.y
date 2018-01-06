@@ -51,7 +51,7 @@ void freeNode(node* p);
 %left OR
 %left AND
 %right NEG
-%right ASSIGN
+%right '='
 %left '+' '-'
 %left '*' '/' '%'
 %nonassoc UMINUS
@@ -68,6 +68,7 @@ void freeNode(node* p);
 %type <node> fun_definition fun_param_list
 %type <node> func_call argument_expression_list
 %type <node> return_statement
+%type <node> typed_identifier
 %type <type> type_specifier
 
 %%
@@ -101,6 +102,9 @@ if_statement
 while_statement
 		: WHILE '(' expression ')' '{' statement_list '}' 	{ $$ = op(WHILE, 2, $3, $6); }
 
+typed_identifier
+		: type_specifier IDENTIFIER { $$ = typedVariable($2, $1); }
+
 type_specifier
 		: INT		{ $$ = typeInt; }
 		| DOUBLE	{ $$ = typeDouble; }
@@ -108,19 +112,20 @@ type_specifier
 		| STRING	{ $$ = typeString; }
 
 var_declaration
-		: type_specifier IDENTIFIER ';' { $$ = op(VAR, 1, typedVariable($2, $1)); }
+		: typed_identifier ';' { $$ = op(VAR, 1, $1); }
+		| typed_identifier '=' expression ';' { $$ = op(VAR, 2, $1, $3); }
 
 fun_definition
-		: type_specifier IDENTIFIER '(' fun_param_list ')' '{' statement_list '}' {
-			$$ = op(FUN, 3, typedVariable($2, $1), $4, $7);
+		: typed_identifier '(' fun_param_list ')' '{' statement_list '}' {
+			$$ = op(FUN, 3, $1, $3, $6);
 		}
-		| type_specifier IDENTIFIER '(' ')' '{' statement_list '}' {
-			$$ = op(FUN, 3, typedVariable($2, $1), NULL, $6);
+		| typed_identifier '(' ')' '{' statement_list '}' {
+			$$ = op(FUN, 3, $1, NULL, $5);
 		}
 
 fun_param_list
-		: type_specifier IDENTIFIER							{ $$ = op(',', 2, typedVariable($2, $1), NULL); }
-		| fun_param_list ',' type_specifier IDENTIFIER		{ $$ = op(',', 2, $1, typedVariable($4, $3)); }
+		: typed_identifier							{ $$ = op(',', 2, $1, NULL); }
+		| fun_param_list ',' typed_identifier		{ $$ = op(',', 2, $1, $3); }
 
 return_statement
 		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
@@ -150,11 +155,11 @@ expression
 		| expression '/' expression		{ $$ = op('/', 2, $1, $3); }
 		| expression '%' expression		{ $$ = op('%', 2, $1, $3); }
 		| '-' expression %prec UMINUS	{ $$ = op(UMINUS, 1, $2); }
-		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
+		| IDENTIFIER '=' expression	    { $$ = op('=', 2, variable($1), $3); }
 		| IDENTIFIER                    { $$ = variable($1); }
-		| func_call			{ $$ = $1; }
-		| primitive_value	{ $$ = $1; }
-		| lex_error			{ $$ = $1; }
+		| func_call						{ $$ = $1; }
+		| primitive_value				{ $$ = $1; }
+		| lex_error						{ $$ = $1; }
 
 primitive_value
 		: INT_VALUE		{ $$ = constantInt($1); }

@@ -11,8 +11,8 @@ typedef struct {
 	char name[MAX_VAR_NAME_LENGTH];
 	node* rootNode;
 	dataTypeEnum returnType;
-	struct {
-	} params;
+	int paramCount;
+	variableNode* params;
 } functionRecord;
 
 typedef struct {
@@ -23,8 +23,6 @@ typedef struct {
 
 functionRecord* findFunction(const char *symbol);
 
-node* findFunctionRoot(const char *symbol);
-
-void addFunctionRoot(const char *symbol, node *root, dataTypeEnum returnType);
+void addFunction(const char *symbol, node *root, dataTypeEnum returnType);
 
 #endif
