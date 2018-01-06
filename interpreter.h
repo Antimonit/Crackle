@@ -1,8 +1,12 @@
+#ifndef CRACKLE_INTERPRETER_INTERPRETER_H
+#define CRACKLE_INTERPRETER_INTERPRETER_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <mem.h>
 #include "symbol_table.h"
 #include "function_symbol_table.h"
+#include "node_helpers.h"
 #include "types.h"
 #include "y.tab.h"
 #include "debug.h"
@@ -11,39 +15,10 @@
 node* ex(node* p);
 
 
-dataTypeEnum maxType(node* a, node* b) {
-	int typeA = a->constant.type;
-	int typeB = b->constant.type;
-	if (typeA == typeInt && typeB == typeInt) {
-		return typeInt;
-	} else {
-		return typeDouble;
-	}
-}
-
-void widenNode(node* a, int maxType) {
-	if (a->constant.type == maxType)
-		return;
-	if (a->constant.type == typeInt && maxType == typeDouble) {
-		a->constant.type = typeDouble;
-		a->constant.doubleVal = (double) a->constant.intVal;
-	} else {
-		printf("ERROR: narrowing instead of widening???\n");
-	}
-}
-
-dataTypeEnum widenNodes(node* a, node* b) {
-    dataTypeEnum max = maxType(a, b);
-	widenNode(a, max);
-	widenNode(b, max);
-	return max;
-}
-
-
 node* var(node* p, node* result) {
     variableNode variableNode = p->oper.op[0]->variable;
-	node* typeNode = ex(p->oper.op[1]);
-	constantNode* variable = addSymbolNode(variableNode, typeNode->dataType.type);
+
+	constantNode* variable = addSymbolNode(variableNode, variableNode.dataType);
     if (variable == NULL) {
         // TODO
         return result;
@@ -70,19 +45,19 @@ node* var(node* p, node* result) {
 
 node* fun(node *p, node *result) {
 	variableNode variableNode = p->oper.op[0]->variable;
-	node* params = ex(p->oper.op[1]);
-    node* type = p->oper.op[2];
-	node* root = p->oper.op[3];
+	node* params = p->oper.op[1];
+	node* root = p->oper.op[2];
 
 	const char* name = variableNode.name;
-
+	dataTypeEnum returnType = variableNode.dataType;
+	
 	result->type = typeFunctionDef;
 	result->function.name = name;
-    result->function.dataType = type->dataType.type;
+    result->function.dataType = returnType;
 	result->function.root = root;
 //	result->function.params = TODO
 
-	addFunctionRoot(name, root);
+	addFunctionRoot(name, root, returnType);
 	
 	debug("\tnode: Operand Fun %s\n", name);
 	return result;
@@ -300,6 +275,16 @@ node* divide(node* p, node* result) {
 	}
 	return result;
 }
+node* modulo(node* p, node* result) {
+	node* left = ex(p->oper.op[0]);
+	node* right = ex(p->oper.op[1]);
+	result->constant.type = widenNodes(left, right);
+	if (result->constant.type == typeInt) {
+		result->constant.intVal = left->constant.intVal % right->constant.intVal;
+		debug("\tnode: Operand Modulo %d\n", result->constant.intVal);
+	}
+	return result;
+}
 
 node* andx(node* p, node* result) {
     node* left = ex(p->oper.op[0]);
@@ -365,31 +350,7 @@ node* ne(node* p, node* result) {
 	return result;
 }
 
-node* int_type(node* p, node* result) {
-    result->dataType.type = typeInt;
-	debug("\tnode: Operand INT_TYPE\n");
-	return result;
-}
-node* double_type(node* p, node* result) {
-    result->dataType.type = typeDouble;
-	debug("\tnode: Operand DOUBLE_TYPE\n");
-	return result;
-}
-node* bool_type(node* p, node* result) {
-    result->dataType.type = typeBool;
-	debug("\tnode: Operand BOOL_TYPE\n");
-	return result;
-}
-node* string_type(node* p, node* result) {
-    result->dataType.type = typeString;
-	debug("\tnode: Operand STRING_TYPE\n");
-	return result;
-}
-
 node* ex(node* p) {
-	printf("executing a node\n");
-	if (p == NULL)
-		printf("node is null\n");
 	node* result = malloc(sizeof(node));
 	result->type = typeEmpty;
 
@@ -408,6 +369,15 @@ node* ex(node* p) {
 
 			const char* name = p->variable.name;
 			constantNode* variable = findSymbolNode(name);
+
+			if (variable == NULL) {
+				printf("Variable %s is not defined.\n", name);
+				result->type = typeEmpty;
+//				sprintf(temp, "%s is undefined", $1);
+//				yyerror(temp);
+//				YYERROR;
+				return result;
+			}
 
             result->constant = *variable;
 
@@ -436,6 +406,7 @@ node* ex(node* p) {
 				case '-':		return minus(p, result);
 				case '*':		return multiply(p, result);
 				case '/':		return divide(p, result);
+				case '%':		return modulo(p, result);
 
                 case AND:       return andx(p, result);
                 case OR:        return orx(p, result);
@@ -447,11 +418,6 @@ node* ex(node* p) {
 				case GE:		return ge(p, result);
 				case EQ:		return eq(p, result);
 				case NE:		return ne(p, result);
-
-                case INT_TYPE:      return int_type(p, result);
-                case DOUBLE_TYPE:   return double_type(p, result);
-                case BOOL_TYPE:     return bool_type(p, result);
-                case STRING_TYPE:   return string_type(p, result);
 			}
 			
 		case typeFunctionCall:
@@ -467,3 +433,5 @@ node* ex(node* p) {
 			return result;
 	}
 }
+
+#endif

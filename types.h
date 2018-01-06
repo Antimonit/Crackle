@@ -1,8 +1,6 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-
-
 typedef enum {
 	false,
 	true
@@ -12,6 +10,7 @@ typedef enum {
     typeConstant,
     typeVariable,
     typeOperator,
+	typeDataType,
     typeFunctionDef,
     typeFunctionCall,
     typeReturn,
@@ -24,6 +23,7 @@ typedef enum {
 	typeString,
 	typeBool
 } dataTypeEnum;
+
 
 typedef struct {
     dataTypeEnum type;
@@ -40,6 +40,7 @@ typedef struct {
 } constantNode;
 
 typedef struct {
+	dataTypeEnum dataType; // TODO add type and use it to infer types from function parameters
     const char* name;
 } variableNode;
 
@@ -49,7 +50,6 @@ typedef struct {
     struct nodeTag* op[1];	/* operands, extended at runtime */
 } operatorNode;
 
-/* FUNCTION DEFINITION */
 typedef struct {
 	const char* name;
 	dataTypeEnum dataType;
@@ -57,7 +57,6 @@ typedef struct {
 	struct nodeTag* root;
 } functionNode;
 
-/* FUNCTION CALL */
 typedef struct {
 	const char* name;
 	constantNode* params[1];
@@ -74,10 +73,10 @@ typedef struct nodeTag {
         constantNode constant;
         variableNode variable;
         operatorNode oper;
+		dataTypeNode dataType;
         functionNode function;
         functionCallNode functionCall;
         returnNode ret;
-        dataTypeNode dataType;
     };
 } node;
 

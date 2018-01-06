@@ -7,6 +7,7 @@
 #include "types.h"
 #include "interpreter.h"
 #include "symbol_table.h"
+#include "parser.h"
 
 int yylex(void);
 int yyerror(const char* message);
@@ -18,12 +19,11 @@ node* constantInt(int value);
 node* constantDouble(double value);
 node* constantString(char* value);
 node* constantBool(bool value);
+node* type(int type);
 node* variable(const char* value);
 node* op(int oper, int opCount, ...);
 node* ex(node* p);
 void freeNode(node* p);
-
-char temp[100];
 
 %}
 
@@ -33,9 +33,8 @@ char temp[100];
 	char* stringVal;
 	bool boolVal;
 	char* identifier;
-	 node* node;
+	node* node;
 }
-
 
 %token LEX_ERROR
 
@@ -53,25 +52,25 @@ char temp[100];
 %right NEG
 %right ASSIGN
 %left '+' '-'
-%left '*' '/'
+%left '*' '/' '%'
 %nonassoc UMINUS
 %token '(' ')'
 %token '{' '}'
 %token ';' ','
-%token IF ELSE WHILE
-%token INT_TYPE DOUBLE_TYPE BOOL_TYPE STRING_TYPE
+%token IF ELSE WHILE DO FOR
+%token INT DOUBLE BOOL STRING
 
 %token PRINT
 
 %type <node> primitive_value expression lex_error
 %type <node> statement statement_list
 %type <node> if_statement while_statement
-%type <node> var_definition
-%type <node> fun_definition func_param_list
+%type <node> var_declaration
+%type <node> fun_definition fun_param_list
 %type <node> func_call argument_expression_list
 %type <node> return_statement
 %type <node> bool comparison_operand
-%type <node> data_type
+%type <node> type_specifier
 
 %%
 
@@ -85,10 +84,10 @@ program
 				case typeOperator:
 					switch (result.oper.oper) {
 						case WHILE: break;
-						case IF:	 break;
+						case IF:	break;
 						case FUN:	break;
 						case VAR:	break;
-						default:	 printf("WRONG OPERATOR\n");
+						default:	printf("WRONG OPERATOR\n");
 					}
 					break;
 				case typeConstant:
@@ -109,7 +108,7 @@ statement
 		: expression ';'		{ $$ = $1; }
 	 	| if_statement			{ $$ = $1; }
 	 	| while_statement		{ $$ = $1; }
-	 	| var_definition		{ $$ = $1; }
+	 	| var_declaration		{ $$ = $1; }
 	 	| fun_definition		{ $$ = $1; }
 	 	| return_statement		{ $$ = $1; }
 		| error					{ printf("\n"); }
@@ -146,26 +145,26 @@ comparison_operand
 		| EQ { $$ = op(EQ, 0); }
 		| NE { $$ = op(NE, 0); }
 
-data_type
-		: INT_TYPE		{ $$ = op(INT_TYPE, 0); }
-		| DOUBLE_TYPE	{ $$ = op(DOUBLE_TYPE, 0); }
-		| BOOL_TYPE	  { $$ = op(BOOL_TYPE, 0); }
-		| STRING_TYPE	{ $$ = op(STRING_TYPE, 0); }
+type_specifier
+		: INT		{ $$ = type(INT); }
+		| DOUBLE	{ $$ = type(DOUBLE); }
+		| BOOL	    { $$ = type(BOOL); }
+		| STRING	{ $$ = type(STRING); }
 
-var_definition
-		: VAR IDENTIFIER ':' data_type ';' { $$ = op(VAR, 2, variable($2), $4); }
+var_declaration
+		: VAR IDENTIFIER ':' type_specifier ';' { $$ = op(VAR, 1, typedVariable($2, $4->dataType.type)); }
 
 fun_definition
-		: FUN IDENTIFIER '(' func_param_list ')' ':' data_type '{' statement_list '}' {
-			$$ = op(FUN, 4, variable($2), $4, $7, $9);
+		: FUN IDENTIFIER '(' fun_param_list ')' ':' type_specifier '{' statement_list '}' {
+			$$ = op(FUN, 3, typedVariable($2, $7->dataType.type), $4, $9);
 		}
-		| FUN IDENTIFIER '(' ')' ':' data_type '{' statement_list '}' {
-			$$ = op(FUN, 4, variable($2), NULL, $6, $8);
+		| FUN IDENTIFIER '(' ')' ':' type_specifier '{' statement_list '}' {
+			$$ = op(FUN, 3, typedVariable($2, $6->dataType.type), NULL, $8);
 		}
 
-func_param_list
-		: IDENTIFIER ':' data_type							{ $$ = variable($1); }
-		| func_param_list ',' IDENTIFIER ':' data_type		{ $$ = op(',', 2, $1, variable($3)); }
+fun_param_list
+		: IDENTIFIER ':' type_specifier							{ $$ = op(',', 2, typedVariable($1, $3->dataType.type), NULL); }
+		| fun_param_list ',' IDENTIFIER ':' type_specifier		{ $$ = op(',', 2, $1, typedVariable($3, $5->dataType.type)); }
 
 return_statement
 		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
@@ -183,22 +182,11 @@ expression
 		| expression '-' expression	{ $$ = op('-', 2, $1, $3); }
 		| expression '*' expression	{ $$ = op('*', 2, $1, $3); }
 		| expression '/' expression	{ $$ = op('/', 2, $1, $3); }
+		| expression '%' expression	{ $$ = op('%', 2, $1, $3); }
 		| '-' expression %prec UMINUS	{ $$ = op(UMINUS, 1, $2); }
 		| '(' expression ')'			{ $$ = $2; }
 		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
-		| IDENTIFIER {
-			$$ = variable($1);
-//			constantNode* symbol = findSymbolNode($1);
-//			if (symbol == NULL) {
-//				$$ = empty();
-//				sprintf(temp, "%s is undefined", $1);
-//				yyerror(temp);
-//				YYERROR;
-//			} else {
-//				$$ = variable($1);
-//			}
-
-		}
+		| IDENTIFIER                    { $$ = variable($1); }
 	 	| func_call			{ $$ = $1; }
 		| primitive_value	{ $$ = $1; }
 		| lex_error			{ $$ = $1; }
@@ -219,113 +207,6 @@ lex_error
 
 %%
 
-node* newNode() {
-	node* p = (node*) malloc(sizeof(node));
-
-	if (p == NULL)
-		yyerror("out of memory");
-
-	return p;
-}
-
-node* empty() {
-	node* node = newNode();
-
-	node->type = typeEmpty;
-
-	return node;
-}
-
-node* funCall(const char* value, node* params) {
-	node* node = newNode();
-
-	node->type = typeFunctionCall;
-	node->function.name = value;
-
-	return node;
-}
-
-node* constantInt(int value) {
-	node* node = newNode();
-
-	node->type = typeConstant;
-	node->constant.type = typeInt;
-	node->constant.intVal = value;
-
-	return node;
-}
-
-node* constantDouble(double value) {
-	node* node = newNode();
-
-	node->type = typeConstant;
-	node->constant.type = typeDouble;
-	node->constant.doubleVal = value;
-
-	return node;
-}
-
-node* constantString(char* value) {
-	node* node = newNode();
-
-	node->type = typeConstant;
-	node->constant.type = typeString;
-	node->constant.stringVal = value;
-
-	return node;
-}
-
-node* constantBool(bool value) {
-	node* node = newNode();
-
-	node->type = typeConstant;
-	node->constant.type = typeBool;
-	node->constant.boolVal = value;
-
-	return node;
-}
-
-node* variable(const char* value) {
-	node* node = newNode();
-
-	node->type = typeVariable;
-	node->variable.name = value;
-
-	return node;
-}
-
-node* op(int oper, int opCount, ...) {
-	/* allocate node, extending op array */
-	 node* p = malloc(sizeof(node) + (opCount-1) * sizeof(node*));
-
-	 if (p == NULL)
-		  yyerror("out of memory");
-
-	 p->type = typeOperator;
-	 p->oper.oper = oper;
-	 p->oper.opCount = opCount;
-
-	 va_list ap;
-	 va_start(ap, opCount);
-	 for (int i = 0; i < opCount; i++) {
-		  p->oper.op[i] = va_arg(ap, node*);
-	}
-	 va_end(ap);
-
-	 return p;
-}
-
-void freeNode(node* node) {
-	 if (!node)
-	 	return;
-
-	 if (node->type == typeOperator) {
-		  for (int i = 0; i < node->oper.opCount; i++) {
-				freeNode(node->oper.op[i]);
-		}
-	 }
-	 free(node);
-}
 
 int main(void) {
 	yyparse();
@@ -334,8 +215,4 @@ int main(void) {
 
 int yywrap() {
 	return 1;
-}
-
-int yyerror(const char* message) {
-	printf(message);
 }

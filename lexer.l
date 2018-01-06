@@ -30,6 +30,7 @@ string      \"(\\.|[^\\"])*\"
 "-"			return '-';
 "*"			return '*';
 "/"			return '/';
+"%"			return '%';
 
 "<"			return LT;
 "<="		return LE;
@@ -47,11 +48,13 @@ string      \"(\\.|[^\\"])*\"
 "while"		return WHILE;
 "if"		return IF;
 "else"		return ELSE;
+"do"        return DO;
+"for"       return FOR;
 
-"int"       return INT_TYPE;
-"double"    return DOUBLE_TYPE;
-"bool"      return BOOL_TYPE;
-"string"    return STRING_TYPE;
+"int"       return INT;
+"double"    return DOUBLE;
+"bool"      return BOOL;
+"string"    return STRING;
 
 "var"       return VAR;
 "fun"		return FUN;

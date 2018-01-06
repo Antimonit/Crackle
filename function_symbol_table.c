@@ -5,49 +5,38 @@
 #include "types.h"
 #include "debug.h"
 
-#define MAX_VARS 100
-#define MAX_VAR_NAME_LENGTH 16
-
-typedef struct {
-	int symbolId;
-	char symbols[MAX_VARS][MAX_VAR_NAME_LENGTH];
-	node* roots[MAX_VARS];
-} functionSymbolTable;
-
 functionSymbolTable functionTable;
 
-node* findFunctionRoot(const char *symbol) {
+
+functionRecord* findFunction(const char *symbol) {
 	functionSymbolTable* table = &functionTable;
-    for (int i = 0; i < table->symbolId; i++) {
-        if (strcmp(table->symbols[i], symbol) == 0) {
-            return table->roots[i];
-        }
-    }
-    return NULL;
+	for (int i = 0; i < table->symbolId; i++) {
+		functionRecord* function = &table->functions[i];
+		if (strcmp(function->name, symbol) == 0) {
+			return function;
+		}
+	}
+	return NULL;
 }
 
-node* addFunctionRoot(const char *symbol, node *root) {
-
-	functionSymbolTable* table = &functionTable;
-	node* currentRoot = findFunctionRoot(symbol);
-	if (currentRoot == NULL) { // new symbol
-		strncpy(table->symbols[table->symbolId], symbol, strlen(symbol));
-		table->roots[table->symbolId] = root;
-		table->symbolId++;
-		return root;
-	} else {
-		debug("Trying to redeclare function '%s'\n", symbol);
+node* findFunctionRoot(const char *symbol) {
+	functionRecord* function = findFunction(symbol);
+	if (function == NULL)
 		return NULL;
-	}
+	else
+		return function->rootNode;
+}
 
-//	int index = findSymbolNode(symbol);
-//	if (index == -1) {	// new symbol
-//		strncpy(table->symbols[table->symbolId], symbol, strlen(symbol));
-//		table->roots[table->symbolId] = root;
-//		return table->symbolId++;
-//	} else {
-//		printf("Note: redefining function %s.\n", symbol);
-//		table->roots[index] = root;
-//		return index;
-//	}
+void addFunctionRoot(const char *symbol, node *root, dataTypeEnum returnType) {
+	if (findFunction(symbol) != NULL) {
+		debug("Trying to redeclare function '%s'\n", symbol);
+		return;
+	}
+	// new symbol
+	functionSymbolTable* table = &functionTable;
+	functionRecord* function = &table->functions[table->symbolId];
+	strncpy(function->name, symbol, strlen(symbol));
+	function->rootNode = root;
+	function->returnType = returnType;
+	table->symbolId++;
 }

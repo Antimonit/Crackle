@@ -16,13 +16,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(Crackle
         debug.h
         interpreter.h
-        symbol_table.h
-        symbol_table.c
-        function_symbol_table.h
-        function_symbol_table.c
-        types.h
+        symbol_table.h symbol_table.c
+        function_symbol_table.h function_symbol_table.c
+        types.h types.c
         lexer.l
         parser.y
         ${FLEX_Scanner_OUTPUTS}
         ${BISON_Parser_OUTPUTS}
-        types.c)
+        cmake-build-debug/node_helpers.h
+        parser.h)
