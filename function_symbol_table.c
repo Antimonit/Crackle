@@ -29,7 +29,7 @@ node* findFunctionRoot(const char *symbol) {
 
 void addFunctionRoot(const char *symbol, node *root, dataTypeEnum returnType) {
 	if (findFunction(symbol) != NULL) {
-		debug("Trying to redeclare function '%s'\n", symbol);
+		printf("Warning: Trying to redeclare function '%s'\n", symbol);
 		return;
 	}
 	// new symbol

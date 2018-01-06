@@ -75,15 +75,6 @@ constantNode* findSymbolNode(const char *symbol) {
     return NULL;
 }
 
-constantNode* findTypedSymbolNode(variableNode variableNode, dataTypeEnum type) {
-	constantNode* variable = findSymbolNode(variableNode.name);
-
-	if (variable != NULL && variable->type == type) {
-		return variable;
-	} 
-	return NULL;
-}
-
 constantNode* addSymbolNode(variableNode variableNode, dataTypeEnum type) {
 	symbolTable *table = currentSymbolTable;
 	constantNode* variables = table->variables;
@@ -96,7 +87,7 @@ constantNode* addSymbolNode(variableNode variableNode, dataTypeEnum type) {
 		variable->type = type;
 		return variable;
 	} else {			// existing symbol
-		debug("Trying to redeclare variable '%s' of type %s to type %s.\n",
+		printf("Warning: Trying to redeclare variable '%s' of type %s to type %s.\n",
 			  variableNode.name,
               getDataTypeString(variables->type),
               getDataTypeString(type));

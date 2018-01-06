@@ -19,7 +19,6 @@ node* constantInt(int value);
 node* constantDouble(double value);
 node* constantString(char* value);
 node* constantBool(bool value);
-node* type(int type);
 node* variable(const char* value);
 node* op(int oper, int opCount, ...);
 node* ex(node* p);
@@ -34,6 +33,7 @@ void freeNode(node* p);
 	bool boolVal;
 	char* identifier;
 	node* node;
+	nodeTypeEnum type;
 }
 
 %token LEX_ERROR
@@ -68,52 +68,26 @@ void freeNode(node* p);
 %type <node> fun_definition fun_param_list
 %type <node> func_call argument_expression_list
 %type <node> return_statement
-%type <node> type_specifier
+%type <type> type_specifier
 
 %%
 
 program
-		: PRINT statement {
-			node* result = ex($2);
-
-			switch (result->type) {
-				case typeOperator:
-					switch (result->oper.oper) {
-						case WHILE: break;
-						case IF:	break;
-						case FUN:	break;
-						case VAR:	break;
-						default:	printf("WRONG OPERATOR\n");
-					}
-					break;
-				case typeConstant:
-					printf("%s\n", getConstantValueString(result->constant));
-					break;
-				case typeFunctionDef:
-					printf("Function %s defined\n", result->function.name);
-					break;
-				case typeEmpty:
-					break;
-				default:
-					printf("WRONG TYPE\n");
-			}
-			freeNode(result);
-			freeNode($2);
-		} program
-		| statement {
+		: statement {
 			node* result = ex($1);
-			freeNode(result);
-			freeNode($1);
+//			freeNode(result);
+//			freeNode($1);
 		} program
 		|
 
 statement
-		: expression ';'        { $$ = $1; }
-	 	| if_statement			{ $$ = $1; }
-	 	| while_statement		{ $$ = $1; }
-	 	| var_declaration		{ $$ = $1; }
-	 	| fun_definition		{ $$ = $1; }
-	 	| return_statement		{ $$ = $1; }
+		: PRINT statement		{ $$ = op(PRINT, 1, $2); }
+		| expression ';'		{ $$ = $1; }
+		| if_statement			{ $$ = $1; }
+		| while_statement		{ $$ = $1; }
+		| var_declaration		{ $$ = $1; }
+		| fun_definition		{ $$ = $1; }
+		| return_statement		{ $$ = $1; }
 		| error					{ printf("\n"); }
 
 statement_list
@@ -128,25 +102,25 @@ while_statement
 		: WHILE '(' expression ')' '{' statement_list '}' 	{ $$ = op(WHILE, 2, $3, $6); }
 
 type_specifier
-		: INT		{ $$ = type(INT); }
-		| DOUBLE	{ $$ = type(DOUBLE); }
-		| BOOL	    { $$ = type(BOOL); }
-		| STRING	{ $$ = type(STRING); }
+		: INT		{ $$ = typeInt; }
+		| DOUBLE	{ $$ = typeDouble; }
+		| BOOL	    { $$ = typeBool; }
+		| STRING	{ $$ = typeString; }
 
 var_declaration
-		: type_specifier IDENTIFIER ';' { $$ = op(VAR, 1, typedVariable($2, $1->dataType.type)); }
+		: type_specifier IDENTIFIER ';' { $$ = op(VAR, 1, typedVariable($2, $1)); }
 
 fun_definition
 		: type_specifier IDENTIFIER '(' fun_param_list ')' '{' statement_list '}' {
-			$$ = op(FUN, 3, typedVariable($2, $1->dataType.type), $4, $7);
+			$$ = op(FUN, 3, typedVariable($2, $1), $4, $7);
 		}
 		| type_specifier IDENTIFIER '(' ')' '{' statement_list '}' {
-			$$ = op(FUN, 3, typedVariable($2, $1->dataType.type), NULL, $6);
+			$$ = op(FUN, 3, typedVariable($2, $1), NULL, $6);
 		}
 
 fun_param_list
-		: type_specifier IDENTIFIER							{ $$ = op(',', 2, typedVariable($2, $1->dataType.type), NULL); }
-		| fun_param_list ',' type_specifier IDENTIFIER		{ $$ = op(',', 2, $1, typedVariable($4, $3->dataType.type)); }
+		: type_specifier IDENTIFIER							{ $$ = op(',', 2, typedVariable($2, $1), NULL); }
+		| fun_param_list ',' type_specifier IDENTIFIER		{ $$ = op(',', 2, $1, typedVariable($4, $3)); }
 
 return_statement
 		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
@@ -178,7 +152,7 @@ expression
 		| '-' expression %prec UMINUS	{ $$ = op(UMINUS, 1, $2); }
 		| IDENTIFIER ASSIGN expression	{ $$ = op(ASSIGN, 2, variable($1), $3); }
 		| IDENTIFIER                    { $$ = variable($1); }
-	 	| func_call			{ $$ = $1; }
+		| func_call			{ $$ = $1; }
 		| primitive_value	{ $$ = $1; }
 		| lex_error			{ $$ = $1; }
 

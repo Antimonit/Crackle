@@ -6,12 +6,11 @@ typedef enum {
 	true
 } bool;
 
-typedef enum { 
+typedef enum {
     typeConstant,
     typeVariable,
     typeOperator,
-	typeDataType,
-    typeFunctionDef,
+	typeFunctionDef,
     typeFunctionCall,
     typeReturn,
     typeEmpty
@@ -24,10 +23,6 @@ typedef enum {
 	typeBool
 } dataTypeEnum;
 
-
-typedef struct {
-    dataTypeEnum type;
-} dataTypeNode;
 
 typedef struct {
     dataTypeEnum type;
@@ -66,14 +61,12 @@ typedef struct {
 	constantNode value;
 } returnNode;
 
-
 typedef struct nodeTag {
     nodeTypeEnum type;
     union {
         constantNode constant;
         variableNode variable;
         operatorNode oper;
-		dataTypeNode dataType;
         functionNode function;
         functionCallNode functionCall;
         returnNode ret;

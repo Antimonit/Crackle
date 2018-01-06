@@ -138,28 +138,4 @@ node* op(int oper, int opCount, ...) {
 	return p;
 }
 
-node* type(int type) {
-	node* node = newNode();
-
-	node->type = typeDataType;
-
-	switch (type) {
-		case INT:
-			node->dataType.type = typeInt;
-			break;
-		case DOUBLE:
-			node->dataType.type = typeDouble;
-			break;
-		case BOOL:
-			node->dataType.type = typeBool;
-			break;
-		case STRING:
-			node->dataType.type = typeString;
-			break;
-	}
-
-	return node;
-}
-
-
 #endif //CRACKLE_INTERPRETER_PARSER_H
