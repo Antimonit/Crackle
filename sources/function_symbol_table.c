@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include "function_symbol_table.h"
-#include "types.h"
-#include "debug.h"
+#include "headers/function_symbol_table.h"
+#include "headers/types.h"
+#include "headers/debug.h"
 
 functionSymbolTable functionTable;
 

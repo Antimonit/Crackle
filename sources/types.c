@@ -3,11 +3,11 @@
 //
 
 #include <stdio.h>
-#include "types.h"
+#include "headers/types.h"
 
 char temp[100];
 
-const char* getDataTypeString(dataTypeEnum type) {
+const char* dataTypeToString(dataTypeEnum type) {
 	switch (type) {
 		case typeInt:
 			return "int";
@@ -24,7 +24,7 @@ const char* getDataTypeString(dataTypeEnum type) {
 	}
 }
 
-const char* getConstantValueString(constantNode constant) {
+const char* constantValueToString(constantNode constant) {
 	dataTypeEnum type = constant.dataType;
 
 	switch (type) {

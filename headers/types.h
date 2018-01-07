@@ -25,7 +25,7 @@ typedef enum {
 } dataTypeEnum;
 
 
-typedef struct constantNodeTag {
+typedef struct {
     dataTypeEnum dataType;
     union {
         int intVal;
@@ -35,7 +35,7 @@ typedef struct constantNodeTag {
     };
 } constantNode;
 
-typedef struct variableNodeTag {
+typedef struct {
 	dataTypeEnum dataType;
     const char* name;
 } variableNode;
@@ -77,9 +77,9 @@ typedef struct nodeTag {
 } node;
 
 
-const char* getDataTypeString(dataTypeEnum type);
+const char* dataTypeToString(dataTypeEnum type);
 
-const char* getConstantValueString(constantNode constant);
+const char* constantValueToString(constantNode constant);
 
 
 #endif

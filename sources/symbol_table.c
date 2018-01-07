@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include "symbol_table.h"
-#include "types.h"
-#include "debug.h"
+#include "headers/symbol_table.h"
+#include "headers/types.h"
+#include "headers/debug.h"
 
 
 #define MAX_VARS 100
@@ -20,24 +20,6 @@ typedef struct symbolTable {
 symbolTable globalSymbolTable;
 
 symbolTable* currentSymbolTable = &globalSymbolTable;
-
-
-void printAllSymbols() {
-	symbolTable* table = currentSymbolTable;
-	printf("----ALL SYMBOLS----\n");
-	for (int i = 0; i < table->symbolId; ++i) {
-		if (table->variables[i].dataType == typeInt) {
-			printf("Int %s: %d\n", table->symbols[i], table->variables[i].intVal);
-		} else if (table->variables[i].dataType == typeDouble) {
-			printf("Double %s: %f\n", table->symbols[i], table->variables[i].doubleVal);
-		} else if (table->variables[i].dataType == typeString) {
-			printf("String %s: %s\n", table->symbols[i], table->variables[i].stringVal);
-		} else if (table->variables[i].dataType == typeBool) {
-			printf("Bool %s: %s\n", table->symbols[i], table->variables[i].boolVal ? "true" : "false");
-		}
-	}
-	printf("----END ALL SYMBOLS----\n");
-}
 
 
 void pushSymbolTableScope() {
@@ -92,8 +74,8 @@ constantNode* addSymbolNode(variableNode variableNode) {
 	} else {			// existing symbol
 		printf("Warning: Trying to redeclare variable '%s' of type %s to type %s.\n",
 			   name,
-              getDataTypeString(variables->dataType),
-              getDataTypeString(dataType));
+			   dataTypeToString(variables->dataType),
+			   dataTypeToString(dataType));
 
 //		if (dataType == typeDouble && symbolTypes[index] == typeInt) {
 //			debug("\tChange variableNode from int to double\n");

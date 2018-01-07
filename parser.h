@@ -9,11 +9,24 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-#include "types.h"
-#include "interpreter.h"
-#include "symbol_table.h"
-#include "function_symbol_table.h"
-#include "debug.h"
+#include <y.tab.h>
+#include "headers/types.h"
+#include "headers/interpreter.h"
+#include "headers/symbol_table.h"
+#include "headers/function_symbol_table.h"
+#include "headers/debug.h"
+
+
+int yylex(void);
+
+int main(void) {
+	yyparse();
+	return 0;
+}
+
+int yywrap() {
+	return 1;
+}
 
 int yyerror(const char* message) {
 	printf(message);
@@ -36,12 +49,12 @@ void freeNode(node* node) {
 	free(node);
 }
 
-
-node* empty() {
+node* newEmptyNode() {
 	node* empty = newNode();
 	empty->type = typeEmpty;
 	return empty;
 }
+
 
 int getParamCount(node* params) {
 	int paramCount = 0;
@@ -81,7 +94,7 @@ node* function(node* typedVariable, node* params, node* root) {
 
 	addFunction(&function->function);
 
-	debug("\tnode: Function %s\n", variable.name);
+	debug("\tnode: Function %s\n", function->function.name);
 
 	return function;
 }
@@ -102,6 +115,7 @@ node* functionCall(const char *value, node *params) {
 		functionCall->functionCall.params[paramCount] = params->oper.op[1];
 		params = params->oper.op[0];
 	}
+	debug("\tnode: Function call %s\n", functionCall->functionCall.name);
 
 	return functionCall;
 }

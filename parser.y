@@ -4,25 +4,10 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-#include "types.h"
-#include "interpreter.h"
-#include "symbol_table.h"
+#include "headers/types.h"
+#include "headers/interpreter.h"
+#include "headers/symbol_table.h"
 #include "parser.h"
-
-int yylex(void);
-int yyerror(const char* message);
-int lineCounter;
-
-node* empty();
-node* functionCall(const char* value, node* params);
-node* constantInt(int value);
-node* constantDouble(double value);
-node* constantString(char* value);
-node* constantBool(bool value);
-node* variable(const char* value);
-node* op(int oper, int opCount, ...);
-node* ex(node* p);
-void freeNode(node* p);
 
 %}
 
@@ -36,8 +21,6 @@ void freeNode(node* p);
 	dataTypeEnum dataType;
 }
 
-%token LEX_ERROR
-
 %token <intVal> INT_VALUE
 %token <doubleVal> DOUBLE_VALUE
 %token <stringVal> STRING_VALUE
@@ -46,7 +29,7 @@ void freeNode(node* p);
 %token <identifier> IDENTIFIER
 
 %token VAR FUN RETURN
-%token PRINT
+%token PRINT PRINTLN
 %nonassoc LT LE GT GE EQ NE
 %left OR
 %left AND
@@ -60,13 +43,14 @@ void freeNode(node* p);
 %token ';' ','
 %token IF ELSE WHILE DO FOR
 %token INT DOUBLE BOOL STRING
+%token LEX_ERROR
 
 %type <node> primitive_value expression lex_error
 %type <node> statement statement_list
 %type <node> if_statement while_statement
 %type <node> var_declaration
 %type <node> fun_definition fun_param_list
-%type <node> func_call argument_expression_list
+%type <node> fun_call argument_expression_list
 %type <node> return_statement
 %type <node> typed_identifier
 %type <dataType> type_specifier
@@ -83,6 +67,7 @@ program
 
 statement
 		: PRINT statement		{ $$ = op(PRINT, 1, $2); }
+		| PRINTLN statement     { $$ = op(PRINTLN, 1, $2); }
 		| expression ';'		{ $$ = $1; }
 		| if_statement			{ $$ = $1; }
 		| while_statement		{ $$ = $1; }
@@ -130,12 +115,12 @@ fun_param_list
 return_statement
 		: RETURN expression ';'			{ $$ = op(RETURN, 1, $2); }
 
-func_call
+fun_call
 		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = functionCall($1, $3); }
 		| IDENTIFIER '(' ')' 							{ $$ = functionCall($1, NULL); }
 
 argument_expression_list
-		: expression								{ $$ = op(',', 2, NULL, $1; }
+		: expression								{ $$ = op(',', 2, NULL, $1); }
 		| argument_expression_list ',' expression	{ $$ = op(',', 2, $1, $3); }
 
 expression
@@ -157,7 +142,7 @@ expression
 		| '-' expression %prec UMINUS	{ $$ = op(UMINUS, 1, $2); }
 		| IDENTIFIER '=' expression	    { $$ = op('=', 2, variable($1), $3); }
 		| IDENTIFIER                    { $$ = variable($1); }
-		| func_call						{ $$ = $1; }
+		| fun_call						{ $$ = $1; }
 		| primitive_value				{ $$ = $1; }
 		| lex_error						{ $$ = $1; }
 
@@ -170,7 +155,7 @@ primitive_value
 
 lex_error
 		: LEX_ERROR {
-			$$ = empty();
+			$$ = newEmptyNode();
 			yyerror("lexical error");
 			YYERROR;
 		}
@@ -178,11 +163,3 @@ lex_error
 %%
 
 
-int main(void) {
-	yyparse();
-	return 0;
-}
-
-int yywrap() {
-	return 1;
-}

@@ -4,13 +4,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "types.h"
+#include "headers/types.h"
 #include "y.tab.h"
 
-
-extern int yylex (void);
 extern int yyerror(const char* message);
-extern int lineCounter;
 
 %}
 
@@ -61,6 +58,7 @@ string      \"(\\.|[^\\"])*\"
 "return"	return RETURN;
 
 "print"		return PRINT;
+"println"   return PRINTLN;
 
 "="			return '=';
 
@@ -74,9 +72,6 @@ string      \"(\\.|[^\\"])*\"
 ";"			return ';';
 ","			return ',';
 
-"\n" {
-    lineCounter++;
-}
 
 {bad_integer} {
 	yyerror("bad integer\n");
