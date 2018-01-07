@@ -9,7 +9,8 @@
 
 
 node* var(node* p, node* result) {
-	variableNode variableNode = p->oper.op[0]->variable;
+	node* varNode = p->oper.op[0];
+	variableNode variableNode = varNode->variable;
 
 	constantNode* variable = addSymbolNode(variableNode);
 	if (variable == NULL) {
@@ -85,8 +86,8 @@ node* comma(node* p, node* result) {
 }
 
 node* whilex(node* p, node* result) {
-	pushSymbolTableScope();
 	while (ex(p->oper.op[0])->constant.intVal) {
+		pushSymbolTableScope();
 		node* left = ex(p->oper.op[1]);
 		if (left->type == typeReturn) {
 			result->type = left->type;
@@ -95,8 +96,8 @@ node* whilex(node* p, node* result) {
 			debug("\tnode: Operand While\n");
 			return result;
 		}
+		popSymbolTableScope();
 	}
-	popSymbolTableScope();
 
 	result->type = typeOperator;
 	result->oper.oper = WHILE;
@@ -134,6 +135,7 @@ node* ifx(node* p, node* result) {
 }
 
 node* delimiter(node* p, node* result) {
+//	debug("\tnode: Operand Delimiter\n");
 	if (p->oper.opCount > 0) {
 		node* left = ex(p->oper.op[0]);
 		if (left->type == typeReturn) {
@@ -152,7 +154,6 @@ node* delimiter(node* p, node* result) {
 	}
 	result->type = typeOperator;
 	result->oper.oper = ';';
-	debug("\tnode: Operand Delimiter\n");
 	return result;
 }
 
@@ -163,7 +164,7 @@ node* assign(node* p, node* result) {
 	constantNode* variable = findSymbolNode(variableNode.name);
 
 	if (variable == NULL) {
-		printf("Warning: Undefined variable '%s'.\n", variableNode.name);
+		printf("Warning: Unable to assign undefined variable '%s'.\n", variableNode.name);
 		result->type = typeEmpty;
 		return result;
 	}
@@ -366,6 +367,8 @@ node* ne(node* p, node* result) {
 node* print(node* p, node* result) {
 	node* value = ex(p->oper.op[0]);
 
+	debug("\tnode: Print\n");
+
 	switch (value->type) {
 		case typeOperator:
 			switch (value->oper.oper) {
@@ -381,7 +384,7 @@ node* print(node* p, node* result) {
 			}
 			break;
 		case typeConstant:
-			printf("%s\n", getConstantValueString(value->constant));
+			printf("%s", getConstantValueString(value->constant));
 			break;
 		case typeFunctionDef:
 			printf("Function %s defined\n", value->function.name);
@@ -391,7 +394,6 @@ node* print(node* p, node* result) {
 		default:
 			printf("WRONG TYPE\n");
 	}
-	debug("\tnode: Print\n");
 
 	result->type = typeEmpty;
 	return result;
@@ -472,11 +474,14 @@ node* ex(node* p) {
 			pushSymbolTableScope();
 
 			for (int i = 0; i < function->paramCount; ++i) {
-				variableNode* paramDef = function->params[i];
-				constantNode* variable = addSymbolNode(*paramDef);
-				constantNode *paramVar = p->functionCall.params[i];
+				variableNode paramDef = function->params[i];
+				constantNode* paramVar = &ex(p->functionCall.params[i])->constant;
+				constantNode* variable = addSymbolNode(paramDef);
+				variable->dataType = paramVar->dataType;
 				variable->intVal = paramVar->intVal;
 			}
+
+			debug("\tnode: Function Call %s start\n", name);
 
 			node* res = ex(function->root);
 
@@ -485,7 +490,7 @@ node* ex(node* p) {
 			result->constant = res->constant;
 			popSymbolTableScope();
 
-			debug("\tnode: Function Call %s %s\n", name, getConstantValueString(result->constant));
+			debug("\tnode: Function Call %s return %s\n", name, getConstantValueString(result->constant));
 
 			return result;
 

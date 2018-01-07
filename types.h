@@ -51,13 +51,13 @@ typedef struct {
 	dataTypeEnum dataType;
 	struct nodeTag* root;
 	int paramCount;
-	variableNode* params[0];	/* params, extended at runtime */
+	variableNode params[0];	/* params, extended at runtime */
 } functionNode;
 
 typedef struct {
 	const char* name;
 	int paramCount;
-	constantNode* params[0];	/* params, extended at runtime */
+	struct nodeTag* params[0];	/* params, extended at runtime */
 } functionCallNode;
 
 typedef struct {

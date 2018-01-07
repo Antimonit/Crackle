@@ -61,7 +61,7 @@ node* function(node* typedVariable, node* params, node* root) {
 	int paramCount = getParamCount(params);
 
 	/* allocate node, extending params array */
-	node* function = malloc(sizeof(node) + paramCount * sizeof(variableNode*));
+	node* function = malloc(sizeof(node) + paramCount * sizeof(variableNode));
 
 	variableNode variable = typedVariable->variable;
 
@@ -75,7 +75,7 @@ node* function(node* typedVariable, node* params, node* root) {
 	while (paramCount > 0) {
 		paramCount--;
 		node *p = params->oper.op[1];
-		function->function.params[paramCount] = &p->variable;
+		function->function.params[paramCount] = p->variable;
 		params = params->oper.op[0];
 	}
 
@@ -99,8 +99,7 @@ node* functionCall(const char *value, node *params) {
 	/* retrieve actual parameters */
 	while (paramCount > 0) {
 		paramCount--;
-		node *p = ex(params->oper.op[1]);
-		functionCall->functionCall.params[paramCount] = &p->constant;
+		functionCall->functionCall.params[paramCount] = params->oper.op[1];
 		params = params->oper.op[0];
 	}
 

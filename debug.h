@@ -1,7 +1,7 @@
 #ifndef _DEBUG
 #define _DEBUG
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
 	#define debug printf
 #else
