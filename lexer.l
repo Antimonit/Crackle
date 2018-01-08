@@ -71,6 +71,7 @@ string      \"(\\.|[^\\"])*\"
 ":"         return ':';
 ";"			return ';';
 ","			return ',';
+"."         return '.';
 
 
 {bad_integer} {
@@ -95,6 +96,7 @@ string      \"(\\.|[^\\"])*\"
 
 {string} {
 	char* text = (char*) malloc(sizeof(char) * (yyleng - 1));
+	// strip leading and trailing quotation marks
 	strncpy(text, yytext+1, yyleng - 1);
 	text[yyleng-2] = '\0';
     yylval.stringVal = text;
@@ -111,6 +113,9 @@ string      \"(\\.|[^\\"])*\"
 	strncpy(id, yytext, yyleng + 1);
 	yylval.identifier = id;
 	return IDENTIFIER;
+}
+
+"\n" {
 }
 
 {whitespace} {

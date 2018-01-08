@@ -2,12 +2,12 @@
 // Created by DAVE on 29. 12. 2017.
 //
 
-#include <stdio.h>
+#include <cstdio>
 #include "headers/types.h"
 
 char temp[100];
 
-const char* dataTypeToString(dataTypeEnum type) {
+extern "C" const char* dataTypeToString(dataTypeEnum type) {
 	switch (type) {
 		case typeInt:
 			return "int";
@@ -24,7 +24,7 @@ const char* dataTypeToString(dataTypeEnum type) {
 	}
 }
 
-const char* constantValueToString(constantNode constant) {
+extern "C" const char* constantValueToString(constantNode constant) {
 	dataTypeEnum type = constant.dataType;
 
 	switch (type) {
@@ -38,7 +38,7 @@ const char* constantValueToString(constantNode constant) {
 			sprintf(temp, "%s", constant.stringVal);
 			break;
 		case typeBool:
-			sprintf(temp, "%s", constant.boolVal == true ? "true" : "false");
+			sprintf(temp, "%s", constant.boolVal ? "true" : "false");
 			break;
 		case typeUndefined:
 			sprintf(temp, "<undefined>");

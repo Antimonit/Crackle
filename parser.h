@@ -94,7 +94,7 @@ node* function(node* typedVariable, node* params, node* root) {
 
 	addFunction(&function->function);
 
-	debug("\tnode: Function %s\n", function->function.name);
+//	debug("\tnode: Function %s\n", function->function.name);
 
 	return function;
 }
@@ -115,7 +115,7 @@ node* functionCall(const char *value, node *params) {
 		functionCall->functionCall.params[paramCount] = params->oper.op[1];
 		params = params->oper.op[0];
 	}
-	debug("\tnode: Function call %s\n", functionCall->functionCall.name);
+//	debug("\tnode: Function call %s\n", functionCall->functionCall.name);
 
 	return functionCall;
 }
@@ -162,11 +162,7 @@ node* typedVariable(const char* name, dataTypeEnum type) {
 }
 
 node* variable(const char* name) {
-	node* variable = newNode();
-	variable->type = typeVariable;
-	variable->variable.dataType = typeUndefined;
-	variable->variable.name = name;
-	return variable;
+	return typedVariable(name, typeUndefined);
 }
 
 node* op(int oper, int opCount, ...) {

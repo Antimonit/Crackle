@@ -47,7 +47,7 @@
 
 %type <node> primitive_value expression lex_error
 %type <node> statement statement_list
-%type <node> if_statement while_statement
+%type <node> expression_statement for_statement if_statement while_statement
 %type <node> var_declaration
 %type <node> fun_definition fun_param_list
 %type <node> fun_call argument_expression_list
@@ -55,6 +55,7 @@
 %type <node> typed_identifier
 %type <dataType> type_specifier
 
+%start program
 %%
 
 program
@@ -68,9 +69,10 @@ program
 statement
 		: PRINT statement		{ $$ = op(PRINT, 1, $2); }
 		| PRINTLN statement     { $$ = op(PRINTLN, 1, $2); }
-		| expression ';'		{ $$ = $1; }
+		| expression_statement	{ $$ = $1; }
 		| if_statement			{ $$ = $1; }
 		| while_statement		{ $$ = $1; }
+		| for_statement         { $$ = $1; }
 		| var_declaration		{ $$ = $1; }
 		| fun_definition		{ $$ = $1; }
 		| return_statement		{ $$ = $1; }
@@ -80,12 +82,24 @@ statement_list
 		: statement_list statement	{ $$ = op(';', 2, $1, $2); }
 		| { $$ = op(';', 0); }
 
+expression_statement
+		: ';'                   { $$ = op(';', 0); }
+		| expression ';'        { $$ = $1; }
+
 if_statement
 		: IF '(' expression ')' '{' statement_list '}'                                { $$ = op(IF, 2, $3, $6); }
 		| IF '(' expression ')' '{' statement_list '}' ELSE '{' statement_list '}'    { $$ = op(IF, 3, $3, $6, $10); }
 
 while_statement
 		: WHILE '(' expression ')' '{' statement_list '}' 	{ $$ = op(WHILE, 2, $3, $6); }
+
+for_statement
+		: FOR '(' expression_statement expression_statement ')' '{' statement_list '}'  {
+			$$ = op(FOR, 4, $3, $4, NULL, $7);
+		}
+		| FOR '(' expression_statement expression_statement expression ')' '{' statement_list '}' {
+			$$ = op(FOR, 4, $3, $4, $5, $8);
+		}
 
 typed_identifier
 		: type_specifier IDENTIFIER { $$ = typedVariable($2, $1); }

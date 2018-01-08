@@ -1,10 +1,11 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-typedef enum {
-	false,
-	true
-} bool;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdbool.h>
 
 typedef enum {
     typeConstant,
@@ -81,5 +82,9 @@ const char* dataTypeToString(dataTypeEnum type);
 
 const char* constantValueToString(constantNode constant);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
