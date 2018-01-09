@@ -23,8 +23,8 @@ add_executable(Crackle
         sources/function_symbol_table.c
         headers/types.h
         sources/types.cpp
-        ast_printer.h
-        ast_printer.cpp
+        headers/ast_printer.h
+        sources/ast_printer.cpp
         lexer.l
         parser.y
         parser.h

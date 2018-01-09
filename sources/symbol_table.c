@@ -76,16 +76,6 @@ constantNode* addSymbolNode(variableNode variableNode) {
 			   name,
 			   dataTypeToString(variables->dataType),
 			   dataTypeToString(dataType));
-
-//		if (dataType == typeDouble && symbolTypes[index] == typeInt) {
-//			debug("\tChange variableNode from int to double\n");
-//			doubleVariables[index] = (double) intVariables[index];
-//			symbolTypes[index] = typeDouble;
-//		} else if (dataType == typeInt && symbolTypes[index] == typeDouble) {
-//			debug("\tChange variableNode from double to int\n");
-//			intVariables[index] = (int) doubleVariables[index];
-//			symbolTypes[index] = typeInt;
-//		}
 		return NULL;
 	}
 }

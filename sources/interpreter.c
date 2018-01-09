@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <headers/types.h>
-#include <ast_printer.h>
+#include <headers/ast_printer.h>
 #include "headers/interpreter.h"
 #include "headers/symbol_table.h"
 #include "headers/function_symbol_table.h"
@@ -11,14 +11,14 @@
 #include "headers/types.h"
 
 
-node* var(node* p, node* result) {
+void var(node* p, node* result) {
 	node* varNode = p->oper.op[0];
 	variableNode variableNode = varNode->variable;
 
 	constantNode* variable = addSymbolNode(variableNode);
 	if (variable == NULL) {
 		result->type = typeEmpty;
-		return result;
+		return;
 	}
 
 	const char* name = variableNode.name;
@@ -33,7 +33,7 @@ node* var(node* p, node* result) {
 			printf("Warning: Incompatible assignment of type '%s' to type '%s'\n",
 				   dataTypeToString(exType), dataTypeToString(varType));
 			result->type = typeEmpty;
-			return result;
+			return;
 		}
 
 		result->constant = *variable = defaultValue->constant;
@@ -56,8 +56,6 @@ node* var(node* p, node* result) {
 			debug("\tnode: Operand Var bool %s %s\n", name, variable->boolVal == true ? "true" : "false");
 		}
 	}
-
-	return result;
 }
 
 /*private*/ void assignVal(constantNode* lval, constantNode* rval, dataTypeEnum varType) {
@@ -72,22 +70,16 @@ node* var(node* p, node* result) {
 	}
 }
 
-node* returnx(node* p, node* result) {
+void returnx(node* p, node* result) {
 	node* value = ex(p->oper.op[0]);
 
 	result->type = typeReturn;
 	result->ret.value = value->constant;
-
-//	debug("\tnode: Operand Return %s\n", constantValueToString(result->ret.value));
-
-	return result;
 }
 
-node* comma(node* p, node* result) {
+void comma(node* p, node* result) {
 	node* left = p->oper.op[0];
 	node* right = p->oper.op[1];
-
-	// TODO: reclaim all parameters from the syntax tree
 
 	/*
 	if (left->type == typeVariable) {
@@ -97,12 +89,9 @@ node* comma(node* p, node* result) {
 		node* exx = ex(left);
 	}
 	*/
-
-	debug("\tnode: Operand Comma\n");
-	return result;
 }
 
-node* whilex(node* p, node* result) {
+void whilex(node* p, node* result) {
 	while (ex(p->oper.op[0])->constant.intVal) {
 		pushSymbolTableScope();
 		node* left = ex(p->oper.op[1]);
@@ -110,22 +99,16 @@ node* whilex(node* p, node* result) {
 			result->type = typeReturn;
 			result->ret.value = left->ret.value;
 			popSymbolTableScope();
-//			debug("\tnode: Operand While\n");
-			return result;
+			return;
 		}
 		popSymbolTableScope();
 	}
 
 	result->type = typeOperator;
 	result->oper.oper = WHILE;
-//	debug("\tnode: Operand While\n");
-	return result;
 }
 
-node* forx(node* p, node* result) {
-	result->type = typeOperator;
-	result->oper.oper = FOR;
-
+void forx(node* p, node* result) {
 	for (ex(p->oper.op[0]);
 		 ex(p->oper.op[1])->constant.boolVal;
 		 ex(p->oper.op[2])) {
@@ -136,15 +119,15 @@ node* forx(node* p, node* result) {
 			popSymbolTableScope();
 			result->type = typeReturn;
 			result->ret.value = left->ret.value;
-			return result;
+			return;
 		}
 		popSymbolTableScope();
 	}
-
-	return result;
+	result->type = typeOperator;
+	result->oper.oper = FOR;
 }
 
-node* ifx(node* p, node* result) {
+void ifx(node* p, node* result) {
 	pushSymbolTableScope();
 	if (ex(p->oper.op[0])->constant.intVal) {
 		node* left = ex(p->oper.op[1]);
@@ -152,8 +135,7 @@ node* ifx(node* p, node* result) {
 			result->type = left->type;
 			result->ret.value = left->ret.value;
 			popSymbolTableScope();
-//			debug("\tnode: Operand IF\n");
-			return result;
+			return;
 		}
 	} else if (p->oper.opCount > 2) {
 		node* right = ex(p->oper.op[2]);
@@ -161,19 +143,16 @@ node* ifx(node* p, node* result) {
 			result->type = right->type;
 			result->ret.value = right->ret.value;
 			popSymbolTableScope();
-//			debug("\tnode: Operand IF\n");
-			return result;
+			return;
 		}
 	}
 
 	result->type = typeOperator;
 	result->oper.oper = IF;
 	popSymbolTableScope();
-//	debug("\tnode: Operand IF\n");
-	return result;
 }
 
-node* delimiter(node* p, node* result) {
+void delimiter(node* p, node* result) {
 	result->type = typeOperator;
 	result->oper.oper = ';';
 
@@ -182,7 +161,7 @@ node* delimiter(node* p, node* result) {
 		if (left->type == typeReturn) {
 			result->type = typeReturn;
 			result->ret.value = left->ret.value;
-			return result;
+			return;
 		}
 	}
 	if (p->oper.opCount > 1) {
@@ -190,13 +169,12 @@ node* delimiter(node* p, node* result) {
 		if (right->type == typeReturn) {
 			result->type = typeReturn;
 			result->ret.value = right->ret.value;
-			return result;
+			return;
 		}
 	}
-	return result;
 }
 
-node* assign(node* p, node* result) {
+void assign(node* p, node* result) {
 	node* one = p->oper.op[0];
 	variableNode variableNode = one->variable;
 	node* value = ex(p->oper.op[1]);
@@ -206,123 +184,103 @@ node* assign(node* p, node* result) {
 	if (variable == NULL) {
 		printf("Warning: Unable to assign undefined variable '%s'.\n", variableNode.name);
 		result->type = typeEmpty;
-		return result;
+		return;
 	}
 
 	if (variable->dataType != value->constant.dataType) {
 		printf("Warning: Incompatible assignment of type '%s' to variable '%s' of type '%s'.\n",
 			   dataTypeToString(value->constant.dataType), variableNode.name, dataTypeToString(variable->dataType));
 		result->type = typeEmpty;
-		return result;
+		return;
 	}
 
-	const char* name = variableNode.name;
 	dataTypeEnum type = variable->dataType;
 
 	result->constant.dataType = type;
 	result->constant = *variable = value->constant;
 
-	debug("\tnode: Operand Assign %s %s %s\n",
-		  dataTypeToString(value->constant.dataType), name, constantValueToString(value->constant));
-
-	return result;
+//	debug("\tnode: Operand Assign %s %s %s\n",
+//		  dataTypeToString(value->constant.dataType), name, constantValueToString(value->constant));
 }
 
-node* uminus(node* p, node* result) {
+void uminus(node* p, node* result) {
 	node* a = ex(p->oper.op[0]);
 	result->type = typeConstant;
 	result->constant.dataType = a->constant.dataType;
 	if (result->constant.dataType == typeInt) {
 		result->constant.intVal = -a->constant.intVal;
-		debug("\tnode: Operand Unary Minus %d\n", result->constant.intVal);
 	} else if (result->constant.dataType == typeDouble) {
 		result->constant.doubleVal = -a->constant.doubleVal;
-		debug("\tnode: Operand Unary Minus %f\n", result->constant.doubleVal);
 	} else {
 		printf("Warning: Invalid argument to unary minus.\n");
 	}
-	return result;
 }
 
-node* plus(node* p, node* result) {
+void plus(node* p, node* result) {
 	constantNode* left = &ex(p->oper.op[0])->constant;
 	constantNode* right = &ex(p->oper.op[1])->constant;
 	result->type = typeConstant;
 	result->constant.dataType = widenNodes(left, right);
 	if (result->constant.dataType == typeInt) {
 		result->constant.intVal = left->intVal + right->intVal;
-//		debug("\tnode: Operand Plus %d\n", result->constant.intVal);
 	} else if (result->constant.dataType == typeDouble) {
 		result->constant.doubleVal = left->doubleVal + right->doubleVal;
-//		debug("\tnode: Operand Plus %f\n", result->constant.doubleVal);
 	} else {
 		printf("Warning: Invalid argument to plus operator.\n");
 	}
-	return result;
 }
-node* minus(node* p, node* result) {
+void minus(node* p, node* result) {
 	constantNode* left = &ex(p->oper.op[0])->constant;
 	constantNode* right = &ex(p->oper.op[1])->constant;
 	result->type = typeConstant;
 	result->constant.dataType = widenNodes(left, right);
 	if (result->constant.dataType == typeInt) {
 		result->constant.intVal = left->intVal - right->intVal;
-//		debug("\tnode: Operand Minus %d\n", result->constant.intVal);
 	} else if (result->constant.dataType == typeDouble) {
 		result->constant.doubleVal = left->doubleVal - right->doubleVal;
-//		debug("\tnode: Operand Minus %f\n", result->constant.doubleVal);
 	} else {
 		printf("Warning: Invalid argument to minus operator.\n");
 	}
-	return result;
 }
-node* multiply(node* p, node* result) {
+void multiply(node* p, node* result) {
 	constantNode* left = &ex(p->oper.op[0])->constant;
 	constantNode* right = &ex(p->oper.op[1])->constant;
 	result->type = typeConstant;
 	result->constant.dataType = widenNodes(left, right);
 	if (result->constant.dataType == typeInt) {
 		result->constant.intVal = left->intVal * right->intVal;
-//		debug("\tnode: Operand Multiply %d\n", result->constant.intVal);
 	} else if (result->constant.dataType == typeDouble) {
 		result->constant.doubleVal = left->doubleVal * right->doubleVal;
-//		debug("\tnode: Operand Multiply %f\n", result->constant.doubleVal);
 	} else {
 		printf("Warning: Invalid argument to multiply operator.\n");
 	}
-	return result;
 }
-node* divide(node* p, node* result) {
+void divide(node* p, node* result) {
 	constantNode* left = &ex(p->oper.op[0])->constant;
 	constantNode* right = &ex(p->oper.op[1])->constant;
 	result->type = typeConstant;
 	result->constant.dataType = widenNodes(left, right);
 	if (result->constant.dataType == typeInt) {
 		result->constant.intVal = left->intVal / right->intVal;
-//		debug("\tnode: Operand Divide %d\n", result->constant.intVal);
 	} else if (result->constant.dataType == typeDouble) {
 		result->constant.doubleVal = left->doubleVal / right->doubleVal;
-//		debug("\tnode: Operand Divide %f\n", result->constant.doubleVal);
 	} else {
 		printf("Warning: Invalid argument to divide operator.\n");
 	}
-	return result;
 }
-node* modulo(node* p, node* result) {
+void modulo(node* p, node* result) {
 	constantNode* left = &ex(p->oper.op[0])->constant;
 	constantNode* right = &ex(p->oper.op[1])->constant;
 	result->type = typeConstant;
 	result->constant.dataType = widenNodes(left, right);
 	if (result->constant.dataType == typeInt) {
 		result->constant.intVal = left->intVal % right->intVal;
-//		debug("\tnode: Operand Modulo %d\n", result->constant.intVal);
 	} else {
 		printf("Warning: Invalid argument to modulo operator.\n");
 	}
-	return result;
 }
 
-node* andx(node* p, node* result) {
+void andx(node* p, node* result) {
 	constantNode left = ex(p->oper.op[0])->constant;
 	constantNode right = ex(p->oper.op[1])->constant;
 	result->type = typeConstant;
@@ -338,9 +296,8 @@ node* andx(node* p, node* result) {
 		result->constant.dataType = typeBool;
 		result->constant.boolVal = ((left.boolVal == true) && (right.boolVal == true)) ? true : false;
 	}
-	return result;
 }
-node* orx(node* p, node* result) {
+void orx(node* p, node* result) {
 	constantNode left = ex(p->oper.op[0])->constant;
 	constantNode right = ex(p->oper.op[1])->constant;
 	result->type = typeConstant;
@@ -356,9 +313,8 @@ node* orx(node* p, node* result) {
 		result->constant.dataType = typeBool;
 		result->constant.boolVal = ((left.boolVal == true) || (right.boolVal == true)) ? true : false;
 	}
-	return result;
 }
-node* neg(node* p, node* result) {
+void neg(node* p, node* result) {
 	constantNode value = ex(p->oper.op[0])->constant;
 	result->type = typeConstant;
 	result->constant.dataType = typeUndefined;
@@ -370,73 +326,62 @@ node* neg(node* p, node* result) {
 		result->constant.dataType = typeBool;
 		result->constant.boolVal = (value.boolVal) == true ? false : true;
 	}
-	return result;
 }
 
-node* lt(node* p, node* result) {
+void lt(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
 	result->type = typeConstant;
 	result->constant.dataType = typeBool;
 	result->constant.boolVal = (left->constant.intVal < right->constant.intVal) ? true : false;
-	return result;
 }
-node* le(node* p, node* result) {
+void le(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
 	result->type = typeConstant;
 	result->constant.dataType = typeBool;
 	result->constant.boolVal = (left->constant.intVal <= right->constant.intVal) ? true : false;
-	return result;
 }
-node* gt(node* p, node* result) {
+void gt(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
 	result->type = typeConstant;
 	result->constant.dataType = typeBool;
 	result->constant.boolVal = (left->constant.intVal > right->constant.intVal) ? true : false;
-	return result;
 }
-node* ge(node* p, node* result) {
+void ge(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
 	result->type = typeConstant;
 	result->constant.dataType = typeBool;
 	result->constant.boolVal = (left->constant.intVal >= right->constant.intVal) ? true : false;
-	return result;
 }
-node* eq(node* p, node* result) {
+void eq(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
 	result->type = typeConstant;
 	result->constant.dataType = typeBool;
 	result->constant.boolVal = (left->constant.intVal == right->constant.intVal) ? true : false;
-	return result;
 }
-node* ne(node* p, node* result) {
+void ne(node* p, node* result) {
 	node* left = ex(p->oper.op[0]);
 	node* right = ex(p->oper.op[1]);
 	result->type = typeConstant;
 	result->constant.dataType = typeBool;
 	result->constant.boolVal = (left->constant.intVal != right->constant.intVal) ? true : false;
-	return result;
 }
 
-node* print(node* p, node* result) {
+void print(node* p, node* result) {
 	node* value = ex(p->oper.op[0]);
 
-//	debug("\tnode: Print\n");
 	switch (value->type) {
 		case typeOperator:
 			switch (value->oper.oper) {
-				case WHILE: printf("WHILE");
-							break;
-				case IF:	printf("IF");
-							break;
-				case FUN:	printf("FUN");
-							break;
-				case VAR:	printf("VAR");
-							break;
+				case FOR:	printf("FOR");		break;
+				case WHILE:	printf("WHILE");	break;
+				case IF:	printf("IF");		break;
+				case FUN:	printf("FUN");		break;
+				case VAR:	printf("VAR");		break;
 				default:	printf("WRONG OPERATOR");
 			}
 			break;
@@ -454,13 +399,10 @@ node* print(node* p, node* result) {
 	}
 
 	result->type = typeEmpty;
-	return result;
 }
-
-node* println(node* p, node* result) {
+void println(node* p, node* result) {
 	print(p, result);
 	printf("\n");
-	return result;
 }
 
 node* ex(node* p) {
@@ -477,8 +419,7 @@ node* ex(node* p) {
 			result->type = typeConstant;
 			result->constant = p->constant;
 //			debug("\tnode: Constant %s %s\n", dataTypeToString(p->constant.dataType), constantValueToString(p->constant));
-			exitNode(result);
-			return result;
+			break;
 
 		case typeVariable:
 			result->type = typeConstant;
@@ -496,49 +437,43 @@ node* ex(node* p) {
 			result->constant = *variable;
 
 //			debug("\tnode: Identifier %s %s\n", name, constantValueToString(*variable));
-			exitNode(result);
-			return result;
+			break;
 
 		case typeOperator:
-			;
-			node* ret;
 			switch (p->oper.oper) {
-				case PRINT:		ret = print(p, result); break;
-				case PRINTLN:	ret = println(p, result); break;
-				case VAR:		ret = var(p, result); break;
-				case RETURN:	ret = returnx(p, result); break;
-				case ',':		ret = comma(p, result); break;
+				case PRINT:		print(p, result); break;
+				case PRINTLN:	println(p, result); break;
+				case VAR:		var(p, result); break;
+				case RETURN:	returnx(p, result); break;
+				case ',':		comma(p, result); break;
 
-				case WHILE:		ret = whilex(p, result); break;
-				case IF:		ret = ifx(p, result); break;
-				case FOR:		ret = forx(p, result); break;
-				case ';':		ret = delimiter(p, result); break;
-				case '=':		ret = assign(p, result); break;
+				case WHILE:		whilex(p, result); break;
+				case IF:		ifx(p, result); break;
+				case FOR:		forx(p, result); break;
+				case ';':		delimiter(p, result); break;
+				case '=':		assign(p, result); break;
 
-				case UMINUS:	ret = uminus(p, result); break;
+				case UMINUS:	uminus(p, result); break;
 
-				case '+':		ret = plus(p, result); break;
-				case '-':		ret = minus(p, result); break;
-				case '*':		ret = multiply(p, result); break;
-				case '/':		ret = divide(p, result); break;
-				case '%':		ret = modulo(p, result); break;
+				case '+':		plus(p, result); break;
+				case '-':		minus(p, result); break;
+				case '*':		multiply(p, result); break;
+				case '/':		divide(p, result); break;
+				case '%':		modulo(p, result); break;
 
-				case AND:		ret = andx(p, result); break;
-				case OR:		ret = orx(p, result); break;
-				case NEG:		ret = neg(p, result); break;
+				case AND:		andx(p, result); break;
+				case OR:		orx(p, result); break;
+				case NEG:		neg(p, result); break;
 
-				case LT:		ret = lt(p, result); break;
-				case LE:		ret = le(p, result); break;
-				case GT:		ret = gt(p, result); break;
-				case GE:		ret = ge(p, result); break;
-				case EQ:		ret = eq(p, result); break;
-				case NE:		ret = ne(p, result); break;
-				default:
-					printf("Error: unknown operator %d", p->oper.oper);
-					ret = result;
+				case LT:		lt(p, result); break;
+				case LE:		le(p, result); break;
+				case GT:		gt(p, result); break;
+				case GE:		ge(p, result); break;
+				case EQ:		eq(p, result); break;
+				case NE:		ne(p, result); break;
+				default:		printf("Error: unknown operator %d", p->oper.oper);
 			}
-			exitNode(ret);
-			return ret;
+			break;
 
 		case typeFunctionCall:
 			name = p->functionCall.name;
@@ -555,9 +490,9 @@ node* ex(node* p) {
 			for (int i = 0; i < function->paramCount; ++i) {
 				variableNode paramDef = function->params[i];
 				constantNode* paramVar = &ex(p->functionCall.params[i])->constant;
-				constantNode* variable = addSymbolNode(paramDef);
-				variable->dataType = paramDef.dataType;
-				variable->intVal = paramVar->intVal;
+				constantNode* variableSymbol = addSymbolNode(paramDef);
+				variableSymbol->dataType = paramDef.dataType;
+				variableSymbol->intVal = paramVar->intVal;
 			}
 
 //			debug("\tnode: Function Call %s start\n", name);
@@ -570,21 +505,19 @@ node* ex(node* p) {
 			popSymbolTableScope();
 
 //			debug("\tnode: Function Call %s return %s\n", name, constantValueToString(result->constant));
-
-			exitNode(result);
-			return result;
+			break;
 
 		case typeEmpty:
 			result->type = typeEmpty;
-			exitNode(result);
-			return result;
+			break;
 
 		default:
-//			debug("\tnode: UNDEFINED (%d)\n", p->type);
 			result->type = typeEmpty;
-			exitNode(result);
-			return result;
+			break;
 	}
+
+	exitNode(result);
+	return result;
 }
 
 

@@ -3,7 +3,7 @@
 //
 
 #include <headers/types.h>
-#include "ast_printer.h"
+#include "headers/ast_printer.h"
 #include <list>
 #include <c++/cstdio>
 #include <c++/iostream>
@@ -13,6 +13,7 @@
 using namespace std;
 
 list<node*> stack;
+int indent = 0;
 
 void printConstant(node* node) {
 	cout << "Constant ";
@@ -37,26 +38,26 @@ void printOperator(node* node) {
 		case IF:		cout << "IF"; break;
 		case FOR:		cout << "FOR"; break;
 		case ';':		cout << "SEMICOLON"; break;
-		case '=':		cout << "EQUALS"; break;
+		case '=':		cout << "ASSIGN"; break;
 
-		case UMINUS:	cout << "Unary Minus " << constantValueToString(node->constant); break;
+		case UMINUS:	cout << "UNARY MINUS"; break;
 
-		case '+':		cout << "PLUS " << constantValueToString(node->constant); break;
-		case '-':		cout << "MINUS " << constantValueToString(node->constant); break;
-		case '*':		cout << "MULTIPLY " << constantValueToString(node->constant); break;
-		case '/':		cout << "DIVIDE " << constantValueToString(node->constant); break;
-		case '%':		cout << "MODULO " << constantValueToString(node->constant); break;
+		case '+':		cout << "PLUS"; break;
+		case '-':		cout << "MINUS"; break;
+		case '*':		cout << "MULTIPLY"; break;
+		case '/':		cout << "DIVIDE"; break;
+		case '%':		cout << "MODULO"; break;
 
-		case AND:		cout << "AND " << constantValueToString(node->constant); break;
-		case OR:		cout << "OR " << constantValueToString(node->constant); break;
-		case NEG:		cout << "NEG " << constantValueToString(node->constant); break;
+		case AND:		cout << "AND"; break;
+		case OR:		cout << "OR"; break;
+		case NEG:		cout << "NEG"; break;
 
-		case LT:		cout << "LT " << constantValueToString(node->constant); break;
-		case LE:		cout << "LE " << constantValueToString(node->constant); break;
-		case GT:		cout << "GT " << constantValueToString(node->constant); break;
-		case GE:		cout << "GE " << constantValueToString(node->constant); break;
-		case EQ:		cout << "EQ " << constantValueToString(node->constant); break;
-		case NE:		cout << "NE " << constantValueToString(node->constant); break;
+		case LT:		cout << "LT"; break;
+		case LE:		cout << "LE"; break;
+		case GT:		cout << "GT"; break;
+		case GE:		cout << "GE"; break;
+		case EQ:		cout << "EQ"; break;
+		case NE:		cout << "NE"; break;
 	}
 }
 
@@ -76,13 +77,13 @@ void printReturn(node* node) {
 
 void printNode(bool entering, node* node) {
 	cout << '\t';
-	for (int i = 0; i < stack.size(); ++i) {
-		cout << "  ";
+	for (int i = 0; i < indent; ++i) {
+		cout << static_cast<char>(179) << " ";	/* │ */
 	}
 	if (entering)
-		cout << "NODE > ";
+		cout << static_cast<char>(218); /* ┌ */
 	else
-		cout << "NODE < ";
+		cout << static_cast<char>(192); /* └ */
 
 	switch (node->type) {
 		case typeConstant:
@@ -114,12 +115,18 @@ void printNode(bool entering, node* node) {
 }
 
 extern "C" void enterNode(node* node) {
-	printNode(true, node);
 	stack.push_back(node);
+	if (stack.back()->type != typeOperator || stack.back()->oper.oper != ';') {
+		printNode(true, node);
+		indent++;
+	}
 }
 
 extern "C" void exitNode(node* node) {
+	if (stack.back()->type != typeOperator || stack.back()->oper.oper != ';') {
+		indent--;
+		printNode(false, node);
+	}
 	stack.pop_back();
-	printNode(false, node);
 }
 
