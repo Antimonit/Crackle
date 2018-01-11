@@ -10,6 +10,8 @@
 #include <stdarg.h>
 #include <math.h>
 #include <y.tab.h>
+#include <headers/types.hpp>
+#include <headers/node_helpers.hpp>
 #include "headers/types.hpp"
 #include "headers/interpreter.h"
 #include "headers/symbol_table.hpp"
@@ -62,7 +64,7 @@ int getParamCount(node* params) {
 		node *countingParams = params;
 		while (countingParams->oper.op[0] != NULL) {
 			paramCount++;
-			countingParams = params->oper.op[0];
+			countingParams = countingParams->oper.op[0];
 		}
 	}
 	return paramCount;
@@ -73,21 +75,24 @@ node* function(node* typedVariable, node* params, node* root) {
 	int paramCount = getParamCount(params);
 
 	/* allocate node, extending params array */
-	node* function = malloc(sizeof(node) + paramCount * sizeof(variableNode));
+	node* function = malloc(sizeof(node) + paramCount * sizeof(variableDefNode));
 
 	variableNode variable = typedVariable->variable;
+	functionDefNode* functionDef = &function->functionDef;
 
 	function->type = typeFunctionDef;
-	function->function.dataType = variable.dataType;
-	function->function.name = variable.name;
-	function->function.root = root;
-	function->function.paramCount = paramCount;
+	functionDef->dataType = variable.dataType;
+	functionDef->name = variable.name;
+	functionDef->root = root;
+	functionDef->paramCount = paramCount;
 
 	/* retrieve actual parameters */
 	while (paramCount > 0) {
 		paramCount--;
-		node *p = params->oper.op[1];
-		function->function.params[paramCount] = p->variable;
+		node *p = params->oper.op[1]; // p is variable, not variableDef
+//		printf("param: %d | name: %s | type: %s\n", paramCount, p->variable.name, dataTypeToString(p->variable.dataType));
+		functionDef->params[paramCount].name = p->variable.name;
+		functionDef->params[paramCount].dataType = p->variable.dataType;
 		params = params->oper.op[0];
 	}
 
@@ -101,13 +106,13 @@ node* functionCall(const char *value, node *params) {
 	/* allocate node, extending params array */
 	node* functionCall = malloc(sizeof(node) + paramCount * sizeof(constantNode*));
 
-	functionCall->type = typeFunctionCall;
-	functionCall->functionCall.name = value;
+	functionCall->type = typeFunction;
+	functionCall->function.name = value;
 
 	/* retrieve actual parameters */
 	while (paramCount > 0) {
 		paramCount--;
-		functionCall->functionCall.params[paramCount] = params->oper.op[1];
+		functionCall->function.params[paramCount] = params->oper.op[1];
 		params = params->oper.op[0];
 	}
 
@@ -145,6 +150,30 @@ node* constantBool(bool value) {
 	constant->constant.dataType = typeBool;
 	constant->constant.boolVal = value;
 	return constant;
+}
+
+node* variableDef(node* typedVariable, node* defaultValue) {
+	node* result = newNode();
+	result->type = typeVariableDef;
+
+	variableDefNode* variableDef = &result->variableDef;
+
+	variableDef->name = typedVariable->variable.name;
+	variableDef->dataType = typedVariable->variable.dataType;
+
+	if (defaultValue != NULL) {
+		if (variableDef->dataType != typedVariable->variable.dataType) {
+			printf("Warning: Defined value of type %s is incompatible with variable type %s",
+				dataTypeToString(typedVariable->variable.dataType),
+				dataTypeToString(typedVariable->variableDef.dataType));
+		} else {
+			copyConstantToVariableDef(variableDef, &defaultValue->constant);
+		}
+	} else {
+		defaultVariableDef(variableDef);
+	}
+
+	return result;
 }
 
 node* typedVariable(const char* name, dataTypeEnum type) {

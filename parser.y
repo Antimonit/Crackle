@@ -4,9 +4,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-#include "headers/types.h"
+#include "headers/types.hpp"
 #include "headers/interpreter.h"
-#include "headers/symbol_table.h"
+#include "headers/symbol_table.hpp"
 #include "parser.h"
 
 %}
@@ -111,8 +111,8 @@ type_specifier
 		| STRING	{ $$ = typeString; }
 
 var_declaration
-		: typed_identifier ';' { $$ = op(VAR, 1, $1); }
-		| typed_identifier '=' expression ';' { $$ = op(VAR, 2, $1, $3); }
+		: typed_identifier ';' { $$ = variableDef($1, NULL); }
+		| typed_identifier '=' expression ';' { $$ = variableDef($1, $3); }
 
 fun_definition
 		: typed_identifier '(' fun_param_list ')' '{' statement_list '}' {

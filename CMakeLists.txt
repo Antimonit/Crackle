@@ -31,8 +31,8 @@ add_executable(Crackle
         parser.h
         ${FLEX_Scanner_OUTPUTS}
         ${BISON_Parser_OUTPUTS}
-        headers/node_helpers.h
-        sources/node_helpers.c
+        headers/node_helpers.hpp
+        sources/node_helpers.cpp
         )
 
 # original makefile:

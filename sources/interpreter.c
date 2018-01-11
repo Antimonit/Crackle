@@ -4,48 +4,9 @@
 #include <headers/ast_printer.pph>
 #include "headers/interpreter.h"
 #include "headers/symbol_table.hpp"
-#include "headers/node_helpers.h"
+#include "headers/node_helpers.hpp"
 #include "y.tab.h"
 
-
-void var(node* p, node* result) {
-	node* varNode = p->oper.op[0];
-	variableNode variableNode = varNode->variable;
-
-	constantNode* variable = addVariable(variableNode);
-	if (variable == NULL) {
-		result->type = typeEmpty;
-		return;
-	}
-
-	dataTypeEnum varType = variable->dataType;
-
-	result->type = typeConstant;
-
-	if (p->oper.opCount > 1) {
-		node* defaultValue = ex(p->oper.op[1]);
-		dataTypeEnum exType = defaultValue->constant.dataType;
-		if (varType != exType) {
-			printf("Warning: Incompatible assignment of type '%s' to type '%s'\n",
-				   dataTypeToString(exType), dataTypeToString(varType));
-			result->type = typeEmpty;
-			return;
-		}
-
-		result->constant = *variable = defaultValue->constant;
-	} else {
-		result->constant.dataType = varType;
-		if (varType == typeInt) {
-			result->constant.intVal = variable->intVal = 0;
-		} else if (varType == typeDouble) {
-			result->constant.doubleVal = variable->doubleVal = 0.0;
-		} else if (varType == typeString) {
-			result->constant.stringVal = variable->stringVal = "";
-		} else if (varType == typeBool) {
-			result->constant.boolVal = variable->boolVal = false;
-		}
-	}
-}
 
 void returnx(node* p, node* result) {
 	node* value = ex(p->oper.op[0]);
@@ -364,7 +325,7 @@ void print(node* p, node* result) {
 			printf("%s", constantValueToString(value->constant));
 			break;
 		case typeFunctionDef:
-			printf("Function %s defined", value->function.name);
+			printf("Function %s defined", value->functionDef.name);
 			break;
 		case typeEmpty:
 			printf("EMPTY");
@@ -395,6 +356,10 @@ node* ex(node* p) {
 			result->constant = p->constant;
 			break;
 
+		case typeVariableDef:
+			addVariable(&p->variableDef);
+			break;
+
 		case typeVariable:
 			result->type = typeConstant;
 
@@ -415,7 +380,6 @@ node* ex(node* p) {
 			switch (p->oper.oper) {
 				case PRINT:		print(p, result); break;
 				case PRINTLN:	println(p, result); break;
-				case VAR:		var(p, result); break;
 				case RETURN:	returnx(p, result); break;
 				case ',':		comma(p, result); break;
 
@@ -448,13 +412,13 @@ node* ex(node* p) {
 			break;
 
 		case typeFunctionDef:
-			addFunction(&p->function);
+			addFunction(&p->functionDef);
 			break;
 
-		case typeFunctionCall:
-			name = p->functionCall.name;
+		case typeFunction:
+			name = p->function.name;
 
-			functionNode* function = findFunction(name);
+			functionDefNode* function = findFunction(name);
 			if (function == NULL) {
 				printf("Warning: Undefined function '%s'.\n", name);
 				exitNode(result);
@@ -464,11 +428,16 @@ node* ex(node* p) {
 			replaceSymbolTableScope();
 
 			for (int i = 0; i < function->paramCount; ++i) {
-				variableNode paramDef = function->params[i];
-				constantNode* paramVar = &ex(p->functionCall.params[i])->constant;
-				constantNode* variableSymbol = addVariable(paramDef);
-				variableSymbol->dataType = paramDef.dataType;
-				variableSymbol->intVal = paramVar->intVal;
+				variableDefNode* paramDef = &function->params[i];
+				constantNode* paramVar = &ex(p->function.params[i])->constant;
+				if (paramDef->dataType == paramVar->dataType) {
+					copyConstantToVariableDef(paramDef, paramVar);
+				} else {
+					defaultVariableDef(paramDef);
+					printf("Warning: Passing incompatible parameter of type %s instead of type %s\n",
+						   dataTypeToString(paramVar->dataType), dataTypeToString(paramDef->dataType));
+				}
+				addVariable(paramDef);
 			}
 
 			node* res = ex(function->root);
@@ -477,7 +446,6 @@ node* ex(node* p) {
 			result->constant.dataType = res->constant.dataType;
 			result->constant = res->constant;
 			popSymbolTableScope();
-
 			break;
 
 		case typeEmpty:

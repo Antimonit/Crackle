@@ -9,10 +9,11 @@ extern "C" {
 
 typedef enum {
     typeConstant,
+	typeVariableDef,
     typeVariable,
     typeOperator,
 	typeFunctionDef,
-    typeFunctionCall,
+    typeFunction,
     typeReturn,
     typeEmpty
 } nodeTypeEnum;
@@ -31,10 +32,21 @@ typedef struct {
     union {
         int intVal;
         double doubleVal;
-		char* stringVal;
+		const char* stringVal;
 		bool boolVal;
     };
 } constantNode;
+
+typedef struct {
+	dataTypeEnum dataType;
+	const char* name;
+	union {
+		int intVal;
+		double doubleVal;
+		const char* stringVal;
+		bool boolVal;
+	};
+} variableDefNode;
 
 typedef struct {
 	dataTypeEnum dataType;
@@ -52,14 +64,14 @@ typedef struct {
 	dataTypeEnum dataType;
 	struct nodeTag* root;
 	int paramCount;
-	variableNode params[0];	/* params, extended at runtime */
-} functionNode;
+	variableDefNode params[0];	/* formal parameters, extended at runtime */
+} functionDefNode;
 
 typedef struct {
 	const char* name;
 	int paramCount;
-	struct nodeTag* params[0];	/* params, extended at runtime */
-} functionCallNode;
+	struct nodeTag* params[0];	/* actual parameters, extended at runtime */
+} functionNode;
 
 typedef struct {
 	constantNode value;
@@ -69,10 +81,11 @@ typedef struct nodeTag {
     nodeTypeEnum type;
     union {
         constantNode constant;
+        variableDefNode variableDef;
         variableNode variable;
         operatorNode oper;
+		functionDefNode functionDef;
         functionNode function;
-        functionCallNode functionCall;
         returnNode ret;
     };
 } node;

@@ -16,11 +16,11 @@ void popSymbolTableScope();
 
 constantNode* findVariable(const char *symbol);
 
-constantNode* addVariable(variableNode variableNode);
+void addVariable(variableDefNode* variable);
 
-functionNode* findFunction(const char *symbol);
+functionDefNode* findFunction(const char *symbol);
 
-void addFunction(functionNode* function);
+void addFunction(functionDefNode* function);
 
 #ifdef __cplusplus
 }
