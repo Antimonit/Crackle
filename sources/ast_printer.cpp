@@ -2,8 +2,8 @@
 // Created by DAVE on 8. 1. 2018.
 //
 
-#include <headers/types.h>
-#include "headers/ast_printer.h"
+#include <headers/types.hpp>
+#include "headers/ast_printer.pph"
 #include <list>
 #include <c++/cstdio>
 #include <c++/iostream>
@@ -72,7 +72,6 @@ void printFunctionCall(node* node) {
 void printReturn(node* node) {
 	cout << "Return " << constantValueToString(node->ret.value);
 }
-
 
 
 void printNode(bool entering, node* node) {

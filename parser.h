@@ -10,10 +10,9 @@
 #include <stdarg.h>
 #include <math.h>
 #include <y.tab.h>
-#include "headers/types.h"
+#include "headers/types.hpp"
 #include "headers/interpreter.h"
-#include "headers/symbol_table.h"
-#include "headers/function_symbol_table.h"
+#include "headers/symbol_table.hpp"
 #include "headers/debug.h"
 
 
@@ -92,10 +91,6 @@ node* function(node* typedVariable, node* params, node* root) {
 		params = params->oper.op[0];
 	}
 
-	addFunction(&function->function);
-
-//	debug("\tnode: Function %s\n", function->function.name);
-
 	return function;
 }
 
@@ -115,7 +110,6 @@ node* functionCall(const char *value, node *params) {
 		functionCall->functionCall.params[paramCount] = params->oper.op[1];
 		params = params->oper.op[0];
 	}
-//	debug("\tnode: Function call %s\n", functionCall->functionCall.name);
 
 	return functionCall;
 }

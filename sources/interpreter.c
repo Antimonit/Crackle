@@ -1,27 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <headers/types.h>
-#include <headers/ast_printer.h>
+#include <headers/types.hpp>
+#include <headers/ast_printer.pph>
 #include "headers/interpreter.h"
-#include "headers/symbol_table.h"
-#include "headers/function_symbol_table.h"
+#include "headers/symbol_table.hpp"
 #include "headers/node_helpers.h"
 #include "y.tab.h"
-#include "headers/debug.h"
-#include "headers/types.h"
 
 
 void var(node* p, node* result) {
 	node* varNode = p->oper.op[0];
 	variableNode variableNode = varNode->variable;
 
-	constantNode* variable = addSymbolNode(variableNode);
+	constantNode* variable = addVariable(variableNode);
 	if (variable == NULL) {
 		result->type = typeEmpty;
 		return;
 	}
 
-	const char* name = variableNode.name;
 	dataTypeEnum varType = variable->dataType;
 
 	result->type = typeConstant;
@@ -37,36 +33,17 @@ void var(node* p, node* result) {
 		}
 
 		result->constant = *variable = defaultValue->constant;
-		debug("\tnode: Operand Var %s %s %s\n",
-			  dataTypeToString(result->constant.dataType), name, constantValueToString(*variable));
-
 	} else {
 		result->constant.dataType = varType;
 		if (varType == typeInt) {
 			result->constant.intVal = variable->intVal = 0;
-			debug("\tnode: Operand Var int %s %d\n", name, variable->intVal);
 		} else if (varType == typeDouble) {
 			result->constant.doubleVal = variable->doubleVal = 0.0;
-			debug("\tnode: Operand Var double %s %f\n", name, variable->doubleVal);
 		} else if (varType == typeString) {
 			result->constant.stringVal = variable->stringVal = "";
-			debug("\tnode: Operand Var string %s %s\n", name, variable->stringVal);
 		} else if (varType == typeBool) {
 			result->constant.boolVal = variable->boolVal = false;
-			debug("\tnode: Operand Var bool %s %s\n", name, variable->boolVal == true ? "true" : "false");
 		}
-	}
-}
-
-/*private*/ void assignVal(constantNode* lval, constantNode* rval, dataTypeEnum varType) {
-	if (varType == typeInt) {
-		lval->intVal = rval->intVal;
-	} else if (varType == typeDouble) {
-		lval->doubleVal = rval->doubleVal;
-	} else if (varType == typeString) {
-		lval->stringVal = rval->stringVal;
-	} else if (varType == typeBool) {
-		lval->boolVal = rval->boolVal;
 	}
 }
 
@@ -179,7 +156,7 @@ void assign(node* p, node* result) {
 	variableNode variableNode = one->variable;
 	node* value = ex(p->oper.op[1]);
 
-	constantNode* variable = findSymbolNode(variableNode.name);
+	constantNode* variable = findVariable(variableNode.name);
 
 	if (variable == NULL) {
 		printf("Warning: Unable to assign undefined variable '%s'.\n", variableNode.name);
@@ -196,11 +173,9 @@ void assign(node* p, node* result) {
 
 	dataTypeEnum type = variable->dataType;
 
+	result->type = typeConstant;
 	result->constant.dataType = type;
 	result->constant = *variable = value->constant;
-
-//	debug("\tnode: Operand Assign %s %s %s\n",
-//		  dataTypeToString(value->constant.dataType), name, constantValueToString(value->constant));
 }
 
 void uminus(node* p, node* result) {
@@ -418,14 +393,13 @@ node* ex(node* p) {
 		case typeConstant:
 			result->type = typeConstant;
 			result->constant = p->constant;
-//			debug("\tnode: Constant %s %s\n", dataTypeToString(p->constant.dataType), constantValueToString(p->constant));
 			break;
 
 		case typeVariable:
 			result->type = typeConstant;
 
 			const char* name = p->variable.name;
-			constantNode* variable = findSymbolNode(name);
+			constantNode* variable = findVariable(name);
 
 			if (variable == NULL) {
 				printf("Warning: Undefined variable '%s'.\n", name);
@@ -435,8 +409,6 @@ node* ex(node* p) {
 			}
 
 			result->constant = *variable;
-
-//			debug("\tnode: Identifier %s %s\n", name, constantValueToString(*variable));
 			break;
 
 		case typeOperator:
@@ -475,6 +447,10 @@ node* ex(node* p) {
 			}
 			break;
 
+		case typeFunctionDef:
+			addFunction(&p->function);
+			break;
+
 		case typeFunctionCall:
 			name = p->functionCall.name;
 
@@ -485,17 +461,15 @@ node* ex(node* p) {
 				return result;
 			}
 
-			pushSymbolTableScope();
+			replaceSymbolTableScope();
 
 			for (int i = 0; i < function->paramCount; ++i) {
 				variableNode paramDef = function->params[i];
 				constantNode* paramVar = &ex(p->functionCall.params[i])->constant;
-				constantNode* variableSymbol = addSymbolNode(paramDef);
+				constantNode* variableSymbol = addVariable(paramDef);
 				variableSymbol->dataType = paramDef.dataType;
 				variableSymbol->intVal = paramVar->intVal;
 			}
-
-//			debug("\tnode: Function Call %s start\n", name);
 
 			node* res = ex(function->root);
 
@@ -504,7 +478,6 @@ node* ex(node* p) {
 			result->constant = res->constant;
 			popSymbolTableScope();
 
-//			debug("\tnode: Function Call %s return %s\n", name, constantValueToString(result->constant));
 			break;
 
 		case typeEmpty:

@@ -5,7 +5,7 @@
 #ifndef CRACKLE_INTERPRETER_NODE_HELPERS_H
 #define CRACKLE_INTERPRETER_NODE_HELPERS_H
 
-#include "types.h"
+#include "types.hpp"
 
 dataTypeEnum widenNodes(constantNode* a, constantNode* b);
 

@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.8)
 project(crackle_interpreter)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 find_package(BISON)
 find_package(FLEX)
@@ -17,13 +20,11 @@ add_executable(Crackle
         headers/debug.h
         headers/interpreter.h
         sources/interpreter.c
-        headers/symbol_table.h
-        sources/symbol_table.c
-        headers/function_symbol_table.h
-        sources/function_symbol_table.c
-        headers/types.h
+        headers/symbol_table.hpp
+        sources/symbol_table.cpp
+        headers/types.hpp
         sources/types.cpp
-        headers/ast_printer.h
+        headers/ast_printer.pph
         sources/ast_printer.cpp
         lexer.l
         parser.y

@@ -3,9 +3,9 @@
 //
 
 #include <stdio.h>
-#include <headers/types.h>
+#include <headers/types.hpp>
 #include "headers/node_helpers.h"
-#include "headers/types.h"
+#include "headers/types.hpp"
 
 dataTypeEnum maxType(constantNode* a, constantNode* b) {
 	dataTypeEnum typeA = a->dataType;

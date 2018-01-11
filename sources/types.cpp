@@ -3,7 +3,7 @@
 //
 
 #include <cstdio>
-#include "headers/types.h"
+#include "headers/types.hpp"
 
 char temp[100];
 

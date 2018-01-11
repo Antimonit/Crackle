@@ -1,7 +1,7 @@
 #ifndef CRACKLE_INTERPRETER_INTERPRETER_H
 #define CRACKLE_INTERPRETER_INTERPRETER_H
 
-#include "types.h"
+#include "types.hpp"
 
 node* ex(node* p);
 
