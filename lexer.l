@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "headers/types.h"
+#include "headers/types.hpp"
 #include "y.tab.h"
 
 extern int yyerror(const char* message);
@@ -45,16 +45,17 @@ string      \"(\\.|[^\\"])*\"
 "while"		return WHILE;
 "if"		return IF;
 "else"		return ELSE;
-"do"        return DO;
 "for"       return FOR;
+
+"new"       return NEW;
+"null"      return NULL_VALUE;
+"object"    return OBJECT;
 
 "int"       return INT;
 "double"    return DOUBLE;
 "bool"      return BOOL;
 "string"    return STRING;
 
-"var"       return VAR;
-"fun"		return FUN;
 "return"	return RETURN;
 
 "print"		return PRINT;

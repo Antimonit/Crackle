@@ -20,16 +20,6 @@ void printConstant(node* node) {
 	cout << dataTypeToString(node->constant.dataType) << " " << constantValueToString(node->constant);
 }
 
-void printVariableDef(node* node) {
-	cout << "Variable Definition ";
-	cout << node->variableDef.name; // << " " << constantValueToString(node->variable);
-}
-
-void printVariable(node* node) {
-	cout << "Variable ";
-	cout << node->variable.name; // << " " << constantValueToString(node->variable);
-}
-
 void printOperator(node* node) {
 	cout << "Operator ";
 	switch (node->oper.oper) {
@@ -66,13 +56,27 @@ void printOperator(node* node) {
 	}
 }
 
+void printVariableDef(node* node) {
+	cout << "Variable Definition ";
+	cout << dataTypeToString(node->variableDef.dataType) << " ";
+	cout << node->variableDef.name << " ";
+}
+
+void printVariable(node* node) {
+	cout << "Variable ";
+	cout << node->variable.name; // << " " << constantValueToString(node->variable);
+}
+
 void printFunctionDef(node* node) {
-//	cout << "FUNNN" << endl;
 	cout << "Function Definition " << node->functionDef.name;
 }
 
-void printFunctionCall(node* node) {
-	cout << "Function Call " << node->function.name;
+void printFunction(node* node) {
+	cout << "Function " << node->function.name;
+}
+
+void printObjectDef(node* node) {
+	cout << "Object Definition " << node->objectDef.name;
 }
 
 void printReturn(node* node) {
@@ -94,20 +98,23 @@ void printNode(bool entering, node* node) {
 		case typeConstant:
 			printConstant(node);
 			break;
+		case typeOperator:
+			printOperator(node);
+			break;
 		case typeVariableDef:
 			printVariableDef(node);
 			break;
 		case typeVariable:
 			printVariable(node);
 			break;
-		case typeOperator:
-			printOperator(node);
-			break;
 		case typeFunctionDef:
 			printFunctionDef(node);
 			break;
 		case typeFunction:
-			printFunctionCall(node);
+			printFunction(node);
+			break;
+		case typeObjectDef:
+			printObjectDef(node);
 			break;
 		case typeReturn:
 			printReturn(node);

@@ -136,7 +136,7 @@ node* constantDouble(double value) {
 	return constant;
 }
 
-node* constantString(char* value) {
+node* constantString(const char* value) {
 	node* constant = newNode();
 	constant->type = typeConstant;
 	constant->constant.dataType = typeString;
@@ -152,6 +152,46 @@ node* constantBool(bool value) {
 	return constant;
 }
 
+node* constantObject(const char* value) {
+	node* constant = newNode();
+	constant->type = typeConstant;
+	constant->constant.dataType = typeObject;
+	constant->constant.objectVal = NULL;
+	constant->constant.objectTypeName = value;
+	return constant;
+}
+
+node* constantNull() {
+	node* constant = newNode();
+	constant->type = typeConstant;
+	constant->constant.dataType = typeObject;
+	constant->constant.objectVal = NULL;
+	constant->constant.objectTypeName = "null";
+	return constant;
+}
+
+
+node* objectDef(const char* name, node* vars) {
+	/* count number of vars */
+	int varCount = getParamCount(vars);
+
+	/* allocate node, extending params array */
+	node* result = malloc(sizeof(node) + varCount * sizeof(objectDefNode));
+
+	result->type = typeObjectDef;
+
+	result->objectDef.name = name;
+	result->objectDef.varCount = varCount;
+	while (varCount > 0) {
+		varCount--;
+		node *p = vars->oper.op[1]; // p is variableDef
+		result->objectDef.vars[varCount] = p->variableDef;
+		vars = vars->oper.op[0];
+	}
+
+	return result;
+}
+
 node* variableDef(node* typedVariable, node* defaultValue) {
 	node* result = newNode();
 	result->type = typeVariableDef;
@@ -160,18 +200,7 @@ node* variableDef(node* typedVariable, node* defaultValue) {
 
 	variableDef->name = typedVariable->variable.name;
 	variableDef->dataType = typedVariable->variable.dataType;
-
-	if (defaultValue != NULL) {
-		if (variableDef->dataType != typedVariable->variable.dataType) {
-			printf("Warning: Defined value of type %s is incompatible with variable type %s",
-				dataTypeToString(typedVariable->variable.dataType),
-				dataTypeToString(typedVariable->variableDef.dataType));
-		} else {
-			copyConstantToVariableDef(variableDef, &defaultValue->constant);
-		}
-	} else {
-		defaultVariableDef(variableDef);
-	}
+	variableDef->defaultValue = defaultValue;
 
 	return result;
 }

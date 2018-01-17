@@ -15,12 +15,13 @@ void pushSymbolTableScope();
 void popSymbolTableScope();
 
 constantNode* findVariable(const char *symbol);
-
 void addVariable(variableDefNode* variable);
 
 functionDefNode* findFunction(const char *symbol);
-
 void addFunction(functionDefNode* function);
+
+objectDefNode* findObject(const char* symbol);
+void addObject(objectDefNode* object);
 
 #ifdef __cplusplus
 }

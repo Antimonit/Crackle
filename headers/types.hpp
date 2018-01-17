@@ -11,9 +11,10 @@ typedef enum {
     typeConstant,
 	typeVariableDef,
     typeVariable,
-    typeOperator,
 	typeFunctionDef,
     typeFunction,
+	typeObjectDef,
+	typeOperator,
     typeReturn,
     typeEmpty
 } nodeTypeEnum;
@@ -23,6 +24,7 @@ typedef enum {
     typeDouble,
 	typeString,
 	typeBool,
+	typeObject,
 	typeUndefined
 } dataTypeEnum;
 
@@ -34,8 +36,16 @@ typedef struct {
         double doubleVal;
 		const char* stringVal;
 		bool boolVal;
+		void* objectVal;
     };
+	const char* objectTypeName;
 } constantNode;
+
+typedef struct {
+	int oper;
+	int opCount;
+	struct nodeTag* op[0];	/* operands, extended at runtime */
+} operatorNode;
 
 typedef struct {
 	dataTypeEnum dataType;
@@ -46,6 +56,7 @@ typedef struct {
 		const char* stringVal;
 		bool boolVal;
 	};
+	struct nodeTag* defaultValue;
 } variableDefNode;
 
 typedef struct {
@@ -54,10 +65,10 @@ typedef struct {
 } variableNode;
 
 typedef struct {
-    int oper;
-    int opCount;
-    struct nodeTag* op[0];	/* operands, extended at runtime */
-} operatorNode;
+	const char* name;
+	int varCount;
+	variableDefNode vars[0];
+} objectDefNode;
 
 typedef struct {
 	const char* name;
@@ -83,9 +94,10 @@ typedef struct nodeTag {
         constantNode constant;
         variableDefNode variableDef;
         variableNode variable;
-        operatorNode oper;
 		functionDefNode functionDef;
         functionNode function;
+		objectDefNode objectDef;
+		operatorNode oper;
         returnNode ret;
     };
 } node;

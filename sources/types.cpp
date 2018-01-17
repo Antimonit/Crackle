@@ -3,6 +3,7 @@
 //
 
 #include <cstdio>
+#include <headers/types.hpp>
 #include "headers/types.hpp"
 
 char temp[100];
@@ -17,6 +18,8 @@ extern "C" const char* dataTypeToString(dataTypeEnum type) {
 			return "string";
 		case typeBool:
 			return "bool";
+		case typeObject:
+			return "object";
 		case typeUndefined:
 			return "undefined";
 		default:
@@ -39,6 +42,9 @@ extern "C" const char* constantValueToString(constantNode constant) {
 			break;
 		case typeBool:
 			sprintf(temp, "%s", constant.boolVal ? "true" : "false");
+			break;
+		case typeObject:
+			sprintf(temp, "%s", constant.objectVal == nullptr ? "null" : "object");
 			break;
 		case typeUndefined:
 			sprintf(temp, "<undefined>");

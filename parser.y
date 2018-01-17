@@ -16,6 +16,7 @@
 	double doubleVal;
 	char* stringVal;
 	bool boolVal;
+	void* objectVal;
 	char* identifier;
 	node* node;
 	dataTypeEnum dataType;
@@ -26,8 +27,10 @@
 %token <stringVal> STRING_VALUE
 %token <boolVal> TRUE
 %token <boolVal> FALSE
+%token <objectVal> NULL_VALUE
 %token <identifier> IDENTIFIER
 
+%token NEW OBJECT
 %token VAR FUN RETURN
 %token PRINT PRINTLN
 %nonassoc LT LE GT GE EQ NE
@@ -45,14 +48,16 @@
 %token INT DOUBLE BOOL STRING
 %token LEX_ERROR
 
-%type <node> primitive_value expression lex_error
+%type <node> primitive_value object_value
+%type <node> expression lex_error
 %type <node> statement statement_list
 %type <node> expression_statement for_statement if_statement while_statement
-%type <node> var_declaration
+%type <node> var_definition var_definition_list
 %type <node> fun_definition fun_param_list
 %type <node> fun_call argument_expression_list
 %type <node> return_statement
 %type <node> typed_identifier
+%type <node> object_definition
 %type <dataType> type_specifier
 
 %start program
@@ -73,7 +78,8 @@ statement
 		| if_statement			{ $$ = $1; }
 		| while_statement		{ $$ = $1; }
 		| for_statement         { $$ = $1; }
-		| var_declaration		{ $$ = $1; }
+		| object_definition     { $$ = $1; }
+		| var_definition		{ $$ = $1; }
 		| fun_definition		{ $$ = $1; }
 		| return_statement		{ $$ = $1; }
 		| error					{ printf("\n"); }
@@ -109,8 +115,9 @@ type_specifier
 		| DOUBLE	{ $$ = typeDouble; }
 		| BOOL	    { $$ = typeBool; }
 		| STRING	{ $$ = typeString; }
+		| IDENTIFIER{ $$ = typeObject; }
 
-var_declaration
+var_definition
 		: typed_identifier ';' { $$ = variableDef($1, NULL); }
 		| typed_identifier '=' expression ';' { $$ = variableDef($1, $3); }
 
@@ -121,6 +128,13 @@ fun_definition
 		| typed_identifier '(' ')' '{' statement_list '}' {
 			$$ = function($1, NULL, $5);
 		}
+
+var_definition_list
+		: var_definition                        { $$ = op(',', 2, NULL, $1); }
+		| var_definition_list var_definition	{ $$ = op(',', 2, $1, $2); }
+
+object_definition
+		: OBJECT IDENTIFIER '{' var_definition_list '}' { $$ = objectDef($2, $4); }
 
 fun_param_list
 		: typed_identifier							{ $$ = op(',', 2, NULL, $1); }
@@ -158,6 +172,7 @@ expression
 		| IDENTIFIER                    { $$ = variable($1); }
 		| fun_call						{ $$ = $1; }
 		| primitive_value				{ $$ = $1; }
+		| object_value                  { $$ = $1; }
 		| lex_error						{ $$ = $1; }
 
 primitive_value
@@ -166,6 +181,10 @@ primitive_value
 		| STRING_VALUE	{ $$ = constantString($1); }
 		| TRUE			{ $$ = constantBool(true); }
 		| FALSE			{ $$ = constantBool(false); }
+
+object_value
+		: NEW IDENTIFIER    { $$ = constantObject($2); }
+		| NULL_VALUE        { $$ = constantNull(); }
 
 lex_error
 		: LEX_ERROR {

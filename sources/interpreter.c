@@ -15,20 +15,6 @@ void returnx(node* p, node* result) {
 	result->ret.value = value->constant;
 }
 
-void comma(node* p, node* result) {
-	node* left = p->oper.op[0];
-	node* right = p->oper.op[1];
-
-	/*
-	if (left->type == typeVariable) {
-		node* leftConstant = ex(left);
-		node* rightConstant = ex(right);
-	} else {
-		node* exx = ex(left);
-	}
-	*/
-}
-
 void whilex(node* p, node* result) {
 	while (ex(p->oper.op[0])->constant.intVal) {
 		pushSymbolTableScope();
@@ -357,7 +343,25 @@ node* ex(node* p) {
 			break;
 
 		case typeVariableDef:
-			addVariable(&p->variableDef);
+			;
+			variableDefNode *variableDef = &p->variableDef;
+
+			if (variableDef->defaultValue != NULL) {
+				node* defaultValue = ex(variableDef->defaultValue);
+				constantNode* paramVar = &defaultValue->constant;
+				if (variableDef->dataType != paramVar->dataType) {
+					printf("Warning: Defined value of type %s is incompatible with variable type %s\n",
+						   dataTypeToString(variableDef->dataType),
+						   dataTypeToString(paramVar->dataType));
+				} else {
+					copyConstantToVariableDef(variableDef, paramVar);
+				}
+			} else {
+				defaultVariableDef(variableDef);
+			}
+
+			addVariable(variableDef);
+
 			break;
 
 		case typeVariable:
@@ -381,7 +385,6 @@ node* ex(node* p) {
 				case PRINT:		print(p, result); break;
 				case PRINTLN:	println(p, result); break;
 				case RETURN:	returnx(p, result); break;
-				case ',':		comma(p, result); break;
 
 				case WHILE:		whilex(p, result); break;
 				case IF:		ifx(p, result); break;
@@ -425,8 +428,6 @@ node* ex(node* p) {
 				return result;
 			}
 
-			replaceSymbolTableScope();
-
 			for (int i = 0; i < function->paramCount; ++i) {
 				variableDefNode* paramDef = &function->params[i];
 				constantNode* paramVar = &ex(p->function.params[i])->constant;
@@ -437,23 +438,27 @@ node* ex(node* p) {
 					printf("Warning: Passing incompatible parameter of type %s instead of type %s\n",
 						   dataTypeToString(paramVar->dataType), dataTypeToString(paramDef->dataType));
 				}
-				addVariable(paramDef);
 			}
 
+			replaceSymbolTableScope();
+			for (int i = 0; i < function->paramCount; ++i) {
+				addVariable(&function->params[i]);
+			}
 			node* res = ex(function->root);
+			popSymbolTableScope();
 
 			result->type = typeConstant;
-			result->constant.dataType = res->constant.dataType;
 			result->constant = res->constant;
-			popSymbolTableScope();
+			break;
+
+		case typeObjectDef:
+			addObject(&p->objectDef);
 			break;
 
 		case typeEmpty:
-			result->type = typeEmpty;
 			break;
 
 		default:
-			result->type = typeEmpty;
 			break;
 	}
 
