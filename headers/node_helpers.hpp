@@ -9,11 +9,7 @@ extern "C" {
 
 dataTypeEnum widenNodes(constantNode* a, constantNode* b);
 
-void copyConstantToVariableDef(variableDefNode* to, constantNode* from);
-
-void copyVariableDefToConstant(constantNode* to, variableDefNode* from);
-
-void defaultVariableDef(variableDefNode* def);
+void defaultConstant(constantNode* def);
 
 #ifdef __cplusplus
 }

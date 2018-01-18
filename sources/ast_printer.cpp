@@ -58,7 +58,7 @@ void printOperator(node* node) {
 
 void printVariableDef(node* node) {
 	cout << "Variable Definition ";
-	cout << dataTypeToString(node->variableDef.dataType) << " ";
+	cout << dataTypeToString(node->variableDef.value.dataType) << " ";
 	cout << node->variableDef.name << " ";
 }
 
@@ -77,6 +77,10 @@ void printFunction(node* node) {
 
 void printObjectDef(node* node) {
 	cout << "Object Definition " << node->objectDef.name;
+}
+
+void printObject(node* node) {
+	cout << "Object " << node->object.name;
 }
 
 void printReturn(node* node) {
@@ -115,6 +119,9 @@ void printNode(bool entering, node* node) {
 			break;
 		case typeObjectDef:
 			printObjectDef(node);
+			break;
+		case typeObject:
+			printObject(node);
 			break;
 		case typeReturn:
 			printReturn(node);

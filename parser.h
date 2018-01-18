@@ -92,7 +92,7 @@ node* function(node* typedVariable, node* params, node* root) {
 		node *p = params->oper.op[1]; // p is variable, not variableDef
 //		printf("param: %d | name: %s | type: %s\n", paramCount, p->variable.name, dataTypeToString(p->variable.dataType));
 		functionDef->params[paramCount].name = p->variable.name;
-		functionDef->params[paramCount].dataType = p->variable.dataType;
+		functionDef->params[paramCount].value.dataType = p->variable.dataType;
 		params = params->oper.op[0];
 	}
 
@@ -152,19 +152,10 @@ node* constantBool(bool value) {
 	return constant;
 }
 
-node* constantObject(const char* value) {
-	node* constant = newNode();
-	constant->type = typeConstant;
-	constant->constant.dataType = typeObject;
-	constant->constant.objectVal = NULL;
-	constant->constant.objectTypeName = value;
-	return constant;
-}
-
 node* constantNull() {
 	node* constant = newNode();
 	constant->type = typeConstant;
-	constant->constant.dataType = typeObject;
+	constant->constant.dataType = typeObj;
 	constant->constant.objectVal = NULL;
 	constant->constant.objectTypeName = "null";
 	return constant;
@@ -176,7 +167,7 @@ node* objectDef(const char* name, node* vars) {
 	int varCount = getParamCount(vars);
 
 	/* allocate node, extending params array */
-	node* result = malloc(sizeof(node) + varCount * sizeof(objectDefNode));
+	node* result = malloc(sizeof(node) + varCount * sizeof(variableDefNode));
 
 	result->type = typeObjectDef;
 
@@ -192,6 +183,14 @@ node* objectDef(const char* name, node* vars) {
 	return result;
 }
 
+node* object(const char* name) {
+	node* result = newNode();
+	result->type = typeObject;
+	result->object.name = name;
+	return result;
+}
+
+
 node* variableDef(node* typedVariable, node* defaultValue) {
 	node* result = newNode();
 	result->type = typeVariableDef;
@@ -199,7 +198,7 @@ node* variableDef(node* typedVariable, node* defaultValue) {
 	variableDefNode* variableDef = &result->variableDef;
 
 	variableDef->name = typedVariable->variable.name;
-	variableDef->dataType = typedVariable->variable.dataType;
+	variableDef->value.dataType = typedVariable->variable.dataType;
 	variableDef->defaultValue = defaultValue;
 
 	return result;

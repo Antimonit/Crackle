@@ -14,6 +14,7 @@ typedef enum {
 	typeFunctionDef,
     typeFunction,
 	typeObjectDef,
+	typeObject,
 	typeOperator,
     typeReturn,
     typeEmpty
@@ -24,10 +25,11 @@ typedef enum {
     typeDouble,
 	typeString,
 	typeBool,
-	typeObject,
+	typeObj,
 	typeUndefined
 } dataTypeEnum;
 
+struct objectDefNodeTag;
 
 typedef struct {
     dataTypeEnum dataType;
@@ -36,7 +38,7 @@ typedef struct {
         double doubleVal;
 		const char* stringVal;
 		bool boolVal;
-		void* objectVal;
+		struct objectDefNodeTag* objectVal;
     };
 	const char* objectTypeName;
 } constantNode;
@@ -47,28 +49,17 @@ typedef struct {
 	struct nodeTag* op[0];	/* operands, extended at runtime */
 } operatorNode;
 
+
 typedef struct {
-	dataTypeEnum dataType;
 	const char* name;
-	union {
-		int intVal;
-		double doubleVal;
-		const char* stringVal;
-		bool boolVal;
-	};
+	constantNode value;
 	struct nodeTag* defaultValue;
 } variableDefNode;
 
 typedef struct {
-	dataTypeEnum dataType;
-    const char* name;
-} variableNode;
-
-typedef struct {
 	const char* name;
-	int varCount;
-	variableDefNode vars[0];
-} objectDefNode;
+	dataTypeEnum dataType;
+} variableNode;
 
 typedef struct {
 	const char* name;
@@ -84,6 +75,19 @@ typedef struct {
 	struct nodeTag* params[0];	/* actual parameters, extended at runtime */
 } functionNode;
 
+typedef struct objectDefNodeTag {
+	const char* name;
+	int varCount;
+	variableDefNode vars[0];
+} objectDefNode;
+
+typedef struct {
+	const char* name;
+	int varCount;
+	constantNode vars[0];
+} objectNode;
+
+
 typedef struct {
 	constantNode value;
 } returnNode;
@@ -97,6 +101,7 @@ typedef struct nodeTag {
 		functionDefNode functionDef;
         functionNode function;
 		objectDefNode objectDef;
+		objectNode object;
 		operatorNode oper;
         returnNode ret;
     };

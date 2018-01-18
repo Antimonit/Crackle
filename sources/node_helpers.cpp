@@ -39,33 +39,7 @@ extern "C" dataTypeEnum widenNodes(constantNode* a, constantNode* b) {
 }
 
 
-extern "C" void copyConstantToVariableDef(variableDefNode* to, constantNode* from) {
-	to->dataType = from->dataType;
-	if (to->dataType == typeInt) {
-		to->intVal = from->intVal;
-	} else if (to->dataType == typeDouble) {
-		to->doubleVal = from->doubleVal;
-	} else if (to->dataType == typeString) {
-		to->stringVal = from->stringVal;
-	} else if (to->dataType == typeBool) {
-		to->boolVal = from->boolVal;
-	}
-}
-
-extern "C" void copyVariableDefToConstant(constantNode* to, variableDefNode* from) {
-	to->dataType = from->dataType;
-	if (to->dataType == typeInt) {
-		to->intVal = from->intVal;
-	} else if (to->dataType == typeDouble) {
-		to->doubleVal = from->doubleVal;
-	} else if (to->dataType == typeString) {
-		to->stringVal = from->stringVal;
-	} else if (to->dataType == typeBool) {
-		to->boolVal = from->boolVal;
-	}
-}
-
-extern "C" void defaultVariableDef(variableDefNode* def) {
+extern "C" void defaultConstant(constantNode* def) {
 	if (def->dataType == typeInt) {
 		def->intVal = 0;
 	} else if (def->dataType == typeDouble) {
@@ -74,5 +48,8 @@ extern "C" void defaultVariableDef(variableDefNode* def) {
 		def->stringVal = "";
 	} else if (def->dataType == typeBool) {
 		def->boolVal = false;
+	} else if (def->dataType == typeObj) {
+		def->objectVal = nullptr;
+		def->objectTypeName = "null";
 	}
 }

@@ -14,8 +14,8 @@ private:
 	std::map<std::string, functionDefNode*> functions;
 	std::map<std::string, objectDefNode*> objects;
 
-	struct symbolTable* parentTable;	// strictly going upwards the scope tree
-	struct symbolTable* previousTable;	// can point to a sibling (when calling a function)
+	struct symbolTable* parentTable = nullptr;		// strictly going upwards the scope tree
+	struct symbolTable* previousTable = nullptr;	// can point to a sibling (when calling a function)
 	// when popping the symbolTable, restore previous table and not the parent table
 
 	constantNode* findVariableInTable(const char *symbol);
@@ -108,15 +108,12 @@ void symbolTable::addVariable(variableDefNode* variableDef) {
 		printf("Warning: Trying to redeclare variable '%s' of type %s to type %s.\n",
 			   variableDef->name,
 			   dataTypeToString(symbolNode->dataType),
-			   dataTypeToString(variableDef->dataType));
+			   dataTypeToString(variableDef->value.dataType));
 		return;
 	}
 
 	// new symbol
-	constantNode* variable = new constantNode();
-	copyVariableDefToConstant(variable, variableDef);
-
-	table->variables.insert(std::pair<std::string, constantNode *>(std::string(variableDef->name), variable));
+	table->variables.insert(std::pair<std::string, constantNode *>(std::string(variableDef->name), &variableDef->value));
 }
 
 

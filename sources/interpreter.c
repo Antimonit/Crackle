@@ -333,38 +333,35 @@ node* ex(node* p) {
 
 	if (!p)
 		return result;
-	
+
 	enterNode(p);
 
 	switch (p->type) {
-		case typeConstant:
+		case typeConstant: {
 			result->type = typeConstant;
 			result->constant = p->constant;
 			break;
-
-		case typeVariableDef:
-			;
+		}
+		case typeVariableDef: {
 			variableDefNode *variableDef = &p->variableDef;
 
 			if (variableDef->defaultValue != NULL) {
 				node* defaultValue = ex(variableDef->defaultValue);
-				constantNode* paramVar = &defaultValue->constant;
-				if (variableDef->dataType != paramVar->dataType) {
+				if (variableDef->value.dataType != defaultValue->constant.dataType) {
 					printf("Warning: Defined value of type %s is incompatible with variable type %s\n",
-						   dataTypeToString(variableDef->dataType),
-						   dataTypeToString(paramVar->dataType));
+						   dataTypeToString(variableDef->value.dataType),
+						   dataTypeToString(defaultValue->constant.dataType));
 				} else {
-					copyConstantToVariableDef(variableDef, paramVar);
+					variableDef->value = defaultValue->constant;
 				}
 			} else {
-				defaultVariableDef(variableDef);
+				defaultConstant(&variableDef->value);
 			}
 
 			addVariable(variableDef);
-
 			break;
-
-		case typeVariable:
+		}
+		case typeVariable: {
 			result->type = typeConstant;
 
 			const char* name = p->variable.name;
@@ -379,8 +376,8 @@ node* ex(node* p) {
 
 			result->constant = *variable;
 			break;
-
-		case typeOperator:
+		}
+		case typeOperator: {
 			switch (p->oper.oper) {
 				case PRINT:		print(p, result); break;
 				case PRINTLN:	println(p, result); break;
@@ -413,13 +410,13 @@ node* ex(node* p) {
 				default:		printf("Error: unknown operator %d", p->oper.oper);
 			}
 			break;
-
-		case typeFunctionDef:
+		}
+		case typeFunctionDef: {
 			addFunction(&p->functionDef);
 			break;
-
-		case typeFunction:
-			name = p->function.name;
+		}
+		case typeFunction: {
+			const char* name = p->function.name;
 
 			functionDefNode* function = findFunction(name);
 			if (function == NULL) {
@@ -431,12 +428,12 @@ node* ex(node* p) {
 			for (int i = 0; i < function->paramCount; ++i) {
 				variableDefNode* paramDef = &function->params[i];
 				constantNode* paramVar = &ex(p->function.params[i])->constant;
-				if (paramDef->dataType == paramVar->dataType) {
-					copyConstantToVariableDef(paramDef, paramVar);
+				if (paramDef->value.dataType == paramVar->dataType) {
+					paramDef->value = *paramVar;
 				} else {
-					defaultVariableDef(paramDef);
+					defaultConstant(&paramDef->value);
 					printf("Warning: Passing incompatible parameter of type %s instead of type %s\n",
-						   dataTypeToString(paramVar->dataType), dataTypeToString(paramDef->dataType));
+						   dataTypeToString(paramVar->dataType), dataTypeToString(paramDef->value.dataType));
 				}
 			}
 
@@ -450,14 +447,47 @@ node* ex(node* p) {
 			result->type = typeConstant;
 			result->constant = res->constant;
 			break;
-
-		case typeObjectDef:
+		}
+		case typeObjectDef: {
 			addObject(&p->objectDef);
 			break;
+		}
+		case typeObject: {
+			const char* name = p->object.name;
 
+			objectDefNode *object = findObject(name);
+			if (object == NULL) {
+				printf("Warning: Undefined object '%s'.\n", name);
+				result->type = typeEmpty;
+				exitNode(result);
+				return result;
+			}
+
+			result->type = typeConstant;
+			result->constant.dataType = typeObj;
+			result->constant.objectTypeName = name;
+			result->constant.objectVal = malloc(object->varCount * sizeof(constantNode*));
+
+			objectDefNode* objectVal = result->constant.objectVal;
+//			constantNode** objectVal = result->constant.objectVal;
+			for (int i = 0; i < object->varCount; ++i) {
+				variableDefNode* paramDef = &object->vars[i];
+				constantNode *ptr = &p->object.vars[i];
+//				objectVal[i] = ptr;
+//				if (paramDef->value.dataType == paramVar->dataType) {
+//					paramDef->value = *paramVar;
+//				} else {
+//					defaultConstant(&paramDef->value);
+//					printf("Warning: Passing incompatible parameter of type %s instead of type %s\n",
+//						   dataTypeToString(paramVar->dataType), dataTypeToString(paramDef->value.dataType));
+//				}
+			}
+			result->constant.objectVal = objectVal;
+
+			break;
+		}
 		case typeEmpty:
 			break;
-
 		default:
 			break;
 	}

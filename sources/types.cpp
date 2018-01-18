@@ -18,7 +18,7 @@ extern "C" const char* dataTypeToString(dataTypeEnum type) {
 			return "string";
 		case typeBool:
 			return "bool";
-		case typeObject:
+		case typeObj:
 			return "object";
 		case typeUndefined:
 			return "undefined";
@@ -43,8 +43,8 @@ extern "C" const char* constantValueToString(constantNode constant) {
 		case typeBool:
 			sprintf(temp, "%s", constant.boolVal ? "true" : "false");
 			break;
-		case typeObject:
-			sprintf(temp, "%s", constant.objectVal == nullptr ? "null" : "object");
+		case typeObj:
+			sprintf(temp, "%s", constant.objectVal == nullptr ? "null" : "<object value>");
 			break;
 		case typeUndefined:
 			sprintf(temp, "<undefined>");

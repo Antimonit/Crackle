@@ -115,7 +115,7 @@ type_specifier
 		| DOUBLE	{ $$ = typeDouble; }
 		| BOOL	    { $$ = typeBool; }
 		| STRING	{ $$ = typeString; }
-		| IDENTIFIER{ $$ = typeObject; }
+		| IDENTIFIER{ $$ = typeObj; }
 
 var_definition
 		: typed_identifier ';' { $$ = variableDef($1, NULL); }
@@ -183,7 +183,7 @@ primitive_value
 		| FALSE			{ $$ = constantBool(false); }
 
 object_value
-		: NEW IDENTIFIER    { $$ = constantObject($2); }
+		: NEW IDENTIFIER    { $$ = object($2); }
 		| NULL_VALUE        { $$ = constantNull(); }
 
 lex_error
