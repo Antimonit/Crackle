@@ -4,7 +4,6 @@
 #include <string>
 #include <cstddef>
 #include <istream>
-#include <cmake-build-debug/parser.tab.hh>
 
 #include "scanner.hpp"
 #include "parser.tab.hh"

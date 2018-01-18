@@ -2,8 +2,7 @@
 #include <fstream>
 #include <cassert>
 #include <c++/iostream>
-#include <cmake-build-debug/parser.tab.hh>
-
+#include "parser.tab.hh"
 #include "driver.hpp"
 
 MC::Driver::~Driver() {
