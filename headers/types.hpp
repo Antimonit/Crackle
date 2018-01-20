@@ -1,10 +1,11 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-#include <string>
+#include <c++/string>
 #include <c++/iostream>
+#include <c++/vector>
 
-typedef enum {
+enum NodeType {
     typeConstant,
 	typeVariableDef,
     typeVariable,
@@ -15,16 +16,21 @@ typedef enum {
 	typeOperator,
     typeReturn,
     typeEmpty
-} nodeTypeEnum;
+};
 
-typedef enum {
+std::ostream& operator<<(std::ostream& out, NodeType value);
+
+enum DataType {
     typeInt,
     typeDouble,
 	typeString,
 	typeBool,
 	typeObj,
 	typeUndefined
-} dataTypeEnum;
+};
+
+std::ostream& operator<<(std::ostream& out, DataType value);
+
 
 class ConstantNode;
 class OperatorNode;
@@ -39,8 +45,9 @@ class Node;
 
 
 class ConstantNode {
+private:
+	DataType dataType {typeUndefined};
 public:
-    dataTypeEnum dataType;
 	union {
 		int intVal;
 		double doubleVal;
@@ -49,62 +56,69 @@ public:
 		ObjectDefNode* objectVal;
 	};
 	std::string objectTypeName;
-	ConstantNode() {
-		dataType = typeUndefined;
-		if (dataType == typeInt) {
-			intVal = 0;
-		} else if (dataType == typeDouble) {
-			doubleVal = 0.0;
-		} else if (dataType == typeString) {
-			stringVal = "";
-		} else if (dataType == typeBool) {
-			boolVal = false;
-		} else if (dataType == typeObj) {
-			objectVal = nullptr;
-			objectTypeName = "null";
+
+	DataType getType() {
+		return dataType;
+	}
+
+	void setType(DataType type) {
+		this->dataType = type;
+		switch (type) {
+			case typeString: 	new ((void*) &stringVal) std::string; break;
+			default:			break;
 		}
 	}
-	~ConstantNode() {
-	}
-	ConstantNode& operator=(const ConstantNode& from) {
-		dataType = from.dataType;
-		switch (dataType) {
-			case typeInt:
-				intVal = from.intVal; break;
-			case typeDouble:
-				doubleVal = from.doubleVal; break;
-			case typeString:
-				new ((void*) &stringVal) std::string(from.stringVal);
-//				stringVal = from.stringVal;
-				break;
-			case typeBool:
-				boolVal = from.boolVal; break;
-			case typeObj:
-				objectVal = from.objectVal;
-				objectTypeName = from.objectTypeName; break;
-			case typeUndefined:
-				break;
+
+	ConstantNode& operator=(const ConstantNode& other) {
+		if (this != &other) {
+			setType(other.dataType);
+			switch (dataType) {
+				case typeInt:		intVal = other.intVal; break;
+				case typeDouble:	doubleVal = other.doubleVal; break;
+				case typeBool:		boolVal = other.boolVal; break;
+				case typeString:	stringVal = other.stringVal; break;
+				case typeObj:
+					objectVal = other.objectVal;
+					objectTypeName = other.objectTypeName;
+					break;
+				case typeUndefined:
+					break;
+			}
 		}
 		return *this;
 	}
+
+	ConstantNode() {
+		setType(typeUndefined);
+	}
+
+	ConstantNode(const ConstantNode& other) {
+		setType(other.dataType);
+		switch (dataType) {
+			case typeInt:		intVal = other.intVal; break;
+			case typeDouble:	doubleVal = other.doubleVal; break;
+			case typeBool:		boolVal = other.boolVal; break;
+			case typeString:	stringVal = other.stringVal; break;
+			case typeObj:		objectVal = other.objectVal; break;
+			case typeUndefined:	break;
+		}
+	}
+
+	ConstantNode(DataType type) {
+		setType(type);
+	}
+
+	~ConstantNode() {
+	}
+
 };
+
+std::ostream& operator<<(std::ostream& out, ConstantNode& constant);
 
 class OperatorNode {
 public:
 	int oper;
-	int opCount;
-	Node* op[0];	/* operands, extended at runtime */
-
-//	static void* operator new(size_t size) {
-//		void *storage = malloc(size);
-//		if (storage == nullptr) {
-//			throw "allocation fail : no free memory";
-//		}
-//		return storage;
-//	}
-//	static void operator delete(void* ptr) {
-//		free(ptr);
-//	}
+	std::vector<Node*> op;
 };
 
 class VariableDefNode {
@@ -112,49 +126,38 @@ public:
 	std::string name;
 	ConstantNode value;
 	Node* defaultValue;
-	~VariableDefNode() {
-	}
 };
 
 class VariableNode {
 public:
 	std::string name;
-	dataTypeEnum dataType;
-	VariableNode& operator=(const VariableNode& from) {
-		dataType = from.dataType;
-		name = from.name;
-		return *this;
-	}
+	DataType dataType;
 };
 
 class FunctionDefNode {
 public:
 	std::string name;
-	dataTypeEnum dataType;
+	DataType dataType;
 	Node* root;
-	int paramCount;
-	VariableDefNode params[0];	/* formal parameters, extended at runtime */
+	std::vector<VariableDefNode> params;
 };
 
 class FunctionNode {
 public:
 	std::string name;
-	int paramCount;
-	Node* params[0];	/* actual parameters, extended at runtime */
+	std::vector<Node*> params;
 };
 
 class ObjectDefNode {
 public:
 	std::string name;
-	int varCount;
-	VariableDefNode vars[0];
+	std::vector<VariableDefNode> vars;
 };
 
 class ObjectNode {
 public:
 	std::string name;
-	int varCount;
-	ConstantNode vars[0];
+	std::vector<ConstantNode> vars;
 };
 
 class ReturnNode {
@@ -163,8 +166,9 @@ public:
 };
 
 class Node {
+private:
+	NodeType type{typeEmpty};
 public:
-    nodeTypeEnum type;
     union {
         ConstantNode constant;
         VariableDefNode variableDef;
@@ -177,34 +181,71 @@ public:
         ReturnNode ret;
     };
 
-	Node& operator=(const Node& from) {
-		if (this != &from) {
-			type = from.type;
+	NodeType getType() {
+		return type;
+	}
+
+	void setType(NodeType type) {
+		this->type = type;
+		switch (type) {
+			case typeConstant: 		new ((void*) &constant) ConstantNode; break;
+			case typeVariableDef: 	new ((void*) &variableDef) VariableDefNode; break;
+			case typeVariable: 		new ((void*) &variable) VariableNode; break;
+			case typeFunctionDef: 	new ((void*) &functionDef) FunctionDefNode; break;
+			case typeFunction: 		new ((void*) &function) FunctionNode; break;
+			case typeObjectDef: 	new ((void*) &objectDef) ObjectDefNode; break;
+			case typeObject: 		new ((void*) &object) ObjectNode; break;
+			case typeOperator: 		new ((void*) &oper) OperatorNode; break;
+			case typeReturn: 		new ((void*) &ret) ReturnNode; break;
+			case typeEmpty:			break;
+		}
+	}
+
+	Node& operator=(const Node& other) {
+		if (this != &other) {
+			setType(other.type);
 			switch (type) {
-				case typeConstant: constant = from.constant; break;
-				case typeVariableDef: variableDef = from.variableDef; break;
-				case typeVariable: variable = from.variable; break;
-				case typeFunctionDef: functionDef = from.functionDef; break;
-				case typeFunction: function = from.function; break;
-				case typeObjectDef: objectDef = from.objectDef; break;
-				case typeObject: object = from.object; break;
-				case typeOperator: oper = from.oper; break;
-				case typeReturn: ret = from.ret; break;
-				case typeEmpty:break;
+				case typeConstant:		constant = other.constant; break;
+				case typeVariableDef:	variableDef = other.variableDef; break;
+				case typeVariable:		variable = other.variable; break;
+				case typeFunctionDef:	functionDef = other.functionDef; break;
+				case typeFunction:		function = other.function; break;
+				case typeObjectDef:		objectDef = other.objectDef; break;
+				case typeObject: 		object = other.object; break;
+				case typeOperator: 		oper = other.oper; break;
+				case typeReturn: 		ret = other.ret; break;
+				case typeEmpty:			break;
 			}
 		}
 		return *this;
 	}
 
-	Node();
+	Node() {
+		setType(typeEmpty);
+	}
 
-	Node(const Node& node);
+	Node(const Node& other) {
+		setType(other.type);
+		switch (type) {
+			case typeConstant:		constant = other.constant; break;
+			case typeVariableDef:	variableDef = other.variableDef; break;
+			case typeVariable:		variable = other.variable; break;
+			case typeFunctionDef:	functionDef = other.functionDef; break;
+			case typeFunction:		function = other.function; break;
+			case typeObjectDef:		objectDef = other.objectDef; break;
+			case typeObject: 		object = other.object; break;
+			case typeOperator: 		oper = other.oper; break;
+			case typeReturn: 		ret = other.ret; break;
+			case typeEmpty:			break;
+		}
+	}
 
-	Node(size_t size);
+	Node(NodeType type) {
+		setType(type);
+	}
 
-	~Node();
-
-	explicit Node(nodeTypeEnum type);
+	~Node() {
+	}
 
 
 	static void* operator new(size_t size) {
@@ -216,7 +257,7 @@ public:
 		return storage;
 	}
 
-	static void* operator new(size_t size, nodeTypeEnum type) {
+	static void* operator new(size_t size, NodeType type) {
 		void* storage = nullptr;
 		switch (type) {
 			case typeConstant:
@@ -239,21 +280,24 @@ public:
 		return storage;
 	}
 
-	static void* operator new(size_t size, nodeTypeEnum type, int vars) {
+	static void* operator new(size_t size, NodeType type, int varCount) {
 		void* storage = nullptr;
 		switch (type) {
 			case typeConstant:break;
 			case typeVariableDef:break;
 			case typeVariable:break;
-			case typeFunctionDef:break;
-			case typeFunction:break;
+			case typeFunctionDef:
+				storage = malloc(size + varCount * sizeof(VariableDefNode));
+				break;
+			case typeFunction:
+				storage = malloc(size + varCount * sizeof(ConstantNode*));
+				break;
 			case typeObjectDef:
-//				(ObjectDefNode*) malloc(object->varCount * sizeof(ConstantNode*));
-				storage = malloc(size + vars * sizeof(ConstantNode*));
+				storage = malloc(size + varCount * sizeof(VariableDefNode));
 				break;
 			case typeObject:break;
 			case typeOperator:
-				storage = malloc(size  + vars * sizeof(type));
+				storage = malloc(size  + varCount * sizeof(Node*));
 				break;
 			case typeReturn:break;
 			case typeEmpty:break;
@@ -266,17 +310,11 @@ public:
 		return storage;
 	}
 
-
 	static void operator delete(void* ptr) {
 		free(ptr);
 	}
 
 };
-
-
-std::string dataTypeToString(dataTypeEnum type);
-
-std::string constantValueToString(ConstantNode& constant);
 
 
 #endif

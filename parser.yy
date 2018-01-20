@@ -48,7 +48,7 @@
 %token <void*> NULL_VALUE "null"
 %token <std::string> IDENTIFIER "identifier"
 %token <Node*> NODE "node"
-%token <dataTypeEnum> DATA_TYPE_ENUM "dataType"
+%token <DataType> DATA_TYPE_ENUM "dataType"
 
 %token NEW OBJECT
 %token VAR FUN RETURN
@@ -78,7 +78,7 @@
 %type <Node*> return_statement
 %type <Node*> typed_identifier
 %type <Node*> object_definition
-%type <dataTypeEnum> type_specifier
+%type <DataType> type_specifier
 
 %locations
 
@@ -90,7 +90,7 @@ program
 			driver.ex($1);
 //			Node* result = ex($1);
 //			freeNode(result);
-//			freeNode($1);
+//			deleteNode($1);
 		} program
 		|
 
@@ -146,10 +146,10 @@ var_definition
 
 fun_definition
 		: typed_identifier '(' fun_param_list ')' '{' statement_list '}' {
-			$$ = function($1, $3, $6);
+			$$ = functionDef($1, $3, $6);
 		}
 		| typed_identifier '(' ')' '{' statement_list '}' {
-			$$ = function($1, NULL, $5);
+			$$ = functionDef($1, NULL, $5);
 		}
 
 var_definition_list
@@ -167,8 +167,8 @@ return_statement
 		: RETURN expression ';'			{ $$ = op(token::RETURN, 1, $2); }
 
 fun_call
-		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = functionCall($1, $3); }
-		| IDENTIFIER '(' ')' 							{ $$ = functionCall($1, NULL); }
+		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = function($1, $3); }
+		| IDENTIFIER '(' ')' 							{ $$ = function($1, NULL); }
 
 argument_expression_list
 		: expression								{ $$ = op(',', 2, NULL, $1); }
@@ -206,7 +206,7 @@ primitive_value
 
 object_value
 		: NEW IDENTIFIER    { $$ = object($2); }
-//		| NULL_VALUE        { $$ = constantNull(); }
+		| NULL_VALUE        { $$ = constantNull(); }
 
 lex_error
 		: LEX_ERROR {

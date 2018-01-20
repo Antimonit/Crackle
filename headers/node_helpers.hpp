@@ -3,8 +3,10 @@
 
 #include "types.hpp"
 
-dataTypeEnum widenNodes(ConstantNode* a, ConstantNode* b);
+DataType maxType(ConstantNode& a, ConstantNode& b);
 
-void defaultConstant(ConstantNode* def);
+DataType widenNodes(ConstantNode& a, ConstantNode& b);
+
+void defaultConstant(ConstantNode& def);
 
 #endif //CRACKLE_INTERPRETER_NODE_HELPERS_H

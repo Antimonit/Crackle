@@ -6,51 +6,52 @@
 #include "headers/types.hpp"
 #include "headers/node_helpers.hpp"
 
-dataTypeEnum maxType(ConstantNode* a, ConstantNode* b) {
-	dataTypeEnum typeA = a->dataType;
-	dataTypeEnum typeB = b->dataType;
+DataType maxType(ConstantNode& a, ConstantNode& b) {
+	DataType typeA = a.getType();
+	DataType typeB = b.getType();
 	if (typeA == typeInt && typeB == typeInt) {
 		return typeInt;
 	} else if ((typeA == typeDouble || typeB == typeDouble) && (typeA == typeInt || typeB == typeInt)) {
 		return typeDouble;
+	} else if (typeA == typeString && typeB == typeString) {
+		return typeString;
 	} else {
 		return typeUndefined;
 	}
 }
 
-void widenNode(ConstantNode* a, dataTypeEnum maxType) {
-	if (a->dataType == maxType) {
+void widenNode(ConstantNode& a, DataType maxType) {
+	if (a.getType() == maxType) {
 		return;
 	}
-	if (a->dataType == typeInt && maxType == typeDouble) {
-		a->dataType = typeDouble;
-		a->doubleVal = (double) a->intVal;
+	if (a.getType() == typeInt && maxType == typeDouble) {
+		a.setType(typeDouble);
+		a.doubleVal = (double) a.intVal;
 	} else {
-		std::cerr << "Warning: Widening of type " << dataTypeToString(a->dataType)
-				  << " to type " << dataTypeToString(maxType)
+		std::cerr << "Warning: Widening of type " << a.getType()
+				  << " to type " << maxType
 				  << "." << std::endl;
 	}
 }
 
-dataTypeEnum widenNodes(ConstantNode* a, ConstantNode* b) {
-	dataTypeEnum max = maxType(a, b);
+DataType widenNodes(ConstantNode& a, ConstantNode& b) {
+	DataType max = maxType(a, b);
 	widenNode(a, max);
 	widenNode(b, max);
 	return max;
 }
 
-
-void defaultConstant(ConstantNode* def) {
-	if (def->dataType == typeInt) {
-		def->intVal = 0;
-	} else if (def->dataType == typeDouble) {
-		def->doubleVal = 0.0;
-	} else if (def->dataType == typeString) {
-		def->stringVal = "";
-	} else if (def->dataType == typeBool) {
-		def->boolVal = false;
-	} else if (def->dataType == typeObj) {
-		def->objectVal = nullptr;
-		def->objectTypeName = "null";
+void defaultConstant(ConstantNode& def) {
+	if (def.getType() == typeInt) {
+		def.intVal = 0;
+	} else if (def.getType() == typeDouble) {
+		def.doubleVal = 0.0;
+	} else if (def.getType() == typeString) {
+		def.stringVal = "";
+	} else if (def.getType() == typeBool) {
+		def.boolVal = false;
+	} else if (def.getType() == typeObj) {
+		def.objectVal = nullptr;
+		def.objectTypeName = "null";
 	}
 }

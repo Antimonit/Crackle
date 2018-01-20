@@ -30,7 +30,6 @@ void MC::Driver::parse(std::istream &stream) {
 	parse_helper(stream);
 }
 
-
 void MC::Driver::parse_helper(std::istream &stream) {
 	delete scanner;
 	try {
@@ -55,52 +54,20 @@ void MC::Driver::parse_helper(std::istream &stream) {
 	}
 }
 
-//void MC::Driver::add_upper() {
-//	uppercase++;
-//	chars++;
-//	words++;
-//}
-//
-//void MC::Driver::add_lower() {
-//	lowercase++;
-//	chars++;
-//	words++;
-//}
-//
-//void MC::Driver::add_word(const std::string &word) {
-//	words++;
-//	chars += word.length();
-//	for (const char &c : word) {
-//		if (islower(c)) {
-//			lowercase++;
-//		} else if (isupper(c)) {
-//			uppercase++;
-//		}
-//	}
-//}
-//
-//void MC::Driver::add_newline() {
-//	lines++;
-//	chars++;
-//}
-//
-//void MC::Driver::add_char() {
-//	chars++;
-//}
 
 void MC::Driver::returnx(Node* p, Node* result) {
 	Node* value = ex(p->oper.op[0]);
 
-	result->type = typeReturn;
+	result->setType(typeReturn);
 	result->ret.value = value->constant;
 }
 
 void MC::Driver::whilex(Node* p, Node* result) {
-	while (ex(p->oper.op[0])->constant.intVal) {
+	while (ex(p->oper.op[0])->constant.boolVal) {
 		pushSymbolTableScope();
 		Node* left = ex(p->oper.op[1]);
-		if (left->type == typeReturn) {
-			result->type = typeReturn;
+		if (left->getType() == typeReturn) {
+			result->setType(typeReturn);
 			result->ret.value = left->ret.value;
 			popSymbolTableScope();
 			return;
@@ -108,7 +75,7 @@ void MC::Driver::whilex(Node* p, Node* result) {
 		popSymbolTableScope();
 	}
 
-	result->type = typeOperator;
+	result->setType(typeOperator);
 	result->oper.oper = token::WHILE;
 }
 
@@ -119,59 +86,59 @@ void MC::Driver::forx(Node* p, Node* result) {
 
 		pushSymbolTableScope();
 		Node* left = ex(p->oper.op[3]);
-		if (left->type == typeReturn) {
+		if (left->getType() == typeReturn) {
 			popSymbolTableScope();
-			result->type = typeReturn;
+			result->setType(typeReturn);
 			result->ret.value = left->ret.value;
 			return;
 		}
 		popSymbolTableScope();
 	}
-	result->type = typeOperator;
+	result->setType(typeOperator);
 	result->oper.oper = token::FOR;
 }
 
 void MC::Driver::ifx(Node* p, Node* result) {
 	pushSymbolTableScope();
-	if (ex(p->oper.op[0])->constant.intVal) {
+	if (ex(p->oper.op[0])->constant.boolVal) {
 		Node* left = ex(p->oper.op[1]);
-		if (left->type == typeReturn) {
-			result->type = left->type;
+		if (left->getType() == typeReturn) {
+			result->setType(left->getType());
 			result->ret.value = left->ret.value;
 			popSymbolTableScope();
 			return;
 		}
-	} else if (p->oper.opCount > 2) {
+	} else if (p->oper.op.size() > 2) {
 		Node* right = ex(p->oper.op[2]);
-		if (right->type == typeReturn) {
-			result->type = right->type;
+		if (right->getType() == typeReturn) {
+			result->setType(right->getType());
 			result->ret.value = right->ret.value;
 			popSymbolTableScope();
 			return;
 		}
 	}
 
-	result->type = typeOperator;
+	result->setType(typeOperator);
 	result->oper.oper = token::IF;
 	popSymbolTableScope();
 }
 
 void MC::Driver::delimiter(Node* p, Node* result) {
-	result->type = typeOperator;
+	result->setType(typeOperator);
 	result->oper.oper = ';';
 
-	if (p->oper.opCount > 0) {
+	if (p->oper.op.size() > 0) {
 		Node* left = ex(p->oper.op[0]);
-		if (left->type == typeReturn) {
-			result->type = typeReturn;
+		if (left->getType() == typeReturn) {
+			result->setType(typeReturn);
 			result->ret.value = left->ret.value;
 			return;
 		}
 	}
-	if (p->oper.opCount > 1) {
+	if (p->oper.op.size() > 1) {
 		Node* right = ex(p->oper.op[1]);
-		if (right->type == typeReturn) {
-			result->type = typeReturn;
+		if (right->getType() == typeReturn) {
+			result->setType(typeReturn);
 			result->ret.value = right->ret.value;
 			return;
 		}
@@ -189,33 +156,33 @@ void MC::Driver::assign(Node* p, Node* result) {
 		std::cerr << "Warning: Unable to assign undefined variable '" << variableNode.name
 				  << "." << std::endl;
 
-		result->type = typeEmpty;
+		result->setType(typeEmpty);
 		return;
 	}
 
-	if (variable->dataType != value->constant.dataType) {
-		std::cerr << "Warning: Incompatible assignment of type '" << dataTypeToString(value->constant.dataType)
+	if (variable->getType() != value->constant.getType()) {
+		std::cerr << "Warning: Incompatible assignment of type '" << value->constant.getType()
 				  << "' to variable '" << variableNode.name
-				  << "' of type '" << dataTypeToString(variable->dataType)
+				  << "' of type '" << variable->getType()
 				  << "'." << std::endl;
-		result->type = typeEmpty;
+		result->setType(typeEmpty);
 		return;
 	}
 
-	dataTypeEnum type = variable->dataType;
+	DataType type = variable->getType();
 
-	result->type = typeConstant;
-	result->constant.dataType = type;
+	result->setType(typeConstant);
+	result->constant.setType(type);
 	result->constant = *variable = value->constant;
 }
 
 void MC::Driver::uminus(Node* p, Node* result) {
 	Node* a = ex(p->oper.op[0]);
-	result->type = typeConstant;
-	result->constant.dataType = a->constant.dataType;
-	if (result->constant.dataType == typeInt) {
+	result->setType(typeConstant);
+	result->constant.setType(a->constant.getType());
+	if (result->constant.getType() == typeInt) {
 		result->constant.intVal = -a->constant.intVal;
-	} else if (result->constant.dataType == typeDouble) {
+	} else if (result->constant.getType() == typeDouble) {
 		result->constant.doubleVal = -a->constant.doubleVal;
 	} else {
 		std::cerr << "Warning: Invalid argument to unary minus." << std::endl;
@@ -225,11 +192,11 @@ void MC::Driver::uminus(Node* p, Node* result) {
 void MC::Driver::plus(Node* p, Node* result) {
 	ConstantNode* left = &ex(p->oper.op[0])->constant;
 	ConstantNode* right = &ex(p->oper.op[1])->constant;
-	result->type = typeConstant;
-	result->constant.dataType = widenNodes(left, right);
-	if (result->constant.dataType == typeInt) {
+	result->setType(typeConstant);
+	result->constant.setType(widenNodes(*left, *right));
+	if (result->constant.getType() == typeInt) {
 		result->constant.intVal = left->intVal + right->intVal;
-	} else if (result->constant.dataType == typeDouble) {
+	} else if (result->constant.getType() == typeDouble) {
 		result->constant.doubleVal = left->doubleVal + right->doubleVal;
 	} else {
 		std::cerr << "Warning: Invalid argument to plus operator." << std::endl;
@@ -238,11 +205,11 @@ void MC::Driver::plus(Node* p, Node* result) {
 void MC::Driver::minus(Node* p, Node* result) {
 	ConstantNode* left = &ex(p->oper.op[0])->constant;
 	ConstantNode* right = &ex(p->oper.op[1])->constant;
-	result->type = typeConstant;
-	result->constant.dataType = widenNodes(left, right);
-	if (result->constant.dataType == typeInt) {
+	result->setType(typeConstant);
+	result->constant.setType(widenNodes(*left, *right));
+	if (result->constant.getType() == typeInt) {
 		result->constant.intVal = left->intVal - right->intVal;
-	} else if (result->constant.dataType == typeDouble) {
+	} else if (result->constant.getType() == typeDouble) {
 		result->constant.doubleVal = left->doubleVal - right->doubleVal;
 	} else {
 		std::cerr << "Warning: Invalid argument to minus operator.\n" << std::endl;
@@ -251,11 +218,11 @@ void MC::Driver::minus(Node* p, Node* result) {
 void MC::Driver::multiply(Node* p, Node* result) {
 	ConstantNode* left = &ex(p->oper.op[0])->constant;
 	ConstantNode* right = &ex(p->oper.op[1])->constant;
-	result->type = typeConstant;
-	result->constant.dataType = widenNodes(left, right);
-	if (result->constant.dataType == typeInt) {
+	result->setType(typeConstant);
+	result->constant.setType(widenNodes(*left, *right));
+	if (result->constant.getType() == typeInt) {
 		result->constant.intVal = left->intVal * right->intVal;
-	} else if (result->constant.dataType == typeDouble) {
+	} else if (result->constant.getType() == typeDouble) {
 		result->constant.doubleVal = left->doubleVal * right->doubleVal;
 	} else {
 		std::cerr << "Warning: Invalid argument to multiply operator.\n" << std::endl;
@@ -264,11 +231,11 @@ void MC::Driver::multiply(Node* p, Node* result) {
 void MC::Driver::divide(Node* p, Node* result) {
 	ConstantNode* left = &ex(p->oper.op[0])->constant;
 	ConstantNode* right = &ex(p->oper.op[1])->constant;
-	result->type = typeConstant;
-	result->constant.dataType = widenNodes(left, right);
-	if (result->constant.dataType == typeInt) {
+	result->setType(typeConstant);
+	result->constant.setType(widenNodes(*left, *right));
+	if (result->constant.getType() == typeInt) {
 		result->constant.intVal = left->intVal / right->intVal;
-	} else if (result->constant.dataType == typeDouble) {
+	} else if (result->constant.getType() == typeDouble) {
 		result->constant.doubleVal = left->doubleVal / right->doubleVal;
 	} else {
 		std::cerr << "Warning: Invalid argument to divide operator.\n" << std::endl;
@@ -277,9 +244,9 @@ void MC::Driver::divide(Node* p, Node* result) {
 void MC::Driver::modulo(Node* p, Node* result) {
 	ConstantNode* left = &ex(p->oper.op[0])->constant;
 	ConstantNode* right = &ex(p->oper.op[1])->constant;
-	result->type = typeConstant;
-	result->constant.dataType = widenNodes(left, right);
-	if (result->constant.dataType == typeInt) {
+	result->setType(typeConstant);
+	result->constant.setType(widenNodes(*left, *right));
+	if (result->constant.getType() == typeInt) {
 		result->constant.intVal = left->intVal % right->intVal;
 	} else {
 		std::cerr << "Warning: Invalid argument to modulo operator.\n" << std::endl;
@@ -287,107 +254,121 @@ void MC::Driver::modulo(Node* p, Node* result) {
 }
 
 void MC::Driver::andx(Node* p, Node* result) {
-	Node* leftNode = ex(p->oper.op[0]);
-	Node* rightNode = ex(p->oper.op[1]);
-	ConstantNode* left = &leftNode->constant;
-	ConstantNode* right = &rightNode->constant;
-	result->type = typeConstant;
-	result->constant.dataType = typeUndefined;
+	ConstantNode* left = &ex(p->oper.op[0])->constant;;
+	ConstantNode* right = &ex(p->oper.op[1])->constant;;
+	result->setType(typeConstant);
+	result->constant.setType(typeUndefined);
 
-	if (left->dataType != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << dataTypeToString(left->dataType)
+	if (left->getType() != typeBool) {
+		std::cerr << "Warning: Invalid argument of type " << left->getType()
 				  << " to AND operator." << std::endl;
 	}
-	if (right->dataType != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << dataTypeToString(right->dataType)
+	if (right->getType() != typeBool) {
+		std::cerr << "Warning: Invalid argument of type " << right->getType()
 				  << " to AND operator." << std::endl;
 	}
-	if (left->dataType == typeBool && right->dataType == typeBool) {
-		result->constant.dataType = typeBool;
+	if (left->getType() == typeBool && right->getType() == typeBool) {
+		result->constant.setType(typeBool);
 		result->constant.boolVal = left->boolVal && right->boolVal;
 	}
 }
 void MC::Driver::orx(Node* p, Node* result) {
 	ConstantNode* left = &ex(p->oper.op[0])->constant;
 	ConstantNode* right = &ex(p->oper.op[1])->constant;
-	result->type = typeConstant;
-	result->constant.dataType = typeUndefined;
+	result->setType(typeConstant);
+	result->constant.setType(typeUndefined);
 
-	if (left->dataType != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << dataTypeToString(left->dataType)
+	if (left->getType() != typeBool) {
+		std::cerr << "Warning: Invalid argument of type " << left->getType()
 				  << " to OR operator." << std::endl;
 	}
-	if (right->dataType != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << dataTypeToString(right->dataType)
+	if (right->getType() != typeBool) {
+		std::cerr << "Warning: Invalid argument of type " << right->getType()
 				  << " to OR operator." << std::endl;
 	}
-	if (left->dataType == typeBool && right->dataType == typeBool) {
-		result->constant.dataType = typeBool;
+	if (left->getType() == typeBool && right->getType() == typeBool) {
+		result->constant.setType(typeBool);
 		result->constant.boolVal = left->boolVal || right->boolVal;
 	}
 }
 void MC::Driver::neg(Node* p, Node* result) {
 	ConstantNode* value = &ex(p->oper.op[0])->constant;
-	result->type = typeConstant;
-	result->constant.dataType = typeUndefined;
+	result->setType(typeConstant);
+	result->constant.setType(typeUndefined);
 
-	if (value->dataType != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << dataTypeToString(value->dataType)
+
+	if (value->getType() != typeBool) {
+		std::cerr << "Warning: Invalid argument of type " << value->getType()
 				  << " to NEG operator." << std::endl;
 	}
-	if (value->dataType == typeBool) {
-		result->constant.dataType = typeBool;
+	if (value->getType() == typeBool) {
+		result->constant.setType(typeBool);
 		result->constant.boolVal = !value->boolVal;
 	}
 }
 
 void MC::Driver::lt(Node* p, Node* result) {
-	Node* left = ex(p->oper.op[0]);
-	Node* right = ex(p->oper.op[1]);
-	result->type = typeConstant;
-	result->constant.dataType = typeBool;
-	result->constant.boolVal = left->constant.intVal < right->constant.intVal;
+	ConstantNode* left = &ex(p->oper.op[0])->constant;;
+	ConstantNode* right = &ex(p->oper.op[1])->constant;;
+	result->setType(typeConstant);
+	result->constant.setType(typeUndefined);
+
+	DataType max = maxType(*left, *right);
+
+	if (max == typeInt) {
+		result->constant.setType(typeBool);
+		widenNodes(*left, *right);
+		result->constant.boolVal = left->intVal < right->intVal;
+	} else if (max == typeDouble) {
+		result->constant.setType(typeBool);
+		widenNodes(*left, *right);
+		result->constant.boolVal = left->doubleVal < right->doubleVal;
+	} else {
+		std::cerr << "Warning: Invalid arguments of types " << left->getType()
+				  << " and " << right->getType()
+				  << " to LT operator." << std::endl;
+	}
 }
 void MC::Driver::le(Node* p, Node* result) {
 	Node* left = ex(p->oper.op[0]);
 	Node* right = ex(p->oper.op[1]);
-	result->type = typeConstant;
-	result->constant.dataType = typeBool;
+	result->setType(typeConstant);
+	result->constant.setType(typeBool);
 	result->constant.boolVal = left->constant.intVal <= right->constant.intVal;
 }
 void MC::Driver::gt(Node* p, Node* result) {
 	Node* left = ex(p->oper.op[0]);
 	Node* right = ex(p->oper.op[1]);
-	result->type = typeConstant;
-	result->constant.dataType = typeBool;
+	result->setType(typeConstant);
+	result->constant.setType(typeBool);
 	result->constant.boolVal = left->constant.intVal > right->constant.intVal;
 }
 void MC::Driver::ge(Node* p, Node* result) {
 	Node* left = ex(p->oper.op[0]);
 	Node* right = ex(p->oper.op[1]);
-	result->type = typeConstant;
-	result->constant.dataType = typeBool;
+	result->setType(typeConstant);
+	result->constant.setType(typeBool);
 	result->constant.boolVal = left->constant.intVal >= right->constant.intVal;
 }
 void MC::Driver::eq(Node* p, Node* result) {
 	Node* left = ex(p->oper.op[0]);
 	Node* right = ex(p->oper.op[1]);
-	result->type = typeConstant;
-	result->constant.dataType = typeBool;
+	result->setType(typeConstant);
+	result->constant.setType(typeBool);
 	result->constant.boolVal = left->constant.intVal == right->constant.intVal;
 }
 void MC::Driver::ne(Node* p, Node* result) {
 	Node* left = ex(p->oper.op[0]);
 	Node* right = ex(p->oper.op[1]);
-	result->type = typeConstant;
-	result->constant.dataType = typeBool;
+	result->setType(typeConstant);
+	result->constant.setType(typeBool);
 	result->constant.boolVal = left->constant.intVal != right->constant.intVal;
 }
 
 void MC::Driver::printx(Node* p, Node* result) {
 	Node* value = ex(p->oper.op[0]);
 
-	switch (value->type) {
+	switch (value->getType()) {
 		case typeOperator:
 			switch (value->oper.oper) {
 				case token::FOR: 	std::cout << "FOR";		break;
@@ -399,7 +380,7 @@ void MC::Driver::printx(Node* p, Node* result) {
 			}
 			break;
 		case typeConstant:
-			std::cout << constantValueToString(value->constant);
+			std::cout << value->constant;
 			break;
 		case typeFunctionDef:
 			std::cout << "Function " << value->functionDef.name << " defined";
@@ -411,7 +392,7 @@ void MC::Driver::printx(Node* p, Node* result) {
 			std::cout << "WRONG TYPE";
 	}
 
-	result->type = typeEmpty;
+	result->setType(typeEmpty);
 }
 void MC::Driver::println(Node* p, Node* result) {
 	printx(p, result);
@@ -421,16 +402,16 @@ void MC::Driver::println(Node* p, Node* result) {
 Node* MC::Driver::ex(Node* p) {
 //	auto* result = newNode();
 	auto* result = (Node*) malloc(10*sizeof(Node));;
-	result->type = typeEmpty;
+	result->setType(typeEmpty);
 
 	if (!p)
 		return result;
 
 	enterNode(p);
 
-	switch (p->type) {
+	switch (p->getType()) {
 		case typeConstant: {
-			result->type = typeConstant;
+			result->setType(typeConstant);
 			result->constant = p->constant;
 			break;
 		}
@@ -439,29 +420,29 @@ Node* MC::Driver::ex(Node* p) {
 
 			if (variableDef->defaultValue != nullptr) {
 				Node* defaultValue = ex(variableDef->defaultValue);
-				if (variableDef->value.dataType != defaultValue->constant.dataType) {
-					std::cerr << "Warning: Defined value of type " << dataTypeToString(variableDef->value.dataType)
-							  << " is incompatible with variable type " << dataTypeToString(defaultValue->constant.dataType)
+				if (variableDef->value.getType() != defaultValue->constant.getType()) {
+					std::cerr << "Warning: Defined value of type " << variableDef->value.getType()
+							  << " is incompatible with variable type " << defaultValue->constant.getType()
 							  << "." << std::endl;
 				} else {
 					variableDef->value = defaultValue->constant;
 				}
 			} else {
-				defaultConstant(&variableDef->value);
+				defaultConstant(variableDef->value);
 			}
 
 			addVariable(variableDef);
 			break;
 		}
 		case typeVariable: {
-			result->type = typeConstant;
+			result->setType(typeConstant);
 
 			std::string name = p->variable.name;
 			ConstantNode* variable = findVariable(name);
 
 			if (variable == nullptr) {
 				std::cerr << "Warning: Undefined variable '" << name << "'." << std::endl;
-				result->type = typeEmpty;
+				result->setType(typeEmpty);
 				exitNode(result);
 				return result;
 			}
@@ -518,27 +499,27 @@ Node* MC::Driver::ex(Node* p) {
 				return result;
 			}
 
-			for (int i = 0; i < function->paramCount; ++i) {
+			for (size_t i = 0; i < function->params.size(); ++i) {
 				VariableDefNode* paramDef = &function->params[i];
 				ConstantNode* paramVar = &ex(p->function.params[i])->constant;
-				if (paramDef->value.dataType == paramVar->dataType) {
+				if (paramDef->value.getType() == paramVar->getType()) {
 					paramDef->value = *paramVar;
 				} else {
-					defaultConstant(&paramDef->value);
-					std::cerr << "Warning: Passing incompatible parameter of type " << dataTypeToString(paramVar->dataType)
-							  << " instead of type " << dataTypeToString(paramDef->value.dataType)
+					defaultConstant(paramDef->value);
+					std::cerr << "Warning: Passing incompatible parameter of type " << paramVar->getType()
+							  << " instead of type " << paramDef->value.getType()
 							  << "." << std::endl;
 				}
 			}
 
 			replaceSymbolTableScope();
-			for (int i = 0; i < function->paramCount; ++i) {
+			for (size_t i = 0; i < function->params.size(); ++i) {
 				addVariable(&function->params[i]);
 			}
 			Node* res = ex(function->root);
 			popSymbolTableScope();
 
-			result->type = typeConstant;
+			result->setType(typeConstant);
 			result->constant = res->constant;
 			break;
 		}
@@ -553,19 +534,19 @@ Node* MC::Driver::ex(Node* p) {
 			if (object == nullptr) {
 				std::cerr << "Warning: Undefined object '" << name
 						  << "'." << std::endl;
-				result->type = typeEmpty;
+				result->setType(typeEmpty);
 				exitNode(result);
 				return result;
 			}
 
-			result->type = typeConstant;
-			result->constant.dataType = typeObj;
+			result->setType(typeConstant);
+			result->constant.setType(typeObj);
 			result->constant.objectTypeName = name;
-			result->constant.objectVal = (ObjectDefNode*) malloc(object->varCount * sizeof(ConstantNode*));
+			result->constant.objectVal = (ObjectDefNode*) malloc(object->vars.size() * sizeof(ConstantNode*));
 
 			ObjectDefNode* objectVal = result->constant.objectVal;
 //			ConstantNode** objectVal = result->constant.objectVal;
-			for (int i = 0; i < object->varCount; ++i) {
+			for (size_t i = 0; i < object->vars.size(); ++i) {
 //				VariableDefNode* paramDef = &object->vars[i];
 //				ConstantNode *ptr = &p->object.vars[i];
 //				objectVal[i] = ptr;
@@ -574,7 +555,7 @@ Node* MC::Driver::ex(Node* p) {
 //				} else {
 //					defaultConstant(&paramDef->value);
 //					printf("Warning: Passing incompatible parameter of type %s instead of type %s\n",
-//						   dataTypeToString(paramVar->dataType), dataTypeToString(paramDef->value.dataType));
+//						   paramVar->dataType), paramDef->value.dataType;
 //				}
 			}
 			result->constant.objectVal = objectVal;
@@ -585,12 +566,12 @@ Node* MC::Driver::ex(Node* p) {
 			break;
 		default:
 			break;
+		case typeReturn:break;
 	}
 
 	exitNode(result);
 	return result;
 }
-
 
 std::ostream& MC::Driver::print(std::ostream &stream) {
 	stream << "Results: " << "\n";

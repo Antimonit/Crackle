@@ -25,17 +25,13 @@ int yyerror(const std::string &message) {
 }
 
 
-Node* newNode() {
-	return (Node*) malloc(10*sizeof(Node));;
-}
-
-void freeNode(Node* node) {
+void deleteNode(Node* node) {
 	if (!node)
 		return;
 
-	if (node->type == typeOperator) {
-		for (int i = 0; i < node->oper.opCount; i++) {
-			freeNode(node->oper.op[i]);
+	if (node->getType() == typeOperator) {
+		for (auto& i : node->oper.op) {
+			deleteNode(i);
 		}
 	}
 	free(node);
@@ -55,53 +51,49 @@ int getParamCount(Node* params) {
 	return paramCount;
 }
 
-Node* function(Node* typedVariable, Node* params, Node* root) {
+Node* functionDef(Node* typedVariable, Node* params, Node* root) {
 	/* count number of parameters */
 	int paramCount = getParamCount(params);
 
 	/* allocate node, extending params array */
-//	Node* function = (Node*) malloc(sizeof(Node) + paramCount * sizeof(VariableDefNode));
-	Node* function = newNode();
-
-//	ObjectNode* objectNode = (ObjectNode*) operator new (offsetof (ObjectNode, vars[3]));
+	auto* function = new Node;
 
 	VariableNode variable = typedVariable->variable;
 	FunctionDefNode* functionDef = &function->functionDef;
 
-	function->type = typeFunctionDef;
+	function->setType(typeFunctionDef);
 	functionDef->dataType = variable.dataType;
 	functionDef->name = variable.name;
 	functionDef->root = root;
-	functionDef->paramCount = paramCount;
 
 	/* retrieve actual parameters */
 	while (paramCount > 0) {
 		paramCount--;
 		Node *p = params->oper.op[1]; // p is variable, not variableDef
 //		printf("param: %d | name: %s | type: %s\n", paramCount, p->variable.name, dataTypeToString(p->variable.dataType));
-		functionDef->params[paramCount].name = p->variable.name;
-		functionDef->params[paramCount].value.dataType = p->variable.dataType;
+		VariableDefNode variableDef;
+		variableDef.name = p->variable.name;
+		variableDef.value.setType(p->variable.dataType);
+		functionDef->params.push_back(variableDef);
 		params = params->oper.op[0];
 	}
 
 	return function;
 }
 
-Node* functionCall(const std::string &name, Node *params) {
+Node* function(const std::string& name, Node* params) {
 	/* count number of parameters */
 	int paramCount = getParamCount(params);
 
 	/* allocate node, extending params array */
-	Node* functionCall = (Node*) malloc(sizeof(Node) + paramCount * sizeof(ConstantNode*));
-//	Node* functionCall = new (typeFunction, paramCount) Node;
-
-	functionCall->type = typeFunction;
+	auto* functionCall = new Node;
+	functionCall->setType(typeFunction);
 	functionCall->function.name = name;
 
 	/* retrieve actual parameters */
 	while (paramCount > 0) {
 		paramCount--;
-		functionCall->function.params[paramCount] = params->oper.op[1];
+		functionCall->function.params.push_back(params->oper.op[1]);
 		params = params->oper.op[0];
 	}
 
@@ -110,44 +102,41 @@ Node* functionCall(const std::string &name, Node *params) {
 
 
 Node* constantInt(int value) {
-//	Node* constant = new (typeConstant) Node;
-	Node* constant = newNode();
-	constant->type = typeConstant;
-	constant->constant.dataType = typeInt;
+	auto* constant = new Node();
+	constant->setType(typeConstant);
+	constant->constant.setType(typeInt);
 	constant->constant.intVal = value;
 	return constant;
 }
 
 Node* constantDouble(double value) {
-	Node* constant = newNode();
-	constant->type = typeConstant;
-	constant->constant.dataType = typeDouble;
+	auto* constant = new Node();
+	constant->setType(typeConstant);
+	constant->constant.setType(typeDouble);
 	constant->constant.doubleVal = value;
 	return constant;
 }
 
 Node* constantString(const std::string &value) {
-	Node* constant = newNode();
-	constant->type = typeConstant;
-//	new ((void*) &constant->constant) ConstantNode;
-	constant->constant.dataType = typeString;
-//	new ((void*) &constant->constant.stringVal) std::string(value);
+	auto* constant = new Node();
+	constant->setType(typeConstant);
+	constant->constant.setType(typeString);
 	constant->constant.stringVal = value;
 	return constant;
 }
 
 Node* constantBool(bool value) {
-	Node* constant = newNode();
-	constant->type = typeConstant;
-	constant->constant.dataType = typeBool;
+	auto* constant = new Node();
+	constant->setType(typeConstant);
+	constant->constant.setType(typeBool);
 	constant->constant.boolVal = value;
 	return constant;
 }
 
 Node* constantNull() {
-	Node* constant = newNode();
-	constant->type = typeConstant;
-	constant->constant.dataType = typeObj;
+	auto* constant = new Node();
+	constant->setType(typeConstant);
+	constant->constant.setType(typeObj);
 	constant->constant.objectVal = nullptr;
 	constant->constant.objectTypeName = "null";
 	return constant;
@@ -159,16 +148,13 @@ Node* objectDef(const std::string &name, Node* vars) {
 	int varCount = getParamCount(vars);
 
 	/* allocate node, extending params array */
-	Node* result = (Node*) malloc(sizeof(Node) + varCount * sizeof(VariableDefNode));
-
-	result->type = typeObjectDef;
-
+	auto* result = new Node;
+	result->setType(typeObjectDef);
 	result->objectDef.name = name;
-	result->objectDef.varCount = varCount;
 	while (varCount > 0) {
 		varCount--;
 		Node *p = vars->oper.op[1]; // p is variableDef
-		result->objectDef.vars[varCount] = p->variableDef;
+		result->objectDef.vars.push_back(p->variableDef);
 		vars = vars->oper.op[0];
 	}
 
@@ -176,58 +162,53 @@ Node* objectDef(const std::string &name, Node* vars) {
 }
 
 Node* object(const std::string &name) {
-	Node* result = newNode();
-	result->type = typeObject;
+	auto* result = new Node();
+	result->setType(typeObject);
 	result->object.name = name;
 	return result;
 }
 
 
 Node* variableDef(Node* typedVariable, Node* defaultValue) {
-	Node* result = newNode();
-	result->type = typeVariableDef;
+	auto* result = new Node();
+	result->setType(typeVariableDef);
 
 	VariableDefNode* variableDef = &result->variableDef;
 
 	variableDef->name = typedVariable->variable.name;
-	variableDef->value.dataType = typedVariable->variable.dataType;
+	variableDef->value.setType(typedVariable->variable.dataType);
 	variableDef->defaultValue = defaultValue;
 
 	return result;
 }
 
-Node* typedVariable(std::string name, dataTypeEnum type) {
-	VariableNode variableNode;
-	variableNode.dataType = type;
-	variableNode.name = std::move(name);
-
-	Node* variable = newNode();
-	variable->type = typeVariable;
-	variable->variable = variableNode;
-//	variable->variable.dataType = type;
-//	variable->variable.name = name;
+Node* typedVariable(const std::string& name, DataType type) {
+	auto* variable = new Node();
+	variable->setType(typeVariable);
+	variable->variable.dataType = type;
+	variable->variable.name = name;
 	return variable;
 }
 
-Node* variable(std::string name) {
-	return typedVariable(std::move(name), typeUndefined);
+Node* variable(const std::string& name) {
+	return typedVariable(name, typeUndefined);
 }
 
 
 Node* empty() {
-	auto* empty = newNode();
-	empty->type = typeEmpty;
+	auto* empty = new Node();
+	empty->setType(typeEmpty);
 	return empty;
 }
 
 
 Node* op(int oper, int opCount, ...) {
 	/* allocate node, extending op array */
-	Node* operand = (Node*) malloc(sizeof(Node) + opCount * sizeof(Node*));
+	auto* operand = new Node;
 
-	operand->type = typeOperator;
+	operand->setType(typeOperator);
 	operand->oper.oper = oper;
-	operand->oper.opCount = opCount;
+	operand->oper.op = std::vector<Node*>(static_cast<unsigned long long int>(opCount));
 
 	va_list ap;
 	va_start(ap, opCount);

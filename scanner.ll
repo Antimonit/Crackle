@@ -64,7 +64,10 @@ string      \"(\\.|[^\\"])*\"
 "for"       return token::FOR;
 
 "new"       return token::NEW;
-"null"      return token::NULL_VALUE;
+"null" {
+	yylval->build<void*>(nullptr);
+	return token::NULL_VALUE;
+}
 "object"    return token::OBJECT;
 
 "int"       return token::INT;

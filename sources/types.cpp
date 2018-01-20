@@ -6,103 +6,43 @@
 #include <c++/sstream>
 #include "headers/types.hpp"
 
-std::ostringstream stringStream;
-
-std::string dataTypeToString(dataTypeEnum type) {
-	switch (type) {
-		case typeInt:
-			return "int";
-		case typeDouble:
-			return "double";
-		case typeString:
-			return "string";
-		case typeBool:
-			return "bool";
-		case typeObj:
-			return "object";
-		case typeUndefined:
-			return "undefined";
-		default:
-			return "unknown";
+std::ostream& operator<<(std::ostream& out, const NodeType value) {
+	switch (value) {
+		case typeConstant:		return out << "constant";
+		case typeVariableDef:	return out << "variableDef";
+		case typeVariable:		return out << "variable";
+		case typeFunctionDef:	return out << "functionDef";
+		case typeFunction:		return out << "function";
+		case typeObjectDef:		return out << "objectDef";
+		case typeObject:		return out << "object";
+		case typeOperator:		return out << "operator";
+		case typeReturn:		return out << "return";
+		case typeEmpty:			return out << "empty";
+		default:				return out << "unknown";
 	}
 }
 
-std::string constantValueToString(ConstantNode& constant) {
-	stringStream.clear();
-	stringStream.str("");
-
-	dataTypeEnum type = constant.dataType;
-	switch (type) {
-		case typeInt:
-			stringStream << constant.intVal;
-			break;
-		case typeDouble:
-			stringStream << constant.doubleVal;
-			break;
-		case typeString:
-			stringStream << constant.stringVal;
-			break;
-		case typeBool:
-			stringStream << (constant.boolVal ? "true" : "false");
-			break;
-		case typeObj:
-			stringStream << (constant.objectVal == nullptr ? "null" : "<object value>");
-			break;
-		case typeUndefined:
-			stringStream << "<undefined>";
-			break;
-	}
-
-	return stringStream.str();
-}
-
-
-Node::Node(const Node& node) {
-	type = node.type;
-	switch (type) {
-		case typeConstant:
-			constant = node.constant;
-			break;
-		case typeVariableDef:
-			variableDef = node.variableDef;
-			break;
-		case typeVariable:
-			variable = node.variable;
-			break;
-		case typeFunctionDef:
-			functionDef = node.functionDef;
-			break;
-		case typeFunction:
-			function = node.function;
-			break;
-		case typeObjectDef:
-			objectDef = node.objectDef;
-			break;
-		case typeObject:
-			object = node.object;
-			break;
-		case typeOperator:
-			oper = node.oper;
-			break;
-		case typeReturn:
-			ret = node.ret;
-			break;
-		case typeEmpty:
-			break;
+std::ostream& operator<<(std::ostream& out, const DataType value) {
+	switch (value) {
+		case typeInt:		return out << "int";
+		case typeDouble:	return out << "double";
+		case typeString:	return out << "string";
+		case typeBool:		return out << "bool";
+		case typeObj:		return out << "object";
+		case typeUndefined:	return out << "undefined";
+		default:			return out << "unknown";
 	}
 }
 
-Node::Node(size_t size) {
-
-}
-
-Node::Node() {
-	type = typeEmpty;
-}
-
-Node::Node(nodeTypeEnum type) {
-	this->type = type;
-}
-
-Node::~Node() {
+std::ostream& operator<<(std::ostream& out, ConstantNode& constant) {
+	DataType type = constant.getType();
+	switch (type) {
+		case typeInt:		return out << constant.intVal;
+		case typeDouble:	return out << constant.doubleVal;
+		case typeString:	return out << constant.stringVal;
+		case typeBool:		return out << (constant.boolVal ? "true" : "false");
+		case typeObj:		return out << (constant.objectVal == nullptr ? "null" : "<object value>");
+		case typeUndefined:	return out << "<undefined>";
+		default:			return out << "<unknown>";
+	}
 }

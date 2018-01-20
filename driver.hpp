@@ -24,21 +24,56 @@ namespace MC {
 
 		void parse(std::istream& is);
 
-//		void add_upper();
-//
-//		void add_lower();
-//
-//		void add_word(const std::string &word);
-//
-//		void add_newline();
-//
-//		void add_char();
-
 		Node* ex(Node* p);
 
 		std::ostream &print(std::ostream &stream);
 
 	private:
+
+		SymbolTable* rootSymbolTable = new SymbolTable();
+		SymbolTable* currentSymbolTable = rootSymbolTable;
+
+		void replaceSymbolTableScope() {
+			auto* table = new SymbolTable();
+			table->parentTable = rootSymbolTable;
+			table->previousTable = currentSymbolTable;
+			currentSymbolTable = table;
+		}
+
+		void pushSymbolTableScope() {
+			auto* table = new SymbolTable();
+			table->parentTable = currentSymbolTable;
+			table->previousTable = currentSymbolTable;
+			currentSymbolTable = table;
+		}
+
+		void popSymbolTableScope() {
+			SymbolTable* table = currentSymbolTable;
+			currentSymbolTable = table->previousTable;
+			delete table;
+		}
+
+		ConstantNode* findVariable(const std::string &symbol) {
+			return currentSymbolTable->findVariable(symbol);
+		}
+		FunctionDefNode* findFunction(const std::string &symbol) {
+			return currentSymbolTable->findFunction(symbol);
+		}
+		ObjectDefNode* findObject(const std::string &symbol) {
+			return currentSymbolTable->findObject(symbol);
+		}
+
+		void addVariable(VariableDefNode* variableDef) {
+			currentSymbolTable->addVariable(variableDef);
+		}
+		void addFunction(FunctionDefNode* function) {
+			currentSymbolTable->addFunction(function);
+		}
+		void addObject(ObjectDefNode* object) {
+			currentSymbolTable->addObject(object);
+		}
+
+
 
 		void returnx(Node* p, Node* result);
 		void whilex(Node* p, Node* result);
@@ -81,4 +116,5 @@ namespace MC {
 	};
 
 } /* end namespace MC */
+
 #endif /* END __MCDRIVER_HPP__ */
