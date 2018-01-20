@@ -24,7 +24,7 @@ add_executable(Crackle
         sources/symbol_table.cpp
         headers/types.hpp
         sources/types.cpp
-        headers/ast_printer.pph
+        headers/ast_printer.hpp
         sources/ast_printer.cpp
         lexer.l
         parser.y

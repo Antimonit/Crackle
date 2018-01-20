@@ -3,10 +3,9 @@
 //
 
 #include <headers/types.hpp>
-#include "headers/ast_printer.pph"
+#include "headers/ast_printer.hpp"
 #include <list>
-#include <c++/cstdio>
-#include <c++/iostream>
+#include <iostream>
 #include <y.tab.h>
 
 

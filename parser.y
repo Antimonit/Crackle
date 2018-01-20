@@ -25,8 +25,7 @@
 %token <intVal> INT_VALUE
 %token <doubleVal> DOUBLE_VALUE
 %token <stringVal> STRING_VALUE
-%token <boolVal> TRUE
-%token <boolVal> FALSE
+%token <boolVal> BOOL_VALUE
 %token <objectVal> NULL_VALUE
 %token <identifier> IDENTIFIER
 
@@ -179,8 +178,7 @@ primitive_value
 		: INT_VALUE		{ $$ = constantInt($1); }
 		| DOUBLE_VALUE	{ $$ = constantDouble($1); }
 		| STRING_VALUE	{ $$ = constantString($1); }
-		| TRUE			{ $$ = constantBool(true); }
-		| FALSE			{ $$ = constantBool(false); }
+		| BOOL_VALUE	{ $$ = constantBool($1); }
 
 object_value
 		: NEW IDENTIFIER    { $$ = object($2); }

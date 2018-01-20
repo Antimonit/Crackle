@@ -36,8 +36,6 @@ string      \"(\\.|[^\\"])*\"
 "=="		return EQ;
 "!="		return NE;
 
-"true"		return TRUE;
-"false"		return FALSE;
 "||"		return OR;
 "&&"		return AND;
 "!"			return NEG;
@@ -77,6 +75,16 @@ string      \"(\\.|[^\\"])*\"
 
 {bad_integer} {
 	yyerror("bad integer\n");
+}
+
+"true" {
+	yylval.boolVal = true;
+	return BOOL_VALUE;
+}
+
+"false" {
+	yylval.boolVal = false;
+	return BOOL_VALUE;
 }
 
 {integer} {

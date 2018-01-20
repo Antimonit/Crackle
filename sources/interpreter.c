@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <headers/types.hpp>
-#include <headers/ast_printer.pph>
+#include <headers/ast_printer.hpp>
 #include "headers/interpreter.h"
 #include "headers/symbol_table.hpp"
 #include "headers/node_helpers.hpp"

@@ -2,8 +2,7 @@
 #include <string>
 #include <list>
 #include <map>
-#include <headers/types.hpp>
-#include <headers/node_helpers.hpp>
+#include "headers/types.hpp"
 #include "headers/symbol_table.hpp"
 
 
@@ -14,8 +13,8 @@ private:
 	std::map<std::string, functionDefNode*> functions;
 	std::map<std::string, objectDefNode*> objects;
 
-	struct symbolTable* parentTable = nullptr;		// strictly going upwards the scope tree
-	struct symbolTable* previousTable = nullptr;	// can point to a sibling (when calling a function)
+	symbolTable* parentTable = nullptr;		// strictly going upwards the scope tree
+	symbolTable* previousTable = nullptr;	// can point to a sibling (when calling a function)
 	// when popping the symbolTable, restore previous table and not the parent table
 
 	constantNode* findVariableInTable(const char *symbol);
@@ -68,21 +67,21 @@ objectDefNode* symbolTable::findObjectInTable(const char *symbol) {
 
 
 void symbolTable::replaceSymbolTableScope() {
-	symbolTable* table = new symbolTable();
+	auto* table = new symbolTable();
 	table->parentTable = rootSymbolTable;
 	table->previousTable = currentSymbolTable;
 	currentSymbolTable = table;
 }
 
 void symbolTable::pushSymbolTableScope() {
-	symbolTable* table = new symbolTable();
+	auto* table = new symbolTable();
 	table->parentTable = currentSymbolTable;
 	table->previousTable = currentSymbolTable;
 	currentSymbolTable = table;
 }
 
 void symbolTable::popSymbolTableScope() {
-	symbolTable* table = currentSymbolTable;
+	auto* table = currentSymbolTable;
 	currentSymbolTable = table->previousTable;
 	delete table;
 }
@@ -102,7 +101,7 @@ constantNode* symbolTable::findVariable(const char *symbol) {
 }
 
 void symbolTable::addVariable(variableDefNode* variableDef) {
-	symbolTable *table = currentSymbolTable;
+	auto* table = currentSymbolTable;
 	constantNode* symbolNode = table->findVariableInTable(variableDef->name);
 	if (symbolNode != nullptr) {
 		printf("Warning: Trying to redeclare variable '%s' of type %s to type %s.\n",
@@ -118,7 +117,7 @@ void symbolTable::addVariable(variableDefNode* variableDef) {
 
 
 functionDefNode* symbolTable::findFunction(const char *symbol) {
-	symbolTable *table = currentSymbolTable;
+	auto* table = currentSymbolTable;
 
 	while (table != nullptr) {
 		functionDefNode *res = table->findFunctionInTable(symbol);
