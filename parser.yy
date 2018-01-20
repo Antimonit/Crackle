@@ -1,26 +1,26 @@
 %skeleton "lalr1.cc"
 %require  "3.0"
-%debug
 %defines
 %define api.namespace {MC}
 %define parser_class_name {Parser}
+%define parse.trace
+%error-verbose
 
 %code requires {
 	namespace MC {
 		class Driver;
         class Scanner;
 	}
-	#include "types.hpp"
+	#include "headers/types.hpp"
 
-// The following definitions is missing when %locations isn't used
-# ifndef YY_NULLPTR
-#  if defined __cplusplus && 201103L <= __cplusplus
-#   define YY_NULLPTR nullptr
-#  else
-#   define YY_NULLPTR 0
-#  endif
-# endif
-
+	/* The following definitions is missing when %locations isn't used */
+	#ifndef YY_NULLPTR
+	 #if defined __cplusplus && 201103L <= __cplusplus
+	  #define YY_NULLPTR nullptr
+	 #else
+	  #define YY_NULLPTR 0
+	 #endif
+	#endif
 }
 
 %parse-param { Scanner &scanner }
@@ -34,32 +34,21 @@
 	#include <cstdlib>
 	#include <fstream>
 	#include "driver.hpp"
-	#include "types.hpp"
-	#include "headers/interpreter.h"
+	#include "headers/types.hpp"
 	#include "parser.hpp"
 
 	#undef yylex
 	#define yylex scanner.yylex
 }
-//%union {
-//	int intVal;
-//	double doubleVal;
-//	char* stringVal;
-//	bool boolVal;
-//	void* objectVal;
-//	char* identifier;
-//	node* node;
-//	dataTypeEnum dataType;
-//}
 
-%token <int> INT_VALUE
-%token <double> DOUBLE_VALUE
-%token <std::string> STRING_VALUE
-%token <bool> TRUE
-%token <bool> FALSE
-%token <std::string> IDENTIFIER
-%token <node> NODE
-%token <dataTypeEnum> DATA_TYPE_ENUM
+%token <int> INT_VALUE "integer"
+%token <double> DOUBLE_VALUE "double"
+%token <std::string> STRING_VALUE "string"
+%token <bool> BOOL_VALUE "bool"
+%token <void*> NULL_VALUE "null"
+%token <std::string> IDENTIFIER "identifier"
+%token <Node*> NODE "node"
+%token <dataTypeEnum> DATA_TYPE_ENUM "dataType"
 
 %token NEW OBJECT
 %token VAR FUN RETURN
@@ -79,16 +68,16 @@
 %token INT DOUBLE BOOL STRING
 %token LEX_ERROR
 
-%type <node*> primitive_value object_value
-%type <node*> expression lex_error
-%type <node*> statement statement_list
-%type <node*> expression_statement for_statement if_statement while_statement
-%type <node*> var_definition var_definition_list
-%type <node*> fun_definition fun_param_list
-%type <node*> fun_call argument_expression_list
-%type <node*> return_statement
-%type <node*> typed_identifier
-%type <node*> object_definition
+%type <Node*> primitive_value object_value
+%type <Node*> expression lex_error
+%type <Node*> statement statement_list
+%type <Node*> expression_statement for_statement if_statement while_statement
+%type <Node*> var_definition var_definition_list
+%type <Node*> fun_definition fun_param_list
+%type <Node*> fun_call argument_expression_list
+%type <Node*> return_statement
+%type <Node*> typed_identifier
+%type <Node*> object_definition
 %type <dataTypeEnum> type_specifier
 
 %locations
@@ -98,14 +87,15 @@
 
 program
 		: statement {
-			node* result = ex((node*)$1);
+			driver.ex($1);
+//			Node* result = ex($1);
 //			freeNode(result);
 //			freeNode($1);
 		} program
 		|
 
 statement
-		: PRINT statement		{ $$ = (node*) op(token::PRINT, 1, $2); }
+		: PRINT statement		{ $$ = op(token::PRINT, 1, $2); }
 		| PRINTLN statement     { $$ = op(token::PRINTLN, 1, $2); }
 		| expression_statement	{ $$ = $1; }
 		| if_statement			{ $$ = $1; }
@@ -212,8 +202,7 @@ primitive_value
 		: INT_VALUE		{ $$ = constantInt($1); }
 		| DOUBLE_VALUE	{ $$ = constantDouble($1); }
 		| STRING_VALUE	{ $$ = constantString($1); }
-		| TRUE			{ $$ = constantBool(true); }
-		| FALSE			{ $$ = constantBool(false); }
+		| BOOL_VALUE    { $$ = constantBool($1); }
 
 object_value
 		: NEW IDENTIFIER    { $$ = object($2); }
@@ -221,7 +210,7 @@ object_value
 
 lex_error
 		: LEX_ERROR {
-			$$ = newEmptyNode();
+			$$ = empty();
 			yyerror("lexical error");
 			YYERROR;
 		}
@@ -230,5 +219,5 @@ lex_error
 
 
 void MC::Parser::error(const location_type &l, const std::string& err_message) {
-   std::cerr << "Error: " << err_message << " at " << l << "\n";
+	std::cerr << "Error: " << err_message << " at " << l << "\n";
 }

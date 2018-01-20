@@ -4,27 +4,20 @@
 #include <stdlib.h>
 #include "types.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void replaceSymbolTableScope();
 
 void pushSymbolTableScope();
 
 void popSymbolTableScope();
 
-constantNode* findVariable(const char *symbol);
-void addVariable(variableDefNode* variable);
+ConstantNode* findVariable(const std::string &symbol);
+void addVariable(VariableDefNode* variable);
 
-functionDefNode* findFunction(const char *symbol);
-void addFunction(functionDefNode* function);
+FunctionDefNode* findFunction(const std::string &symbol);
+void addFunction(FunctionDefNode* function);
 
-objectDefNode* findObject(const char* symbol);
-void addObject(objectDefNode* object);
+ObjectDefNode* findObject(const std::string &symbol);
+void addObject(ObjectDefNode* object);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif

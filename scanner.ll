@@ -2,7 +2,7 @@
 #include <string>
 #include "scanner.hpp"
 
-extern int yyerror(const char* message);
+int yyerror(std::string message);
 
 #undef  YY_DECL
 #define YY_DECL int MC::Scanner::yylex(MC::Parser::semantic_type * const lval, MC::Parser::location_type *loc)
@@ -54,8 +54,6 @@ string      \"(\\.|[^\\"])*\"
 "=="		return token::EQ;
 "!="		return token::NE;
 
-"true"		return token::TRUE;
-"false"		return token::FALSE;
 "||"		return token::OR;
 "&&"		return token::AND;
 "!"			return token::NEG;
@@ -66,6 +64,7 @@ string      \"(\\.|[^\\"])*\"
 "for"       return token::FOR;
 
 "new"       return token::NEW;
+"null"      return token::NULL_VALUE;
 "object"    return token::OBJECT;
 
 "int"       return token::INT;
@@ -93,7 +92,18 @@ string      \"(\\.|[^\\"])*\"
 
 
 {bad_integer} {
-	yyerror("bad integer\n");
+// TODO ignore invalid integer
+//	yyerror("bad integer");
+}
+
+"true" {
+	yylval->build(true);
+	return token::BOOL_VALUE;
+}
+
+"false" {
+	yylval->build(false);
+	return token::BOOL_VALUE;
 }
 
 {integer} {
@@ -102,26 +112,19 @@ string      \"(\\.|[^\\"])*\"
 		yytext[10] = 0;
 	}
 	int val = atoi(yytext);
-//	yylval.intVal = val;
 	yylval->build(val);
 	return token::INT_VALUE;
 }
 
 {double} {
 	double val = atof(yytext);
-//	yylval.doubleVal = val;
 	yylval->build(val);
 	return token::DOUBLE_VALUE;
 }
 
 {string} {
-//	char* text = (char*) malloc(sizeof(char) * (yyleng - 1));
-//	// strip leading and trailing quotation marks
-//	strncpy(text, yytext+1, yyleng - 1);
-//	text[yyleng-2] = '\0';
-//	yylval.stringVal = text;
-
-	yylval->build<std::string>(yytext);
+	std::string unquoted = std::string(yytext).substr(1, yyleng - 2);
+	yylval->build<std::string>(unquoted);
     return token::STRING_VALUE;
 }
 
@@ -130,17 +133,12 @@ string      \"(\\.|[^\\"])*\"
 		yyleng = 16;
 		yytext[16] = 0;
 	}
-
-//	char* id = (char*) malloc(sizeof(char) * (yyleng + 1));
-//	strncpy(id, yytext, yyleng + 1);
-//	yylval.identifier = id;
 	yylval->build<std::string>(yytext);
 	return token::IDENTIFIER;
 }
 
 "\n" {
-	// Update line number
-	// loc->lines();
+	loc->lines();
 	// return token::NEWLINE;
 }
 

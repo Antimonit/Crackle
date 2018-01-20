@@ -1,14 +1,18 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.8)
 project(pop_interpreter CXX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17")
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 
 BISON_TARGET(parser
         parser.yy
-        ${CMAKE_CURRENT_BINARY_DIR}/parser.tab.cc)
+        ${CMAKE_CURRENT_BINARY_DIR}/parser.tab.cc
+#        VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parser.output
+#        COMPILE_FLAGS --debug
+        )
 FLEX_TARGET(lexer
         scanner.ll
         ${CMAKE_CURRENT_BINARY_DIR}/lexer.yy.cc)
@@ -19,8 +23,6 @@ add_executable(Pop
         main.cpp
         driver.cpp
         parser.hpp
-        sources/interpreter.cpp
-        headers/interpreter.hpp
         sources/symbol_table.cpp
         headers/symbol_table.hpp
         sources/node_helpers.cpp
@@ -39,4 +41,4 @@ target_include_directories(Pop
         ${CMAKE_CURRENT_BINARY_DIR})
 
 set_property(TARGET Pop
-             PROPERTY CXX_STANDARD 14)
+             PROPERTY CXX_STANDARD 17)

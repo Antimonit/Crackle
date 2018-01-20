@@ -2,12 +2,11 @@
 // Created by DAVE on 7. 1. 2018.
 //
 
-#include <stdio.h>
-#include <headers/types.hpp>
-#include "headers/node_helpers.hpp"
+#include <iostream>
 #include "headers/types.hpp"
+#include "headers/node_helpers.hpp"
 
-dataTypeEnum maxType(constantNode* a, constantNode* b) {
+dataTypeEnum maxType(ConstantNode* a, ConstantNode* b) {
 	dataTypeEnum typeA = a->dataType;
 	dataTypeEnum typeB = b->dataType;
 	if (typeA == typeInt && typeB == typeInt) {
@@ -19,7 +18,7 @@ dataTypeEnum maxType(constantNode* a, constantNode* b) {
 	}
 }
 
-void widenNode(constantNode* a, dataTypeEnum maxType) {
+void widenNode(ConstantNode* a, dataTypeEnum maxType) {
 	if (a->dataType == maxType) {
 		return;
 	}
@@ -27,11 +26,13 @@ void widenNode(constantNode* a, dataTypeEnum maxType) {
 		a->dataType = typeDouble;
 		a->doubleVal = (double) a->intVal;
 	} else {
-		printf("Warning: Widening of type %s to type %s.\n", dataTypeToString(a->dataType), dataTypeToString(maxType));
+		std::cerr << "Warning: Widening of type " << dataTypeToString(a->dataType)
+				  << " to type " << dataTypeToString(maxType)
+				  << "." << std::endl;
 	}
 }
 
-extern "C" dataTypeEnum widenNodes(constantNode* a, constantNode* b) {
+dataTypeEnum widenNodes(ConstantNode* a, ConstantNode* b) {
 	dataTypeEnum max = maxType(a, b);
 	widenNode(a, max);
 	widenNode(b, max);
@@ -39,7 +40,7 @@ extern "C" dataTypeEnum widenNodes(constantNode* a, constantNode* b) {
 }
 
 
-extern "C" void defaultConstant(constantNode* def) {
+void defaultConstant(ConstantNode* def) {
 	if (def->dataType == typeInt) {
 		def->intVal = 0;
 	} else if (def->dataType == typeDouble) {

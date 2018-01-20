@@ -5,37 +5,31 @@
 #ifndef CRACKLE_INTERPRETER_PARSER_H
 #define CRACKLE_INTERPRETER_PARSER_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdarg>
+#include <cmath>
 #include <string>
 #include <parser.tab.hh>
 #include <headers/types.hpp>
 #include <headers/node_helpers.hpp>
+#include <utility>
+#include <c++/iostream>
 #include "headers/types.hpp"
-#include "headers/interpreter.hpp"
 #include "headers/symbol_table.hpp"
 #include "headers/debug.h"
 
 
-int yylex(void);
-
-int yywrap() {
-	return 1;
-}
-
-int yyerror(std::string message) {
-	std::cout << message;
+int yyerror(const std::string &message) {
+	std::cerr << message << std::endl;
 	return 1;
 }
 
 
-node* newNode() {
-	return (node*) malloc(sizeof(node));;
+Node* newNode() {
+	return (Node*) malloc(10*sizeof(Node));;
 }
 
-void freeNode(node* node) {
+void freeNode(Node* node) {
 	if (!node)
 		return;
 
@@ -47,19 +41,13 @@ void freeNode(node* node) {
 	free(node);
 }
 
-node* newEmptyNode() {
-	node* empty = newNode();
-	empty->type = typeEmpty;
-	return empty;
-}
 
-
-int getParamCount(node* params) {
+int getParamCount(Node* params) {
 	int paramCount = 0;
-	if (params != NULL) {
+	if (params != nullptr) {
 		paramCount = 1;
-		node *countingParams = params;
-		while (countingParams->oper.op[0] != NULL) {
+		Node *countingParams = params;
+		while (countingParams->oper.op[0] != nullptr) {
 			paramCount++;
 			countingParams = countingParams->oper.op[0];
 		}
@@ -67,15 +55,18 @@ int getParamCount(node* params) {
 	return paramCount;
 }
 
-node* function(node* typedVariable, node* params, node* root) {
+Node* function(Node* typedVariable, Node* params, Node* root) {
 	/* count number of parameters */
 	int paramCount = getParamCount(params);
 
 	/* allocate node, extending params array */
-	node* function = (node*) malloc(sizeof(node) + paramCount * sizeof(variableDefNode));
+//	Node* function = (Node*) malloc(sizeof(Node) + paramCount * sizeof(VariableDefNode));
+	Node* function = newNode();
 
-	variableNode variable = typedVariable->variable;
-	functionDefNode* functionDef = &function->functionDef;
+//	ObjectNode* objectNode = (ObjectNode*) operator new (offsetof (ObjectNode, vars[3]));
+
+	VariableNode variable = typedVariable->variable;
+	FunctionDefNode* functionDef = &function->functionDef;
 
 	function->type = typeFunctionDef;
 	functionDef->dataType = variable.dataType;
@@ -86,7 +77,7 @@ node* function(node* typedVariable, node* params, node* root) {
 	/* retrieve actual parameters */
 	while (paramCount > 0) {
 		paramCount--;
-		node *p = params->oper.op[1]; // p is variable, not variableDef
+		Node *p = params->oper.op[1]; // p is variable, not variableDef
 //		printf("param: %d | name: %s | type: %s\n", paramCount, p->variable.name, dataTypeToString(p->variable.dataType));
 		functionDef->params[paramCount].name = p->variable.name;
 		functionDef->params[paramCount].value.dataType = p->variable.dataType;
@@ -96,15 +87,16 @@ node* function(node* typedVariable, node* params, node* root) {
 	return function;
 }
 
-node* functionCall(std::string name, node *params) {
+Node* functionCall(const std::string &name, Node *params) {
 	/* count number of parameters */
 	int paramCount = getParamCount(params);
 
 	/* allocate node, extending params array */
-	node* functionCall = (node*) malloc(sizeof(node) + paramCount * sizeof(constantNode*));
+	Node* functionCall = (Node*) malloc(sizeof(Node) + paramCount * sizeof(ConstantNode*));
+//	Node* functionCall = new (typeFunction, paramCount) Node;
 
 	functionCall->type = typeFunction;
-	functionCall->function.name = name.c_str();
+	functionCall->function.name = name;
 
 	/* retrieve actual parameters */
 	while (paramCount > 0) {
@@ -117,62 +109,65 @@ node* functionCall(std::string name, node *params) {
 }
 
 
-node* constantInt(int value) {
-	node* constant = newNode();
+Node* constantInt(int value) {
+//	Node* constant = new (typeConstant) Node;
+	Node* constant = newNode();
 	constant->type = typeConstant;
 	constant->constant.dataType = typeInt;
 	constant->constant.intVal = value;
 	return constant;
 }
 
-node* constantDouble(double value) {
-	node* constant = newNode();
+Node* constantDouble(double value) {
+	Node* constant = newNode();
 	constant->type = typeConstant;
 	constant->constant.dataType = typeDouble;
 	constant->constant.doubleVal = value;
 	return constant;
 }
 
-node* constantString(std::string value) {
-	node* constant = newNode();
+Node* constantString(const std::string &value) {
+	Node* constant = newNode();
 	constant->type = typeConstant;
+//	new ((void*) &constant->constant) ConstantNode;
 	constant->constant.dataType = typeString;
-	constant->constant.stringVal = value.c_str();
+//	new ((void*) &constant->constant.stringVal) std::string(value);
+	constant->constant.stringVal = value;
 	return constant;
 }
 
-node* constantBool(bool value) {
-	node* constant = newNode();
+Node* constantBool(bool value) {
+	Node* constant = newNode();
 	constant->type = typeConstant;
 	constant->constant.dataType = typeBool;
 	constant->constant.boolVal = value;
 	return constant;
 }
 
-node* constantNull() {
-	node* constant = newNode();
+Node* constantNull() {
+	Node* constant = newNode();
 	constant->type = typeConstant;
 	constant->constant.dataType = typeObj;
-	constant->constant.objectVal = NULL;
+	constant->constant.objectVal = nullptr;
 	constant->constant.objectTypeName = "null";
 	return constant;
 }
 
 
-node* objectDef(std::string name, node* vars) {
+Node* objectDef(const std::string &name, Node* vars) {
 	/* count number of vars */
 	int varCount = getParamCount(vars);
 
 	/* allocate node, extending params array */
-	node* result = (node*) malloc(sizeof(node) + varCount * sizeof(variableDefNode));
+	Node* result = (Node*) malloc(sizeof(Node) + varCount * sizeof(VariableDefNode));
 
 	result->type = typeObjectDef;
 
-	result->objectDef.name = name.c_str();
+	result->objectDef.name = name;
 	result->objectDef.varCount = varCount;
 	while (varCount > 0) {
 		varCount--;
-		node *p = vars->oper.op[1]; // p is variableDef
+		Node *p = vars->oper.op[1]; // p is variableDef
 		result->objectDef.vars[varCount] = p->variableDef;
 		vars = vars->oper.op[0];
 	}
@@ -180,19 +175,19 @@ node* objectDef(std::string name, node* vars) {
 	return result;
 }
 
-node* object(std::string name) {
-	node* result = newNode();
+Node* object(const std::string &name) {
+	Node* result = newNode();
 	result->type = typeObject;
-	result->object.name = name.c_str();
+	result->object.name = name;
 	return result;
 }
 
 
-node* variableDef(node* typedVariable, node* defaultValue) {
-	node* result = newNode();
+Node* variableDef(Node* typedVariable, Node* defaultValue) {
+	Node* result = newNode();
 	result->type = typeVariableDef;
 
-	variableDefNode* variableDef = &result->variableDef;
+	VariableDefNode* variableDef = &result->variableDef;
 
 	variableDef->name = typedVariable->variable.name;
 	variableDef->value.dataType = typedVariable->variable.dataType;
@@ -201,21 +196,34 @@ node* variableDef(node* typedVariable, node* defaultValue) {
 	return result;
 }
 
-node* typedVariable(std::string name, dataTypeEnum type) {
-	node* variable = newNode();
+Node* typedVariable(std::string name, dataTypeEnum type) {
+	VariableNode variableNode;
+	variableNode.dataType = type;
+	variableNode.name = std::move(name);
+
+	Node* variable = newNode();
 	variable->type = typeVariable;
-	variable->variable.dataType = type;
-	variable->variable.name = name.c_str();
+	variable->variable = variableNode;
+//	variable->variable.dataType = type;
+//	variable->variable.name = name;
 	return variable;
 }
 
-node* variable(std::string name) {
-	return typedVariable(name, typeUndefined);
+Node* variable(std::string name) {
+	return typedVariable(std::move(name), typeUndefined);
 }
 
-node* op(int oper, int opCount, ...) {
+
+Node* empty() {
+	auto* empty = newNode();
+	empty->type = typeEmpty;
+	return empty;
+}
+
+
+Node* op(int oper, int opCount, ...) {
 	/* allocate node, extending op array */
-	node* operand = (node*) malloc(sizeof(node) + opCount * sizeof(node*));
+	Node* operand = (Node*) malloc(sizeof(Node) + opCount * sizeof(Node*));
 
 	operand->type = typeOperator;
 	operand->oper.oper = oper;
@@ -224,7 +232,7 @@ node* op(int oper, int opCount, ...) {
 	va_list ap;
 	va_start(ap, opCount);
 	for (int i = 0; i < opCount; i++) {
-		operand->oper.op[i] = va_arg(ap, node*);
+		operand->oper.op[i] = va_arg(ap, Node*);
 	}
 	va_end(ap);
 

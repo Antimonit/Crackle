@@ -3,11 +3,12 @@
 //
 
 #include <cstdio>
+#include <c++/sstream>
 #include "headers/types.hpp"
 
-char temp[100];
+std::ostringstream stringStream;
 
-extern "C" const char* dataTypeToString(dataTypeEnum type) {
+std::string dataTypeToString(dataTypeEnum type) {
 	switch (type) {
 		case typeInt:
 			return "int";
@@ -26,29 +27,82 @@ extern "C" const char* dataTypeToString(dataTypeEnum type) {
 	}
 }
 
-extern "C" const char* constantValueToString(constantNode constant) {
-	dataTypeEnum type = constant.dataType;
+std::string constantValueToString(ConstantNode& constant) {
+	stringStream.clear();
+	stringStream.str("");
 
+	dataTypeEnum type = constant.dataType;
 	switch (type) {
 		case typeInt:
-			sprintf(temp, "%d", constant.intVal);
+			stringStream << constant.intVal;
 			break;
 		case typeDouble:
-			sprintf(temp, "%f", constant.doubleVal);
+			stringStream << constant.doubleVal;
 			break;
 		case typeString:
-			sprintf(temp, "%s", constant.stringVal);
+			stringStream << constant.stringVal;
 			break;
 		case typeBool:
-			sprintf(temp, "%s", constant.boolVal ? "true" : "false");
+			stringStream << (constant.boolVal ? "true" : "false");
 			break;
 		case typeObj:
-			sprintf(temp, "%s", constant.objectVal == nullptr ? "null" : "<object value>");
+			stringStream << (constant.objectVal == nullptr ? "null" : "<object value>");
 			break;
 		case typeUndefined:
-			sprintf(temp, "<undefined>");
+			stringStream << "<undefined>";
 			break;
 	}
 
-	return temp;
+	return stringStream.str();
+}
+
+
+Node::Node(const Node& node) {
+	type = node.type;
+	switch (type) {
+		case typeConstant:
+			constant = node.constant;
+			break;
+		case typeVariableDef:
+			variableDef = node.variableDef;
+			break;
+		case typeVariable:
+			variable = node.variable;
+			break;
+		case typeFunctionDef:
+			functionDef = node.functionDef;
+			break;
+		case typeFunction:
+			function = node.function;
+			break;
+		case typeObjectDef:
+			objectDef = node.objectDef;
+			break;
+		case typeObject:
+			object = node.object;
+			break;
+		case typeOperator:
+			oper = node.oper;
+			break;
+		case typeReturn:
+			ret = node.ret;
+			break;
+		case typeEmpty:
+			break;
+	}
+}
+
+Node::Node(size_t size) {
+
+}
+
+Node::Node() {
+	type = typeEmpty;
+}
+
+Node::Node(nodeTypeEnum type) {
+	this->type = type;
+}
+
+Node::~Node() {
 }

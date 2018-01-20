@@ -13,11 +13,10 @@ namespace MC {
 class Scanner : public yyFlexLexer {
 public:
 
-	Scanner(std::istream *in) : yyFlexLexer(in) {
+	explicit Scanner(std::istream *in) : yyFlexLexer(in) {
 	};
 
-	virtual ~Scanner() {
-	};
+	~Scanner() override = default;
 
 	//get rid of override virtual function warning
 	using FlexLexer::yylex;

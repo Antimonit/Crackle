@@ -2,25 +2,24 @@
 // Created by DAVE on 8. 1. 2018.
 //
 
-#include <headers/types.hpp>
-#include "headers/ast_printer.hpp"
 #include <list>
-#include <c++/cstdio>
-#include <c++/iostream>
 #include <parser.tab.hh>
+#include "headers/types.hpp"
+#include "headers/ast_printer.hpp"
 
 using namespace std;
 using token = MC::Parser::token;
 
-list<node*> stack;
+list<Node*> stack;
 int indent = 0;
 
-void printConstant(node* node) {
-	cout << "Constant ";
-	cout << dataTypeToString(node->constant.dataType) << " " << constantValueToString(node->constant);
+void printConstant(Node* node) {
+	cout << "Constant "
+		 << dataTypeToString(node->constant.dataType)
+		 << " " << constantValueToString(node->constant);
 }
 
-void printOperator(node* node) {
+void printOperator(Node* node) {
 	cout << "Operator ";
 	switch (node->oper.oper) {
 		case token::PRINT: 		cout << "PRINT"; break;
@@ -56,39 +55,39 @@ void printOperator(node* node) {
 	}
 }
 
-void printVariableDef(node* node) {
-	cout << "Variable Definition ";
-	cout << dataTypeToString(node->variableDef.value.dataType) << " ";
-	cout << node->variableDef.name << " ";
+void printVariableDef(Node* node) {
+	cout << "Variable Definition "
+		 << dataTypeToString(node->variableDef.value.dataType)
+		 << " " << node->variableDef.name << " ";
 }
 
-void printVariable(node* node) {
+void printVariable(Node* node) {
 	cout << "Variable ";
 	cout << node->variable.name; // << " " << constantValueToString(node->variable);
 }
 
-void printFunctionDef(node* node) {
+void printFunctionDef(Node* node) {
 	cout << "Function Definition " << node->functionDef.name;
 }
 
-void printFunction(node* node) {
+void printFunction(Node* node) {
 	cout << "Function " << node->function.name;
 }
 
-void printObjectDef(node* node) {
+void printObjectDef(Node* node) {
 	cout << "Object Definition " << node->objectDef.name;
 }
 
-void printObject(node* node) {
+void printObject(Node* node) {
 	cout << "Object " << node->object.name;
 }
 
-void printReturn(node* node) {
+void printReturn(Node* node) {
 	cout << "Return " << constantValueToString(node->ret.value);
 }
 
 
-void printNode(bool entering, node* node) {
+void printNode(bool entering, Node* node) {
 	cout << '\t';
 	for (int i = 0; i < indent; ++i) {
 		cout << static_cast<char>(179) << " ";	/* │ */
@@ -136,7 +135,7 @@ void printNode(bool entering, node* node) {
 	cout << endl;
 }
 
-extern "C" void enterNode(node* node) {
+void enterNode(Node* node) {
 	stack.push_back(node);
 	if (stack.back()->type != typeOperator || stack.back()->oper.oper != ';') {
 		printNode(true, node);
@@ -144,7 +143,7 @@ extern "C" void enterNode(node* node) {
 	}
 }
 
-extern "C" void exitNode(node* node) {
+void exitNode(Node* node) {
 	if (stack.back()->type != typeOperator || stack.back()->oper.oper != ';') {
 		indent--;
 		printNode(false, node);
