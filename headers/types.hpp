@@ -47,6 +47,23 @@ class Node;
 class ConstantNode {
 private:
 	DataType dataType {typeUndefined};
+
+	void copyConstantNode(const ConstantNode& other) {
+		setType(other.dataType);
+		switch (dataType) {
+			case typeInt:		intVal = other.intVal; break;
+			case typeDouble:	doubleVal = other.doubleVal; break;
+			case typeBool:		boolVal = other.boolVal; break;
+			case typeString:	stringVal = other.stringVal; break;
+			case typeObj:
+				objectVal = other.objectVal;
+				objectTypeName = other.objectTypeName;
+				break;
+			case typeUndefined:
+				break;
+		}
+	}
+
 public:
 	union {
 		int intVal;
@@ -71,19 +88,7 @@ public:
 
 	ConstantNode& operator=(const ConstantNode& other) {
 		if (this != &other) {
-			setType(other.dataType);
-			switch (dataType) {
-				case typeInt:		intVal = other.intVal; break;
-				case typeDouble:	doubleVal = other.doubleVal; break;
-				case typeBool:		boolVal = other.boolVal; break;
-				case typeString:	stringVal = other.stringVal; break;
-				case typeObj:
-					objectVal = other.objectVal;
-					objectTypeName = other.objectTypeName;
-					break;
-				case typeUndefined:
-					break;
-			}
+			copyConstantNode(other);
 		}
 		return *this;
 	}
@@ -93,15 +98,7 @@ public:
 	}
 
 	ConstantNode(const ConstantNode& other) {
-		setType(other.dataType);
-		switch (dataType) {
-			case typeInt:		intVal = other.intVal; break;
-			case typeDouble:	doubleVal = other.doubleVal; break;
-			case typeBool:		boolVal = other.boolVal; break;
-			case typeString:	stringVal = other.stringVal; break;
-			case typeObj:		objectVal = other.objectVal; break;
-			case typeUndefined:	break;
-		}
+		copyConstantNode(other);
 	}
 
 	ConstantNode(DataType type) {
@@ -115,53 +112,47 @@ public:
 
 std::ostream& operator<<(std::ostream& out, ConstantNode& constant);
 
-class OperatorNode {
-public:
+struct OperatorNode {
 	int oper;
 	std::vector<Node*> op;
 };
 
-class VariableDefNode {
-public:
+struct VariableDefNode {
 	std::string name;
 	ConstantNode value;
 	Node* defaultValue;
 };
+std::ostream& operator<<(std::ostream& out, VariableDefNode& variableDef);
 
-class VariableNode {
-public:
+struct VariableNode {
 	std::string name;
 	DataType dataType;
 };
 
-class FunctionDefNode {
-public:
+struct FunctionDefNode {
 	std::string name;
 	DataType dataType;
 	Node* root;
-	std::vector<VariableDefNode> params;
+	std::vector<VariableDefNode> params;	// formal paremeters
 };
+std::ostream& operator<<(std::ostream& out, VariableDefNode& variableDef);
 
-class FunctionNode {
-public:
+struct FunctionNode {
 	std::string name;
-	std::vector<Node*> params;
+	std::vector<Node*> params;	// actual parameters
 };
 
-class ObjectDefNode {
-public:
+struct ObjectDefNode {
 	std::string name;
 	std::vector<VariableDefNode> vars;
 };
 
-class ObjectNode {
-public:
+struct ObjectNode {
 	std::string name;
 	std::vector<ConstantNode> vars;
 };
 
-class ReturnNode {
-public:
+struct ReturnNode {
 	ConstantNode value;
 };
 
@@ -248,71 +239,71 @@ public:
 	}
 
 
-	static void* operator new(size_t size) {
-		void *storage = malloc(size);
-		if (storage == nullptr) {
-			std::cerr << "allocation fail : no free memory" << std::endl;
-			throw "allocation fail : no free memory";
-		}
-		return storage;
-	}
-
-	static void* operator new(size_t size, NodeType type) {
-		void* storage = nullptr;
-		switch (type) {
-			case typeConstant:
-				storage = malloc(size);
-				break;
-			case typeVariableDef:break;
-			case typeVariable:break;
-			case typeFunctionDef:break;
-			case typeFunction:break;
-			case typeObjectDef:break;
-			case typeObject:break;
-			case typeOperator:break;
-			case typeReturn:break;
-			case typeEmpty:break;
-		}
-		if (storage == nullptr) {
-			std::cerr << "allocation fail : no free memory" << std::endl;
-			throw "allocation fail : no free memory";
-		}
-		return storage;
-	}
-
-	static void* operator new(size_t size, NodeType type, int varCount) {
-		void* storage = nullptr;
-		switch (type) {
-			case typeConstant:break;
-			case typeVariableDef:break;
-			case typeVariable:break;
-			case typeFunctionDef:
-				storage = malloc(size + varCount * sizeof(VariableDefNode));
-				break;
-			case typeFunction:
-				storage = malloc(size + varCount * sizeof(ConstantNode*));
-				break;
-			case typeObjectDef:
-				storage = malloc(size + varCount * sizeof(VariableDefNode));
-				break;
-			case typeObject:break;
-			case typeOperator:
-				storage = malloc(size  + varCount * sizeof(Node*));
-				break;
-			case typeReturn:break;
-			case typeEmpty:break;
-		}
-
-		if (storage == nullptr) {
-			std::cerr << "allocation fail : no free memory" << std::endl;
-			throw "allocation fail : no free memory";
-		}
-		return storage;
-	}
-
-	static void operator delete(void* ptr) {
-		free(ptr);
-	}
+//	static void* operator new(size_t size) {
+//		void *storage = malloc(size);
+//		if (storage == nullptr) {
+//			std::cerr << "allocation fail : no free memory" << std::endl;
+//			throw "allocation fail : no free memory";
+//		}
+//		return storage;
+//	}
+//
+//	static void* operator new(size_t size, NodeType type) {
+//		void* storage = nullptr;
+//		switch (type) {
+//			case typeConstant:
+//				storage = malloc(size);
+//				break;
+//			case typeVariableDef:break;
+//			case typeVariable:break;
+//			case typeFunctionDef:break;
+//			case typeFunction:break;
+//			case typeObjectDef:break;
+//			case typeObject:break;
+//			case typeOperator:break;
+//			case typeReturn:break;
+//			case typeEmpty:break;
+//		}
+//		if (storage == nullptr) {
+//			std::cerr << "allocation fail : no free memory" << std::endl;
+//			throw "allocation fail : no free memory";
+//		}
+//		return storage;
+//	}
+//
+//	static void* operator new(size_t size, NodeType type, int varCount) {
+//		void* storage = nullptr;
+//		switch (type) {
+//			case typeConstant:break;
+//			case typeVariableDef:break;
+//			case typeVariable:break;
+//			case typeFunctionDef:
+//				storage = malloc(size + varCount * sizeof(VariableDefNode));
+//				break;
+//			case typeFunction:
+//				storage = malloc(size + varCount * sizeof(ConstantNode*));
+//				break;
+//			case typeObjectDef:
+//				storage = malloc(size + varCount * sizeof(VariableDefNode));
+//				break;
+//			case typeObject:break;
+//			case typeOperator:
+//				storage = malloc(size  + varCount * sizeof(Node*));
+//				break;
+//			case typeReturn:break;
+//			case typeEmpty:break;
+//		}
+//
+//		if (storage == nullptr) {
+//			std::cerr << "allocation fail : no free memory" << std::endl;
+//			throw "allocation fail : no free memory";
+//		}
+//		return storage;
+//	}
+//
+//	static void operator delete(void* ptr) {
+//		free(ptr);
+//	}
 
 };
 

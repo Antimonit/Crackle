@@ -52,10 +52,6 @@ int getParamCount(Node* params) {
 }
 
 Node* functionDef(Node* typedVariable, Node* params, Node* root) {
-	/* count number of parameters */
-	int paramCount = getParamCount(params);
-
-	/* allocate node, extending params array */
 	auto* function = new Node;
 
 	VariableNode variable = typedVariable->variable;
@@ -67,13 +63,13 @@ Node* functionDef(Node* typedVariable, Node* params, Node* root) {
 	functionDef->root = root;
 
 	/* retrieve actual parameters */
+	int paramCount = getParamCount(params);
 	while (paramCount > 0) {
 		paramCount--;
-		Node *p = params->oper.op[1]; // p is variable, not variableDef
-//		printf("param: %d | name: %s | type: %s\n", paramCount, p->variable.name, dataTypeToString(p->variable.dataType));
+		VariableNode& var = params->oper.op[1]->variable;
 		VariableDefNode variableDef;
-		variableDef.name = p->variable.name;
-		variableDef.value.setType(p->variable.dataType);
+		variableDef.name = var.name;
+		variableDef.value.setType(var.dataType);
 		functionDef->params.push_back(variableDef);
 		params = params->oper.op[0];
 	}
@@ -82,15 +78,12 @@ Node* functionDef(Node* typedVariable, Node* params, Node* root) {
 }
 
 Node* function(const std::string& name, Node* params) {
-	/* count number of parameters */
-	int paramCount = getParamCount(params);
-
-	/* allocate node, extending params array */
 	auto* functionCall = new Node;
 	functionCall->setType(typeFunction);
 	functionCall->function.name = name;
 
 	/* retrieve actual parameters */
+	int paramCount = getParamCount(params);
 	while (paramCount > 0) {
 		paramCount--;
 		functionCall->function.params.push_back(params->oper.op[1]);
@@ -201,9 +194,7 @@ Node* empty() {
 	return empty;
 }
 
-
 Node* op(int oper, int opCount, ...) {
-	/* allocate node, extending op array */
 	auto* operand = new Node;
 
 	operand->setType(typeOperator);

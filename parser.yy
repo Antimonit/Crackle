@@ -54,6 +54,7 @@
 %token VAR FUN RETURN
 %token PRINT PRINTLN
 %nonassoc LT LE GT GE EQ NE
+%nonassoc INC DEC
 %left OR
 %left AND
 %right NEG
@@ -63,7 +64,8 @@
 %nonassoc UMINUS
 %token '(' ')'
 %token '{' '}'
-%token ';' ','
+%token ';'
+%token ','
 %token IF ELSE WHILE DO FOR
 %token INT DOUBLE BOOL STRING
 %token LEX_ERROR

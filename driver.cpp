@@ -7,52 +7,118 @@
 
 using token = MC::Parser::token;
 
+MC::Driver::Driver() {
+	in = &std::cin;
+	out = &std::cout;
+	deb = nullptr;
+}
+
 MC::Driver::~Driver() {
 	delete scanner;
 	scanner = nullptr;
 	delete parser;
 	parser = nullptr;
+	delete printer;
+	printer = nullptr;
+	if (in != nullptr && in != &std::cin) {
+		delete in;
+		in = nullptr;
+	}
+	if (out != nullptr && out != &std::cout && out != &std::cerr) {
+		delete out;
+		out = nullptr;
+	}
+	if (out != nullptr && out != &std::cout && out != &std::cerr) {
+		delete deb;
+		deb = nullptr;
+	}
 }
 
-void MC::Driver::parse(const char *const filename) {
-	assert(filename != nullptr);
-	std::ifstream in_file(filename);
-	if (!in_file.good()) {
+void MC::Driver::input(std::string filename) {
+	auto* file = new std::ifstream(filename);
+	if (!file->good()) {
 		exit(EXIT_FAILURE);
 	}
-	parse_helper(in_file);
+	in = file;
 }
 
-void MC::Driver::parse(std::istream &stream) {
-	if (!stream.good() && stream.eof()) {
+void MC::Driver::input(std::istream& is) {
+	if (!is.good() && is.eof()) {
 		return;
 	}
-	parse_helper(stream);
+	in = &is;
 }
 
-void MC::Driver::parse_helper(std::istream &stream) {
+void MC::Driver::output(std::string filename) {
+	auto* file = new std::ofstream(filename);
+	if (!file->good()) {
+		exit(EXIT_FAILURE);
+	}
+	out = file;
+}
+
+void MC::Driver::output(std::ostream& os) {
+	if (!os.good() && os.eof()) {
+		return;
+	}
+	out = &os;
+}
+
+void MC::Driver::debug(std::string filename) {
+	auto* file = new std::ofstream(filename);
+	if (!file->good()) {
+		exit(EXIT_FAILURE);
+	}
+	deb = file;
+}
+
+void MC::Driver::debug(std::ostream& os) {
+	if (!os.good() && os.eof()) {
+		return;
+	}
+	deb = &os;
+}
+
+int MC::Driver::parse() {
+	if (!in->good() && in->eof()) {
+		return 1;
+	}
+	if (!out->good() && out->eof()) {
+		return 1;
+	}
+
 	delete scanner;
 	try {
-		scanner = new MC::Scanner(&stream);
+		scanner = new MC::Scanner(in);
 	} catch (std::bad_alloc &ba) {
 		std::cerr << "Failed to allocate scanner: (" << ba.what() << "), exiting!!\n";
 		exit(EXIT_FAILURE);
 	}
 
-	delete (parser);
+	delete parser;
 	try {
 		parser = new MC::Parser((*scanner) /* scanner */,
-								   (*this) /* driver */ );
+								(*this) /* driver */ );
 	} catch (std::bad_alloc &ba) {
 		std::cerr << "Failed to allocate parser: (" << ba.what() << "), exiting!!\n";
 		exit(EXIT_FAILURE);
 	}
 
-	const int accept(0);
-	if (parser->parse() != accept) {
-		std::cerr << "Parse failed!!\n";
+	delete printer;
+	if (deb != nullptr) {
+		try {
+			printer = new MC::AstPrinter(deb);
+		} catch (std::bad_alloc &ba) {
+			std::cerr << "Failed to allocate printer: (" << ba.what() << "), exiting!!\n";
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		printer = nullptr;
 	}
+
+	return parser->parse();
 }
+
 
 
 void MC::Driver::returnx(Node* p, Node* result) {
@@ -371,43 +437,44 @@ void MC::Driver::printx(Node* p, Node* result) {
 	switch (value->getType()) {
 		case typeOperator:
 			switch (value->oper.oper) {
-				case token::FOR: 	std::cout << "FOR";		break;
-				case token::WHILE:	std::cout << "WHILE";	break;
-				case token::IF:		std::cout << "IF";		break;
-				case token::FUN:	std::cout << "FUN";		break;
-				case token::VAR:	std::cout << "VAR";		break;
-				default:			std::cout << "WRONG OPERATOR";
+				case token::FOR: 	*out << "FOR";		break;
+				case token::WHILE:	*out << "WHILE";	break;
+				case token::IF:		*out << "IF";		break;
+				case token::FUN:	*out << "FUN";		break;
+				case token::VAR:	*out << "VAR";		break;
+				default:			*out << "WRONG OPERATOR";
 			}
 			break;
 		case typeConstant:
-			std::cout << value->constant;
+			*out << value->constant;
 			break;
 		case typeFunctionDef:
-			std::cout << "Function " << value->functionDef.name << " defined";
+			*out << "Function " << value->functionDef.name << " defined";
 			break;
 		case typeEmpty:
-			std::cout << "EMPTY";
+			*out << "EMPTY";
 			break;
 		default:
-			std::cout << "WRONG TYPE";
+			*out << "WRONG TYPE";
 	}
 
 	result->setType(typeEmpty);
 }
 void MC::Driver::println(Node* p, Node* result) {
 	printx(p, result);
-	std::cout << std::endl;
+	*out << std::endl;
 }
 
 Node* MC::Driver::ex(Node* p) {
-//	auto* result = newNode();
-	auto* result = (Node*) malloc(10*sizeof(Node));;
+	auto* result = new Node;
 	result->setType(typeEmpty);
 
 	if (!p)
 		return result;
 
-	enterNode(p);
+	if (printer != nullptr) {
+		printer->enterNode(p);
+	}
 
 	switch (p->getType()) {
 		case typeConstant: {
@@ -443,8 +510,7 @@ Node* MC::Driver::ex(Node* p) {
 			if (variable == nullptr) {
 				std::cerr << "Warning: Undefined variable '" << name << "'." << std::endl;
 				result->setType(typeEmpty);
-				exitNode(result);
-				return result;
+				break;
 			}
 
 			result->constant = *variable;
@@ -492,32 +558,45 @@ Node* MC::Driver::ex(Node* p) {
 		case typeFunction: {
 			std::string name = p->function.name;
 
-			FunctionDefNode* function = findFunction(name);
-			if (function == nullptr) {
+			FunctionDefNode* functionDef = findFunction(name);
+			if (functionDef == nullptr) {
 				std::cerr << "Warning: Undefined function '" << name << "'." << std::endl;
-				exitNode(result);
-				return result;
+				break;
 			}
 
-			for (size_t i = 0; i < function->params.size(); ++i) {
-				VariableDefNode* paramDef = &function->params[i];
-				ConstantNode* paramVar = &ex(p->function.params[i])->constant;
-				if (paramDef->value.getType() == paramVar->getType()) {
-					paramDef->value = *paramVar;
-				} else {
-					defaultConstant(paramDef->value);
-					std::cerr << "Warning: Passing incompatible parameter of type " << paramVar->getType()
-							  << " instead of type " << paramDef->value.getType()
+			if (functionDef->params.size() != p->function.params.size()) {
+				std::cerr << "Warning: Wrong number of arguments. Expecting " << functionDef->params.size()
+						  << ", received " << p->function.params.size()
+						  << "." << std::endl;
+				break;
+			}
+
+			for (size_t i = 0; i < functionDef->params.size(); ++i) {
+				VariableDefNode* formalParamDef = &functionDef->params[i];
+				ConstantNode* actualParamVar = &ex(p->function.params[i])->constant;
+				if (formalParamDef->value.getType() != actualParamVar->getType()) {
+					defaultConstant(formalParamDef->value);
+					std::cerr << "Warning: Passing incompatible parameter of type " << actualParamVar->getType()
+							  << " instead of type " << formalParamDef->value.getType()
 							  << "." << std::endl;
+					break;
 				}
+				formalParamDef->value = *actualParamVar;
 			}
 
 			replaceSymbolTableScope();
-			for (size_t i = 0; i < function->params.size(); ++i) {
-				addVariable(&function->params[i]);
+			for (auto& param : functionDef->params) {
+				addVariable(&param);
 			}
-			Node* res = ex(function->root);
+			Node* res = ex(functionDef->root);
 			popSymbolTableScope();
+
+			if (functionDef->dataType != res->constant.getType()) {
+				std::cerr << "Warning: Wrong return type. Expecting " << functionDef->dataType
+						  << ", received " << res->constant.getType()
+						  << "." << std::endl;
+				break;
+			}
 
 			result->setType(typeConstant);
 			result->constant = res->constant;
@@ -535,19 +614,18 @@ Node* MC::Driver::ex(Node* p) {
 				std::cerr << "Warning: Undefined object '" << name
 						  << "'." << std::endl;
 				result->setType(typeEmpty);
-				exitNode(result);
-				return result;
+				break;
 			}
 
 			result->setType(typeConstant);
 			result->constant.setType(typeObj);
 			result->constant.objectTypeName = name;
-			result->constant.objectVal = (ObjectDefNode*) malloc(object->vars.size() * sizeof(ConstantNode*));
+			result->constant.objectVal = new ObjectDefNode;
 
 			ObjectDefNode* objectVal = result->constant.objectVal;
 //			ConstantNode** objectVal = result->constant.objectVal;
-			for (size_t i = 0; i < object->vars.size(); ++i) {
-//				VariableDefNode* paramDef = &object->vars[i];
+			for (auto& var : object->vars) {
+//				VariableDefNode* paramDef = &var;
 //				ConstantNode *ptr = &p->object.vars[i];
 //				objectVal[i] = ptr;
 //				if (paramDef->value.dataType == paramVar->dataType) {
@@ -562,23 +640,42 @@ Node* MC::Driver::ex(Node* p) {
 
 			break;
 		}
+		case typeReturn:
+			break;
 		case typeEmpty:
 			break;
 		default:
 			break;
-		case typeReturn:break;
 	}
 
-	exitNode(result);
+	if (printer != nullptr) {
+		printer->exitNode(result);
+	}
 	return result;
 }
 
-std::ostream& MC::Driver::print(std::ostream &stream) {
-	stream << "Results: " << "\n";
-	stream << "Uppercase: " << uppercase << "\n";
-	stream << "Lowercase: " << lowercase << "\n";
-	stream << "Lines: " << lines << "\n";
-	stream << "Words: " << words << "\n";
-	stream << "Characters: " << chars << "\n";
-	return (stream);
+
+void MC::Driver::replaceSymbolTableScope() {
+	std::cout << "REPLACED SYMBOL TABLE " << std::endl;
+	auto* table = new SymbolTable();
+	table->parentTable = rootSymbolTable;
+	table->previousTable = currentSymbolTable;
+	currentSymbolTable = table;
 }
+
+void MC::Driver::pushSymbolTableScope() {
+	std::cout << "PUSHED SYMBOL TABLE " << std::endl;
+	auto* table = new SymbolTable();
+	table->parentTable = currentSymbolTable;
+	table->previousTable = currentSymbolTable;
+	currentSymbolTable = table;
+}
+
+void MC::Driver::popSymbolTableScope() {
+	std::cout << "POPPED SYMBOL TABLE " << std::endl;
+	SymbolTable* table = currentSymbolTable;
+	currentSymbolTable = table->previousTable;
+	delete table;
+}
+
+

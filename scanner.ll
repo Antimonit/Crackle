@@ -41,6 +41,9 @@ string      \"(\\.|[^\\"])*\"
             yylval = lval;
 %}
 
+"--"        return token::DEC;
+"++"        return token::INC;
+
 "+"			return '+';
 "-"			return '-';
 "*"			return '*';

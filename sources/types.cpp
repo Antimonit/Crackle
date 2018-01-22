@@ -29,8 +29,8 @@ std::ostream& operator<<(std::ostream& out, const DataType value) {
 		case typeString:	return out << "string";
 		case typeBool:		return out << "bool";
 		case typeObj:		return out << "object";
-		case typeUndefined:	return out << "undefined";
-		default:			return out << "unknown";
+		case typeUndefined:	return out << "<undefined>";
+		default:			return out << "<unknown>";
 	}
 }
 
@@ -41,8 +41,22 @@ std::ostream& operator<<(std::ostream& out, ConstantNode& constant) {
 		case typeDouble:	return out << constant.doubleVal;
 		case typeString:	return out << constant.stringVal;
 		case typeBool:		return out << (constant.boolVal ? "true" : "false");
-		case typeObj:		return out << (constant.objectVal == nullptr ? "null" : "<object value>");
+		case typeObj:		if (constant.objectVal == nullptr)
+								return out << "null";
+							else
+								return out << "<object " << constant.objectTypeName << ">";
 		case typeUndefined:	return out << "<undefined>";
 		default:			return out << "<unknown>";
 	}
 }
+
+std::ostream& operator<<(std::ostream& out, VariableDefNode& variableDef) {
+	return out << variableDef.value.getType() << " " << variableDef.name;
+}
+
+std::ostream& operator<<(std::ostream& out, FunctionDefNode& functionDef) {
+	return out << functionDef.dataType << " "
+			   << functionDef.name << " "
+			   << functionDef.params.size() << " params";
+}
+

@@ -4,138 +4,96 @@
 
 #include <list>
 #include <parser.tab.hh>
-#include "headers/types.hpp"
 #include "headers/ast_printer.hpp"
 
-using namespace std;
 using token = MC::Parser::token;
 
-list<Node*> stack;
-int indent = 0;
-
-void printConstant(Node* node) {
-	cout << "Constant "
-		 << node->constant.getType() << " " << node->constant;
-}
-
-void printOperator(Node* node) {
-	cout << "Operator ";
+void MC::AstPrinter::printOperator(Node* node) {
+	out << "Operator ";
 	switch (node->oper.oper) {
-		case token::PRINT: 		cout << "PRINT"; break;
-		case token::PRINTLN: 	cout << "PRINTLN"; break;
-		case token::VAR: 		cout << "VAR"; break;
-		case token::RETURN: 	cout << "RETURN"; break;
-		case ',': 				cout << "WHILE"; break;
+		case token::PRINT: 		out << "PRINT"; break;
+		case token::PRINTLN: 	out << "PRINTLN"; break;
+		case token::VAR: 		out << "VAR"; break;
+		case token::RETURN: 	out << "RETURN"; break;
+		case ',': 				out << "WHILE"; break;
 
-		case token::WHILE:		cout << "WHILE"; break;
-		case token::IF:			cout << "IF"; break;
-		case token::FOR:		cout << "FOR"; break;
-		case ';':				cout << "SEMICOLON"; break;
-		case '=':				cout << "ASSIGN"; break;
+		case token::WHILE:		out << "WHILE"; break;
+		case token::IF:			out << "IF"; break;
+		case token::FOR:		out << "FOR"; break;
+		case ';':				out << "SEMICOLON"; break;
+		case '=':				out << "ASSIGN"; break;
 
-		case token::UMINUS:		cout << "UNARY MINUS"; break;
+		case token::UMINUS:		out << "UNARY MINUS"; break;
 
-		case '+':				cout << "PLUS"; break;
-		case '-':				cout << "MINUS"; break;
-		case '*':				cout << "MULTIPLY"; break;
-		case '/':				cout << "DIVIDE"; break;
-		case '%':				cout << "MODULO"; break;
+		case '+':				out << "PLUS"; break;
+		case '-':				out << "MINUS"; break;
+		case '*':				out << "MULTIPLY"; break;
+		case '/':				out << "DIVIDE"; break;
+		case '%':				out << "MODULO"; break;
 
-		case token::AND:		cout << "AND"; break;
-		case token::OR:			cout << "OR"; break;
-		case token::NEG:		cout << "NEG"; break;
+		case token::AND:		out << "AND"; break;
+		case token::OR:			out << "OR"; break;
+		case token::NEG:		out << "NEG"; break;
 
-		case token::LT:			cout << "LT"; break;
-		case token::LE:			cout << "LE"; break;
-		case token::GT:			cout << "GT"; break;
-		case token::GE:			cout << "GE"; break;
-		case token::EQ:			cout << "EQ"; break;
-		case token::NE:			cout << "NE"; break;
+		case token::LT:			out << "LT"; break;
+		case token::LE:			out << "LE"; break;
+		case token::GT:			out << "GT"; break;
+		case token::GE:			out << "GE"; break;
+		case token::EQ:			out << "EQ"; break;
+		case token::NE:			out << "NE"; break;
 		default:				break;
 	}
 }
 
-void printVariableDef(Node* node) {
-	cout << "Variable Definition "
-		 << node->variableDef.value.getType()
-		 << " " << node->variableDef.name << " ";
-}
-
-void printVariable(Node* node) {
-	cout << "Variable ";
-	cout << node->variable.name;
-}
-
-void printFunctionDef(Node* node) {
-	cout << "Function Definition " << node->functionDef.name;
-}
-
-void printFunction(Node* node) {
-	cout << "Function " << node->function.name;
-}
-
-void printObjectDef(Node* node) {
-	cout << "Object Definition " << node->objectDef.name;
-}
-
-void printObject(Node* node) {
-	cout << "Object " << node->object.name;
-}
-
-void printReturn(Node* node) {
-	cout << "Return " << node->ret.value;
-}
-
-
-void printNode(bool entering, Node* node) {
-	cout << '\t';
+void MC::AstPrinter::printNode(bool entering, Node* node) {
+	out << '\t';
 	for (int i = 0; i < indent; ++i) {
-		cout << static_cast<char>(179) << " ";	/* │ */
+		out << static_cast<char>(179) << " ";	/* │ */
 	}
 	if (entering)
-		cout << static_cast<char>(218); /* ┌ */
+		out << static_cast<char>(218); /* ┌ */
 	else
-		cout << static_cast<char>(192); /* └ */
+		out << static_cast<char>(192); /* └ */
 
 	switch (node->getType()) {
 		case typeConstant:
-			printConstant(node);
+			out << "Constant " << node->constant.getType() << " " << node->constant;
 			break;
 		case typeOperator:
 			printOperator(node);
 			break;
 		case typeVariableDef:
-			printVariableDef(node);
+			out << "Variable Definition " << node->variableDef;
 			break;
 		case typeVariable:
-			printVariable(node);
+			out << "Variable " << node->variable.name;
 			break;
 		case typeFunctionDef:
-			printFunctionDef(node);
+			out << "Function Definition " << node->functionDef.name;
 			break;
 		case typeFunction:
-			printFunction(node);
+			out << "Function " << node->function.name;
 			break;
 		case typeObjectDef:
-			printObjectDef(node);
+			out << "Object Definition " << node->objectDef.name;
 			break;
 		case typeObject:
-			printObject(node);
+			out << "Object " << node->object.name;
 			break;
 		case typeReturn:
-			printReturn(node);
+			out << "Return " << node->ret.value;
 			break;
 		case typeEmpty:
-			cout << "EMPTY";
+			out << "EMPTY";
 			break;
 		default:
-			cout << "unknown";
+			out << "unknown";
 			break;
 	}
-	cout << endl;
+	out << std::endl;
 }
 
-void enterNode(Node* node) {
+void MC::AstPrinter::enterNode(Node* node) {
 	stack.push_back(node);
 	if (stack.back()->getType() != typeOperator || stack.back()->oper.oper != ';') {
 		printNode(true, node);
@@ -143,11 +101,10 @@ void enterNode(Node* node) {
 	}
 }
 
-void exitNode(Node* node) {
+void MC::AstPrinter::exitNode(Node* node) {
 	if (stack.back()->getType() != typeOperator || stack.back()->oper.oper != ';') {
 		indent--;
 		printNode(false, node);
 	}
 	stack.pop_back();
 }
-

@@ -4,11 +4,10 @@
 #include <string>
 #include <cstddef>
 #include <istream>
-
 #include "scanner.hpp"
 #include "parser.tab.hh"
-#include <headers/types.hpp>
-#include <headers/ast_printer.hpp>
+#include "headers/types.hpp"
+#include "headers/ast_printer.hpp"
 #include "headers/symbol_table.hpp"
 #include "headers/node_helpers.hpp"
 
@@ -16,42 +15,43 @@ namespace MC {
 
 	class Driver {
 	public:
-		Driver() = default;
+		Driver();
 
 		virtual ~Driver();
 
-		void parse(const char* filename);
+		void input(std::istream& is);
 
-		void parse(std::istream& is);
+		void input(std::string filename);
+
+		void output(std::ostream& os);
+
+		void output(std::string filename);
+
+		void debug(std::ostream& os);
+
+		void debug(std::string filename);
+
+		int parse();
 
 		Node* ex(Node* p);
 
-		std::ostream &print(std::ostream &stream);
 
 	private:
+
+		std::istream* in;
+		std::ostream* out;
+		std::ostream* deb;
+
+		MC::Parser* parser = nullptr;
+		MC::Scanner* scanner = nullptr;
+		MC::AstPrinter* printer = nullptr;
 
 		SymbolTable* rootSymbolTable = new SymbolTable();
 		SymbolTable* currentSymbolTable = rootSymbolTable;
 
-		void replaceSymbolTableScope() {
-			auto* table = new SymbolTable();
-			table->parentTable = rootSymbolTable;
-			table->previousTable = currentSymbolTable;
-			currentSymbolTable = table;
-		}
-
-		void pushSymbolTableScope() {
-			auto* table = new SymbolTable();
-			table->parentTable = currentSymbolTable;
-			table->previousTable = currentSymbolTable;
-			currentSymbolTable = table;
-		}
-
-		void popSymbolTableScope() {
-			SymbolTable* table = currentSymbolTable;
-			currentSymbolTable = table->previousTable;
-			delete table;
-		}
+		void replaceSymbolTableScope();
+		void pushSymbolTableScope();
+		void popSymbolTableScope();
 
 		ConstantNode* findVariable(const std::string &symbol) {
 			return currentSymbolTable->findVariable(symbol);
@@ -72,7 +72,6 @@ namespace MC {
 		void addObject(ObjectDefNode* object) {
 			currentSymbolTable->addObject(object);
 		}
-
 
 
 		void returnx(Node* p, Node* result);
@@ -104,15 +103,6 @@ namespace MC {
 		void printx(Node* p, Node* result);
 		void println(Node* p, Node* result);
 
-		void parse_helper(std::istream &stream);
-
-		std::size_t chars = 0;
-		std::size_t words = 0;
-		std::size_t lines = 0;
-		std::size_t uppercase = 0;
-		std::size_t lowercase = 0;
-		MC::Parser *parser = nullptr;
-		MC::Scanner *scanner = nullptr;
 	};
 
 } /* end namespace MC */
