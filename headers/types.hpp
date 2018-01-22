@@ -133,9 +133,9 @@ struct FunctionDefNode {
 	std::string name;
 	DataType dataType;
 	Node* root;
-	std::vector<VariableDefNode> params;	// formal paremeters
+	std::vector<VariableDefNode> params;	// formal parameters
 };
-std::ostream& operator<<(std::ostream& out, VariableDefNode& variableDef);
+std::ostream& operator<<(std::ostream& out, FunctionDefNode& variableDef);
 
 struct FunctionNode {
 	std::string name;

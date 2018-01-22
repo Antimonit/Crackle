@@ -32,10 +32,13 @@ int main(const int argc, const char **argv) {
 				std::cout << "Unspecified debug file name." << std::endl;
 				return (EXIT_FAILURE);
 			}
+		} else if (std::strncmp(argv[argx], "-f", 2) == 0) {
+			driver.debug(std::cout);
 		} else if (std::strncmp(argv[argx], "-h", 2) == 0) {
 			std::cout << "Use -i <path_to_file> to specify input file (defaults to standard input)" << std::endl;
 			std::cout << "Use -o <path_to_file> to specify output file (defaults to standard output)" << std::endl;
 			std::cout << "Use -d <path_to_file> to specify debug file (none by default)" << std::endl;
+			std::cout << "Use -f to print debug to standard output" << std::endl;
 			std::cout << "Use -h to get help." << std::endl;
 			return (EXIT_SUCCESS);
 		} else {

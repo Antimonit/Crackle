@@ -5,6 +5,18 @@
 #include "headers/types.hpp"
 #include "headers/symbol_table.hpp"
 
+SymbolTable::~SymbolTable() {
+	for (auto variable : variables) {
+		delete variable;
+	}
+	for (auto function : functions) {
+		delete function;
+	}
+	for (auto object : objects) {
+		delete object;
+	}
+}
+
 ConstantNode* SymbolTable::findVariableInTable(const std::string& symbol) {
 	if (variables.find(symbol) != variables.end()) {
 //		std::cout << "Found variable " << symbol << " here " << this << ". Parent = " << parentTable << std::endl;
@@ -74,9 +86,9 @@ void SymbolTable::addVariable(VariableDefNode* variableDef) {
 void SymbolTable::addFunction(FunctionDefNode* function) {
 	FunctionDefNode* symbol = findFunctionInTable(function->name);
 	if (symbol != nullptr) {
-		std::cerr << "Warning: Trying to redeclare function '" << function
-				  << " as " << symbol
-				  << "." << std::endl;
+		std::cerr << "Warning: Trying to redeclare function '" << *function
+				  << "' as '" << *symbol
+				  << "'." << std::endl;
 		return;
 	}
 	functions.insert(std::pair<std::string, FunctionDefNode*>(function->name, function));

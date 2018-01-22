@@ -18,6 +18,8 @@ private:
 
 public:
 
+	~SymbolTable();
+
 	struct SymbolTable* parentTable = nullptr;		// strictly going upwards the scope tree
 	struct SymbolTable* previousTable = nullptr;	// can point to a sibling (when calling a function)
 	// when popping the symbolTable, restore previous table and not the parent table

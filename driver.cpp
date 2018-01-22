@@ -28,7 +28,7 @@ MC::Driver::~Driver() {
 		delete out;
 		out = nullptr;
 	}
-	if (out != nullptr && out != &std::cout && out != &std::cerr) {
+	if (deb != nullptr && deb != &std::cout && deb != &std::cerr) {
 		delete deb;
 		deb = nullptr;
 	}
@@ -480,7 +480,7 @@ Node* MC::Driver::ex(Node* p) {
 		case typeConstant: {
 			result->setType(typeConstant);
 			result->constant = p->constant;
-			break;
+			goto end;
 		}
 		case typeVariableDef: {
 			VariableDefNode *variableDef = &p->variableDef;
@@ -499,7 +499,7 @@ Node* MC::Driver::ex(Node* p) {
 			}
 
 			addVariable(variableDef);
-			break;
+			goto end;
 		}
 		case typeVariable: {
 			result->setType(typeConstant);
@@ -510,11 +510,11 @@ Node* MC::Driver::ex(Node* p) {
 			if (variable == nullptr) {
 				std::cerr << "Warning: Undefined variable '" << name << "'." << std::endl;
 				result->setType(typeEmpty);
-				break;
+				goto end;
 			}
 
 			result->constant = *variable;
-			break;
+			goto end;
 		}
 		case typeOperator: {
 			switch (p->oper.oper) {
@@ -549,11 +549,11 @@ Node* MC::Driver::ex(Node* p) {
 				default:
 					std::cerr << "Error: unknown operator '" << p->oper.oper << "'." << std::endl;
 			}
-			break;
+			goto end;
 		}
 		case typeFunctionDef: {
 			addFunction(&p->functionDef);
-			break;
+			goto end;
 		}
 		case typeFunction: {
 			std::string name = p->function.name;
@@ -561,32 +561,37 @@ Node* MC::Driver::ex(Node* p) {
 			FunctionDefNode* functionDef = findFunction(name);
 			if (functionDef == nullptr) {
 				std::cerr << "Warning: Undefined function '" << name << "'." << std::endl;
-				break;
+				goto end;
 			}
 
 			if (functionDef->params.size() != p->function.params.size()) {
 				std::cerr << "Warning: Wrong number of arguments. Expecting " << functionDef->params.size()
 						  << ", received " << p->function.params.size()
 						  << "." << std::endl;
-				break;
+				goto end;
 			}
+
+			std::vector<VariableDefNode*> params;
 
 			for (size_t i = 0; i < functionDef->params.size(); ++i) {
 				VariableDefNode* formalParamDef = &functionDef->params[i];
 				ConstantNode* actualParamVar = &ex(p->function.params[i])->constant;
 				if (formalParamDef->value.getType() != actualParamVar->getType()) {
-					defaultConstant(formalParamDef->value);
 					std::cerr << "Warning: Passing incompatible parameter of type " << actualParamVar->getType()
 							  << " instead of type " << formalParamDef->value.getType()
 							  << "." << std::endl;
-					break;
+					goto end;
 				}
-				formalParamDef->value = *actualParamVar;
+
+				auto* node = new VariableDefNode();
+				node->name = formalParamDef->name;
+				node->value = *actualParamVar;
+				params.push_back(node);
 			}
 
 			replaceSymbolTableScope();
-			for (auto& param : functionDef->params) {
-				addVariable(&param);
+			for (auto& param : params) {
+				addVariable(param);
 			}
 			Node* res = ex(functionDef->root);
 			popSymbolTableScope();
@@ -595,16 +600,16 @@ Node* MC::Driver::ex(Node* p) {
 				std::cerr << "Warning: Wrong return type. Expecting " << functionDef->dataType
 						  << ", received " << res->constant.getType()
 						  << "." << std::endl;
-				break;
+				goto end;
 			}
 
 			result->setType(typeConstant);
 			result->constant = res->constant;
-			break;
+			goto end;
 		}
 		case typeObjectDef: {
 			addObject(&p->objectDef);
-			break;
+			goto end;
 		}
 		case typeObject: {
 			std::string name = p->object.name;
@@ -614,7 +619,7 @@ Node* MC::Driver::ex(Node* p) {
 				std::cerr << "Warning: Undefined object '" << name
 						  << "'." << std::endl;
 				result->setType(typeEmpty);
-				break;
+				goto end;
 			}
 
 			result->setType(typeConstant);
@@ -638,15 +643,17 @@ Node* MC::Driver::ex(Node* p) {
 			}
 			result->constant.objectVal = objectVal;
 
-			break;
+			goto end;
 		}
 		case typeReturn:
-			break;
+			goto end;
 		case typeEmpty:
-			break;
+			goto end;
 		default:
-			break;
+			goto end;
 	}
+
+	end:
 
 	if (printer != nullptr) {
 		printer->exitNode(result);
@@ -656,7 +663,6 @@ Node* MC::Driver::ex(Node* p) {
 
 
 void MC::Driver::replaceSymbolTableScope() {
-	std::cout << "REPLACED SYMBOL TABLE " << std::endl;
 	auto* table = new SymbolTable();
 	table->parentTable = rootSymbolTable;
 	table->previousTable = currentSymbolTable;
@@ -664,7 +670,6 @@ void MC::Driver::replaceSymbolTableScope() {
 }
 
 void MC::Driver::pushSymbolTableScope() {
-	std::cout << "PUSHED SYMBOL TABLE " << std::endl;
 	auto* table = new SymbolTable();
 	table->parentTable = currentSymbolTable;
 	table->previousTable = currentSymbolTable;
@@ -672,7 +677,6 @@ void MC::Driver::pushSymbolTableScope() {
 }
 
 void MC::Driver::popSymbolTableScope() {
-	std::cout << "POPPED SYMBOL TABLE " << std::endl;
 	SymbolTable* table = currentSymbolTable;
 	currentSymbolTable = table->previousTable;
 	delete table;
