@@ -3,16 +3,10 @@
 
 #include "types.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+DataType maxType(ConstantNode& a, ConstantNode& b);
 
-dataTypeEnum widenNodes(constantNode* a, constantNode* b);
+DataType widenNodes(ConstantNode& a, ConstantNode& b);
 
-void defaultConstant(constantNode* def);
-
-#ifdef __cplusplus
-}
-#endif
+void defaultConstant(ConstantNode& def);
 
 #endif //CRACKLE_INTERPRETER_NODE_HELPERS_H

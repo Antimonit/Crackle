@@ -3,52 +3,60 @@
 //
 
 #include <cstdio>
+#include <c++/sstream>
 #include "headers/types.hpp"
 
-char temp[100];
-
-extern "C" const char* dataTypeToString(dataTypeEnum type) {
-	switch (type) {
-		case typeInt:
-			return "int";
-		case typeDouble:
-			return "double";
-		case typeString:
-			return "string";
-		case typeBool:
-			return "bool";
-		case typeObj:
-			return "object";
-		case typeUndefined:
-			return "undefined";
-		default:
-			return "unknown";
+std::ostream& operator<<(std::ostream& out, const NodeType value) {
+	switch (value) {
+		case typeConstant:		return out << "constant";
+		case typeVariableDef:	return out << "variableDef";
+		case typeVariable:		return out << "variable";
+		case typeFunctionDef:	return out << "functionDef";
+		case typeFunction:		return out << "function";
+		case typeObjectDef:		return out << "objectDef";
+		case typeObject:		return out << "object";
+		case typeOperator:		return out << "operator";
+		case typeReturn:		return out << "return";
+		case typeEmpty:			return out << "empty";
+		default:				return out << "unknown";
 	}
 }
 
-extern "C" const char* constantValueToString(constantNode constant) {
-	dataTypeEnum type = constant.dataType;
-
-	switch (type) {
-		case typeInt:
-			sprintf(temp, "%d", constant.intVal);
-			break;
-		case typeDouble:
-			sprintf(temp, "%f", constant.doubleVal);
-			break;
-		case typeString:
-			sprintf(temp, "%s", constant.stringVal);
-			break;
-		case typeBool:
-			sprintf(temp, "%s", constant.boolVal ? "true" : "false");
-			break;
-		case typeObj:
-			sprintf(temp, "%s", constant.objectVal == nullptr ? "null" : "<object value>");
-			break;
-		case typeUndefined:
-			sprintf(temp, "<undefined>");
-			break;
+std::ostream& operator<<(std::ostream& out, const DataType value) {
+	switch (value) {
+		case typeInt:		return out << "int";
+		case typeDouble:	return out << "double";
+		case typeString:	return out << "string";
+		case typeBool:		return out << "bool";
+		case typeObj:		return out << "object";
+		case typeUndefined:	return out << "<undefined>";
+		default:			return out << "<unknown>";
 	}
-
-	return temp;
 }
+
+std::ostream& operator<<(std::ostream& out, ConstantNode& constant) {
+	DataType type = constant.getType();
+	switch (type) {
+		case typeInt:		return out << constant.intVal;
+		case typeDouble:	return out << constant.doubleVal;
+		case typeString:	return out << constant.stringVal;
+		case typeBool:		return out << (constant.boolVal ? "true" : "false");
+		case typeObj:		if (constant.objectVal == nullptr)
+								return out << "null";
+							else
+								return out << "<object " << constant.objectTypeName << ">";
+		case typeUndefined:	return out << "<undefined>";
+		default:			return out << "<unknown>";
+	}
+}
+
+std::ostream& operator<<(std::ostream& out, VariableDefNode& variableDef) {
+	return out << variableDef.value.getType() << " " << variableDef.name;
+}
+
+std::ostream& operator<<(std::ostream& out, FunctionDefNode& functionDef) {
+	return out << functionDef.dataType << " "
+			   << functionDef.name << " "
+			   << functionDef.params.size() << " params";
+}
+

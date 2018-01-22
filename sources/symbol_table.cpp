@@ -1,97 +1,69 @@
-#include <stdio.h>
 #include <string>
 #include <list>
 #include <map>
+#include <iostream>
 #include "headers/types.hpp"
 #include "headers/symbol_table.hpp"
 
+SymbolTable::~SymbolTable() {
+	for (auto variable : variables) {
+		delete variable;
+	}
+	for (auto function : functions) {
+		delete function;
+	}
+	for (auto object : objects) {
+		delete object;
+	}
+}
 
-class symbolTable {
-private:
-
-	std::map<std::string, constantNode*> variables;
-	std::map<std::string, functionDefNode*> functions;
-	std::map<std::string, objectDefNode*> objects;
-
-	symbolTable* parentTable = nullptr;		// strictly going upwards the scope tree
-	symbolTable* previousTable = nullptr;	// can point to a sibling (when calling a function)
-	// when popping the symbolTable, restore previous table and not the parent table
-
-	constantNode* findVariableInTable(const char *symbol);
-	functionDefNode* findFunctionInTable(const char *symbol);
-	objectDefNode* findObjectInTable(const char *symbol);
-
-public:
-
-	static void replaceSymbolTableScope();
-	static void pushSymbolTableScope();
-	static void popSymbolTableScope();
-
-	static constantNode* findVariable(const char *symbol);
-	static void addVariable(variableDefNode* variableDef);
-
-	static functionDefNode* findFunction(const char *symbol);
-	static void addFunction(functionDefNode* function);
-
-	static objectDefNode* findObject(const char* symbol);
-	static void addObject(objectDefNode* object);
-};
-
-symbolTable* rootSymbolTable = new symbolTable();
-symbolTable* currentSymbolTable = rootSymbolTable;
-
-
-constantNode* symbolTable::findVariableInTable(const char *symbol) {
-	std::string symbolString(symbol);
-	if (variables.find(symbolString) != variables.end()) {
-		return variables[symbolString];
+ConstantNode* SymbolTable::findVariableInTable(const std::string& symbol) {
+	if (variables.find(symbol) != variables.end()) {
+//		std::cout << "Found variable " << symbol << " here " << this << ". Parent = " << parentTable << std::endl;
+		return variables[symbol];
+	}
+//	std::cout << "Didn't find variable " << symbol << " here " << this << ". Parent = " << parentTable << std::endl;
+	return nullptr;
+}
+FunctionDefNode* SymbolTable::findFunctionInTable(const std::string& symbol) {
+	if (functions.find(symbol) != functions.end()) {
+		return functions[symbol];
+	}
+	return nullptr;
+}
+ObjectDefNode* SymbolTable::findObjectInTable(const std::string& symbol) {
+	if (objects.find(symbol) != objects.end()) {
+		return objects[symbol];
 	}
 	return nullptr;
 }
 
-functionDefNode* symbolTable::findFunctionInTable(const char *symbol) {
-	std::string symbolString(symbol);
-	if (functions.find(symbolString) != functions.end()) {
-		return functions[symbolString];
-	}
-	return nullptr;
-}
-
-objectDefNode* symbolTable::findObjectInTable(const char *symbol) {
-	std::string symbolString(symbol);
-	if (objects.find(symbolString) != objects.end()) {
-		return objects[symbolString];
-	}
-	return nullptr;
-}
-
-
-void symbolTable::replaceSymbolTableScope() {
-	auto* table = new symbolTable();
-	table->parentTable = rootSymbolTable;
-	table->previousTable = currentSymbolTable;
-	currentSymbolTable = table;
-}
-
-void symbolTable::pushSymbolTableScope() {
-	auto* table = new symbolTable();
-	table->parentTable = currentSymbolTable;
-	table->previousTable = currentSymbolTable;
-	currentSymbolTable = table;
-}
-
-void symbolTable::popSymbolTableScope() {
-	auto* table = currentSymbolTable;
-	currentSymbolTable = table->previousTable;
-	delete table;
-}
-
-
-constantNode* symbolTable::findVariable(const char *symbol) {
-	symbolTable* table = currentSymbolTable;
-
+ConstantNode* SymbolTable::findVariable(const std::string& symbol) {
+	SymbolTable* table = this;
 	while (table != nullptr) {
-		constantNode *res = table->findVariableInTable(symbol);
+		ConstantNode* res = table->findVariableInTable(symbol);
+		if (res != nullptr) {
+			return res;
+		}
+		table = table->parentTable;
+	}
+	return nullptr;
+}
+FunctionDefNode* SymbolTable::findFunction(const std::string& symbol) {
+	SymbolTable* table = this;
+	while (table != nullptr) {
+		FunctionDefNode* res = table->findFunctionInTable(symbol);
+		if (res != nullptr) {
+			return res;
+		}
+		table = table->parentTable;
+	}
+	return nullptr;
+}
+ObjectDefNode* SymbolTable::findObject(const std::string& symbol) {
+	SymbolTable* table = this;
+	while (table != nullptr) {
+		ObjectDefNode* res = table->findObjectInTable(symbol);
 		if (res != nullptr) {
 			return res;
 		}
@@ -100,107 +72,33 @@ constantNode* symbolTable::findVariable(const char *symbol) {
 	return nullptr;
 }
 
-void symbolTable::addVariable(variableDefNode* variableDef) {
-	auto* table = currentSymbolTable;
-	constantNode* symbolNode = table->findVariableInTable(variableDef->name);
-	if (symbolNode != nullptr) {
-		printf("Warning: Trying to redeclare variable '%s' of type %s to type %s.\n",
-			   variableDef->name,
-			   dataTypeToString(symbolNode->dataType),
-			   dataTypeToString(variableDef->value.dataType));
-		return;
-	}
-
-	// new symbol
-	table->variables.insert(std::pair<std::string, constantNode *>(std::string(variableDef->name), &variableDef->value));
-}
-
-
-functionDefNode* symbolTable::findFunction(const char *symbol) {
-	auto* table = currentSymbolTable;
-
-	while (table != nullptr) {
-		functionDefNode *res = table->findFunctionInTable(symbol);
-		if (res != nullptr) {
-			return res;
-		}
-		table = table->parentTable;
-	}
-	return nullptr;
-}
-
-void symbolTable::addFunction(functionDefNode* function) {
-	symbolTable *table = currentSymbolTable;
-	functionDefNode *symbol = table->findFunctionInTable(function->name);
+void SymbolTable::addVariable(VariableDefNode* variableDef) {
+	ConstantNode* symbol = findVariableInTable(variableDef->name);
 	if (symbol != nullptr) {
-		printf("Warning: Trying to redeclare function '%s'\n", function->name);
+		std::cerr << "Warning: Trying to redeclare variable '" << variableDef->name
+				  << "' of type " << symbol->getType()
+				  << " to type " << variableDef->value.getType()
+				  << "." << std::endl;
 		return;
 	}
-	// new symbol
-	table->functions.insert(std::pair<std::string, functionDefNode*>(std::string(function->name), function));
+	variables.insert(std::pair<std::string, ConstantNode*>(variableDef->name, &variableDef->value));
 }
-
-
-objectDefNode* symbolTable::findObject(const char* symbol) {
-	symbolTable *table = currentSymbolTable;
-
-	while (table != nullptr) {
-		objectDefNode *res = table->findObjectInTable(symbol);
-		if (res != nullptr) {
-			return res;
-		}
-		table = table->parentTable;
-	}
-	return nullptr;
-}
-
-void symbolTable::addObject(objectDefNode* object) {
-	symbolTable *table = currentSymbolTable;
-	objectDefNode *symbol = table->findObjectInTable(object->name);
+void SymbolTable::addFunction(FunctionDefNode* function) {
+	FunctionDefNode* symbol = findFunctionInTable(function->name);
 	if (symbol != nullptr) {
-		printf("Warning: Trying to redeclare object '%s'\n", object->name);
+		std::cerr << "Warning: Trying to redeclare function '" << *function
+				  << "' as '" << *symbol
+				  << "'." << std::endl;
 		return;
 	}
-	// new symbol
-	table->objects.insert(std::pair<std::string, objectDefNode*>(std::string(object->name), object));
+	functions.insert(std::pair<std::string, FunctionDefNode*>(function->name, function));
 }
-
-
-extern "C" void replaceSymbolTableScope() {
-	symbolTable::replaceSymbolTableScope();
-}
-
-extern "C" void pushSymbolTableScope() {
-	symbolTable::pushSymbolTableScope();
-}
-
-extern "C" void popSymbolTableScope() {
-	symbolTable::popSymbolTableScope();
-}
-
-
-extern "C" constantNode* findVariable(const char* symbol) {
-	return symbolTable::findVariable(symbol);
-}
-
-extern "C" void addVariable(variableDefNode* variable) {
-	symbolTable::addVariable(variable);
-}
-
-
-extern "C" functionDefNode* findFunction(const char* symbol) {
-	return symbolTable::findFunction(symbol);
-}
-
-extern "C" void addFunction(functionDefNode* function) {
-	symbolTable::addFunction(function);
-}
-
-
-extern "C" objectDefNode* findObject(const char* symbol) {
-	return symbolTable::findObject(symbol);
-}
-
-extern "C" void addObject(objectDefNode* object) {
-	symbolTable::addObject(object);
+void SymbolTable::addObject(ObjectDefNode* object) {
+	ObjectDefNode* symbol = findObjectInTable(object->name);
+	if (symbol != nullptr) {
+		std::cerr << "Warning: Trying to redeclare object '" << object->name
+				  << "'." << std::endl;
+		return;
+	}
+	objects.insert(std::pair<std::string, ObjectDefNode*>(object->name, object));
 }

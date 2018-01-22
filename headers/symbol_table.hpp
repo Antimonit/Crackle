@@ -1,30 +1,36 @@
 #ifndef SYMBOL_TABLE_H
 #define SYMBOL_TABLE_H
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <map>
 #include "types.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class SymbolTable {
+private:
 
-void replaceSymbolTableScope();
+	std::map<std::string, ConstantNode*> variables{};
+	std::map<std::string, FunctionDefNode*> functions{};
+	std::map<std::string, ObjectDefNode*> objects{};
 
-void pushSymbolTableScope();
+	ConstantNode* findVariableInTable(const std::string &symbol);
+	FunctionDefNode* findFunctionInTable(const std::string &symbol);
+	ObjectDefNode* findObjectInTable(const std::string &symbol);
 
-void popSymbolTableScope();
+public:
 
-constantNode* findVariable(const char *symbol);
-void addVariable(variableDefNode* variable);
+	~SymbolTable();
 
-functionDefNode* findFunction(const char *symbol);
-void addFunction(functionDefNode* function);
+	struct SymbolTable* parentTable = nullptr;		// strictly going upwards the scope tree
+	struct SymbolTable* previousTable = nullptr;	// can point to a sibling (when calling a function)
+	// when popping the symbolTable, restore previous table and not the parent table
 
-objectDefNode* findObject(const char* symbol);
-void addObject(objectDefNode* object);
+	ConstantNode* findVariable(const std::string& symbol);
+	FunctionDefNode* findFunction(const std::string& symbol);
+	ObjectDefNode* findObject(const std::string&symbol);
 
-#ifdef __cplusplus
-}
-#endif
+	void addVariable(VariableDefNode* variableDef);
+	void addFunction(FunctionDefNode* function);
+	void addObject(ObjectDefNode* object);
+};
 
 #endif

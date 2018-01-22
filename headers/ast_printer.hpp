@@ -5,16 +5,33 @@
 #ifndef CRACKLE_INTERPRETER_AST_PRINTER_H
 #define CRACKLE_INTERPRETER_AST_PRINTER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <list>
+#include "headers/types.hpp"
 
-void enterNode(node* node);
+namespace MC {
 
-void exitNode(node* node);
+	class AstPrinter {
+	public:
 
-#ifdef __cplusplus
+		explicit AstPrinter(std::ostream* out) : out(out ? out->rdbuf() : std::cout.rdbuf()) {
+		};
+
+		void enterNode(Node* node);
+
+		void exitNode(Node* node);
+
+	private:
+
+		std::ostream out;
+		std::list<Node*> stack;
+		int indent = 0;
+
+		void printOperator(Node* node);
+
+		void printNode(bool entering, Node* node);
+
+	};
+
 }
-#endif
 
 #endif //CRACKLE_INTERPRETER_AST_PRINTER_H

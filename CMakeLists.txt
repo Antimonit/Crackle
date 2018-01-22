@@ -1,54 +1,44 @@
 cmake_minimum_required(VERSION 3.8)
-project(crackle_interpreter)
+project(pop_interpreter CXX)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+find_package(BISON REQUIRED)
+find_package(FLEX REQUIRED)
 
-find_package(BISON)
-find_package(FLEX)
-
-bison_target(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser.y ${CMAKE_CURRENT_BINARY_DIR}/y.tab.c)
-flex_target(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/lexer.l  ${CMAKE_CURRENT_BINARY_DIR}/lexer.c)
-add_flex_bison_dependency(Scanner Parser)
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-add_executable(Crackle
-        headers/debug.h
-        headers/interpreter.h
-        sources/interpreter.c
-        headers/symbol_table.hpp
-        sources/symbol_table.cpp
-        headers/types.hpp
-        sources/types.cpp
-        headers/ast_printer.hpp
-        sources/ast_printer.cpp
-        lexer.l
-        parser.y
-        parser.h
-        ${FLEX_Scanner_OUTPUTS}
-        ${BISON_Parser_OUTPUTS}
-        headers/node_helpers.hpp
-        sources/node_helpers.cpp
+BISON_TARGET(parser
+        parser.yy
+        ${CMAKE_CURRENT_BINARY_DIR}/parser.tab.cc
+#        VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parser.output
+#        COMPILE_FLAGS --debug
         )
+FLEX_TARGET(lexer
+        scanner.ll
+        ${CMAKE_CURRENT_BINARY_DIR}/lexer.yy.cc)
+ADD_FLEX_BISON_DEPENDENCY(lexer parser)
 
-# original makefile:
+add_executable(Pop
+        scanner.hpp
+        main.cpp
+        driver.cpp
+        parser.hpp
+        sources/symbol_table.cpp
+        headers/symbol_table.hpp
+        sources/node_helpers.cpp
+        headers/node_helpers.hpp
+        sources/types.cpp
+        headers/types.hpp
+        sources/ast_printer.cpp
+        headers/ast_printer.hpp
+        ${FLEX_lexer_OUTPUTS}
+        ${BISON_parser_OUTPUTS}
+)
 
-#all: y.tab.c y.tab.h lex.yy.c
-#$(info ************  GCC  ************)
-#gcc lex.yy.c y.tab.c symbols.c -o homework.exe
-#
-#y.tab.c: homework.y
-#$(info ************ BISON ************)
-#bison -dy homework.y -o y.tab.c
-#
-#lex.yy.c: homework.l
-#$(info ************ FLEX  ************)
-#flex homework.l
-#
-#bison:
-#$(info ************ BISON ************)
-#bison -dyv homework.y -o y.tab.c
+target_include_directories(Pop
+        PRIVATE
+        .
+        ${CMAKE_CURRENT_BINARY_DIR})
+
+set_property(TARGET Pop
+             PROPERTY CXX_STANDARD 17)
