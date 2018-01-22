@@ -145,7 +145,6 @@ string      \"(\\.|[^\\"])*\"
 
 "\n" {
 	loc->lines();
-	// return token::NEWLINE;
 }
 
 {whitespace} {

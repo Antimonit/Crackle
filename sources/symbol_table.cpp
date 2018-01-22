@@ -6,23 +6,21 @@
 #include "headers/symbol_table.hpp"
 
 SymbolTable::~SymbolTable() {
-	for (auto variable : variables) {
-		delete variable;
-	}
-	for (auto function : functions) {
-		delete function;
-	}
-	for (auto object : objects) {
-		delete object;
-	}
+//	for (auto variable : variables) {
+//		delete variable;
+//	}
+//	for (auto function : functions) {
+//		delete function;
+//	}
+//	for (auto object : objects) {
+//		delete object;
+//	}
 }
 
 ConstantNode* SymbolTable::findVariableInTable(const std::string& symbol) {
 	if (variables.find(symbol) != variables.end()) {
-//		std::cout << "Found variable " << symbol << " here " << this << ". Parent = " << parentTable << std::endl;
 		return variables[symbol];
 	}
-//	std::cout << "Didn't find variable " << symbol << " here " << this << ". Parent = " << parentTable << std::endl;
 	return nullptr;
 }
 FunctionDefNode* SymbolTable::findFunctionInTable(const std::string& symbol) {
