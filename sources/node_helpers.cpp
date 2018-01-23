@@ -50,7 +50,7 @@ void defaultConstant(ConstantNode& def) {
 		def.stringVal = "";
 	} else if (def.getType() == typeBool) {
 		def.boolVal = false;
-	} else if (def.getType() == typeObj) {
+	} else if (def.getType() == typeObject) {
 		def.objectVal = nullptr;
 		def.objectTypeName = "null";
 	}

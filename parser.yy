@@ -140,7 +140,7 @@ type_specifier
 		| DOUBLE	{ $$ = typeDouble; }
 		| BOOL	    { $$ = typeBool; }
 		| STRING	{ $$ = typeString; }
-		| IDENTIFIER{ $$ = typeObj; }
+		| IDENTIFIER{ $$ = typeObject; }
 
 var_definition
 		: typed_identifier ';' { $$ = variableDef($1, NULL); }
@@ -162,25 +162,25 @@ object_definition
 		: OBJECT IDENTIFIER '{' var_definition_list '}' { $$ = objectDef($2, $4); }
 
 fun_param_list
-		: typed_identifier							{ $$ = op(',', 2, NULL, $1); }
-		| fun_param_list ',' typed_identifier		{ $$ = op(',', 2, $1, $3); }
+		: typed_identifier								{ $$ = op(',', 2, NULL, $1); }
+		| fun_param_list ',' typed_identifier			{ $$ = op(',', 2, $1, $3); }
 
 return_statement
-		: RETURN expression ';'			{ $$ = op(token::RETURN, 1, $2); }
+		: RETURN expression ';'							{ $$ = op(token::RETURN, 1, $2); }
 
 fun_call
 		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = function($1, $3); }
 		| IDENTIFIER '(' ')' 							{ $$ = function($1, NULL); }
 
 argument_expression_list
-		: expression								{ $$ = op(',', 2, NULL, $1); }
-		| argument_expression_list ',' expression	{ $$ = op(',', 2, $1, $3); }
+		: expression									{ $$ = op(',', 2, NULL, $1); }
+		| argument_expression_list ',' expression		{ $$ = op(',', 2, $1, $3); }
 
 expression
 		: '(' expression ')'			{ $$ = $2; }
+		| NEG expression				{ $$ = op(token::NEG, 1, $2); }
 		| expression OR expression		{ $$ = op(token::OR, 2, $1, $3); }
 		| expression AND expression		{ $$ = op(token::AND, 2, $1, $3); }
-		| NEG expression				{ $$ = op(token::NEG, 1, $2); }
 		| expression LT expression		{ $$ = op(token::LT, 2, $1, $3); }
 		| expression LE expression		{ $$ = op(token::LE, 2, $1, $3); }
 		| expression GT expression		{ $$ = op(token::GT, 2, $1, $3); }
@@ -199,6 +199,7 @@ expression
 		| primitive_value				{ $$ = $1; }
 		| object_value                  { $$ = $1; }
 		| lex_error						{ $$ = $1; }
+		| expression '.' IDENTIFIER     { $$ = op('.', 2, $1, variable($3)); }
 
 primitive_value
 		: INT_VALUE		{ $$ = constantInt($1); }

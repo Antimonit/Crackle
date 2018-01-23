@@ -5,27 +5,13 @@
 #include <c++/iostream>
 #include <c++/vector>
 
-enum NodeType {
-    typeConstant,
-	typeVariableDef,
-    typeVariable,
-	typeFunctionDef,
-    typeFunction,
-	typeObjectDef,
-	typeObject,
-	typeOperator,
-    typeReturn,
-    typeEmpty
-};
-
-std::ostream& operator<<(std::ostream& out, NodeType value);
 
 enum DataType {
     typeInt,
     typeDouble,
 	typeString,
 	typeBool,
-	typeObj,
+	typeObject,
 	typeUndefined
 };
 
@@ -55,7 +41,7 @@ private:
 			case typeDouble:	doubleVal = other.doubleVal; break;
 			case typeBool:		boolVal = other.boolVal; break;
 			case typeString:	stringVal = other.stringVal; break;
-			case typeObj:
+			case typeObject:
 				objectVal = other.objectVal;
 				objectTypeName = other.objectTypeName;
 				break;
@@ -70,7 +56,7 @@ public:
 		double doubleVal;
 		bool boolVal;
 		std::string stringVal;
-		ObjectDefNode* objectVal;
+		ObjectNode* objectVal;
 	};
 	std::string objectTypeName;
 
@@ -157,10 +143,26 @@ struct ReturnNode {
 };
 
 class Node {
-private:
-	NodeType type{typeEmpty};
 public:
-    union {
+	enum Type {
+		Constant,
+		VariableDef,
+		Variable,
+		FunctionDef,
+		Function,
+		ObjectDef,
+		Object,
+		Operator,
+		Return,
+		Empty
+	};
+
+private:
+	Type type{Empty};
+
+public:
+
+	union {
         ConstantNode constant;
         VariableDefNode variableDef;
         VariableNode variable;
@@ -172,23 +174,23 @@ public:
         ReturnNode ret;
     };
 
-	NodeType getType() {
+	Type getType() {
 		return type;
 	}
 
-	void setType(NodeType type) {
+	void setType(Type type) {
 		this->type = type;
 		switch (type) {
-			case typeConstant: 		new ((void*) &constant) ConstantNode; break;
-			case typeVariableDef: 	new ((void*) &variableDef) VariableDefNode; break;
-			case typeVariable: 		new ((void*) &variable) VariableNode; break;
-			case typeFunctionDef: 	new ((void*) &functionDef) FunctionDefNode; break;
-			case typeFunction: 		new ((void*) &function) FunctionNode; break;
-			case typeObjectDef: 	new ((void*) &objectDef) ObjectDefNode; break;
-			case typeObject: 		new ((void*) &object) ObjectNode; break;
-			case typeOperator: 		new ((void*) &oper) OperatorNode; break;
-			case typeReturn: 		new ((void*) &ret) ReturnNode; break;
-			case typeEmpty:			break;
+			case Constant: 		new ((void*) &constant) ConstantNode; break;
+			case VariableDef: 	new ((void*) &variableDef) VariableDefNode; break;
+			case Variable: 		new ((void*) &variable) VariableNode; break;
+			case FunctionDef: 	new ((void*) &functionDef) FunctionDefNode; break;
+			case Function: 		new ((void*) &function) FunctionNode; break;
+			case ObjectDef: 	new ((void*) &objectDef) ObjectDefNode; break;
+			case Object: 		new ((void*) &object) ObjectNode; break;
+			case Operator: 		new ((void*) &oper) OperatorNode; break;
+			case Return: 		new ((void*) &ret) ReturnNode; break;
+			case Empty:			break;
 		}
 	}
 
@@ -196,116 +198,51 @@ public:
 		if (this != &other) {
 			setType(other.type);
 			switch (type) {
-				case typeConstant:		constant = other.constant; break;
-				case typeVariableDef:	variableDef = other.variableDef; break;
-				case typeVariable:		variable = other.variable; break;
-				case typeFunctionDef:	functionDef = other.functionDef; break;
-				case typeFunction:		function = other.function; break;
-				case typeObjectDef:		objectDef = other.objectDef; break;
-				case typeObject: 		object = other.object; break;
-				case typeOperator: 		oper = other.oper; break;
-				case typeReturn: 		ret = other.ret; break;
-				case typeEmpty:			break;
+				case Constant:		constant = other.constant; break;
+				case VariableDef:	variableDef = other.variableDef; break;
+				case Variable:		variable = other.variable; break;
+				case FunctionDef:	functionDef = other.functionDef; break;
+				case Function:		function = other.function; break;
+				case ObjectDef:		objectDef = other.objectDef; break;
+				case Object: 		object = other.object; break;
+				case Operator: 		oper = other.oper; break;
+				case Return: 		ret = other.ret; break;
+				case Empty:			break;
 			}
 		}
 		return *this;
 	}
 
 	Node() {
-		setType(typeEmpty);
+		setType(Empty);
 	}
 
 	Node(const Node& other) {
 		setType(other.type);
 		switch (type) {
-			case typeConstant:		constant = other.constant; break;
-			case typeVariableDef:	variableDef = other.variableDef; break;
-			case typeVariable:		variable = other.variable; break;
-			case typeFunctionDef:	functionDef = other.functionDef; break;
-			case typeFunction:		function = other.function; break;
-			case typeObjectDef:		objectDef = other.objectDef; break;
-			case typeObject: 		object = other.object; break;
-			case typeOperator: 		oper = other.oper; break;
-			case typeReturn: 		ret = other.ret; break;
-			case typeEmpty:			break;
+			case Constant:		constant = other.constant; break;
+			case VariableDef:	variableDef = other.variableDef; break;
+			case Variable:		variable = other.variable; break;
+			case FunctionDef:	functionDef = other.functionDef; break;
+			case Function:		function = other.function; break;
+			case ObjectDef:		objectDef = other.objectDef; break;
+			case Object: 		object = other.object; break;
+			case Operator: 		oper = other.oper; break;
+			case Return: 		ret = other.ret; break;
+			case Empty:			break;
 		}
 	}
 
-	Node(NodeType type) {
+	Node(Type type) {
 		setType(type);
 	}
 
 	~Node() {
 	}
 
-
-//	static void* operator new(size_t size) {
-//		void *storage = malloc(size);
-//		if (storage == nullptr) {
-//			std::cerr << "allocation fail : no free memory" << std::endl;
-//			throw "allocation fail : no free memory";
-//		}
-//		return storage;
-//	}
-//
-//	static void* operator new(size_t size, NodeType type) {
-//		void* storage = nullptr;
-//		switch (type) {
-//			case typeConstant:
-//				storage = malloc(size);
-//				break;
-//			case typeVariableDef:break;
-//			case typeVariable:break;
-//			case typeFunctionDef:break;
-//			case typeFunction:break;
-//			case typeObjectDef:break;
-//			case typeObject:break;
-//			case typeOperator:break;
-//			case typeReturn:break;
-//			case typeEmpty:break;
-//		}
-//		if (storage == nullptr) {
-//			std::cerr << "allocation fail : no free memory" << std::endl;
-//			throw "allocation fail : no free memory";
-//		}
-//		return storage;
-//	}
-//
-//	static void* operator new(size_t size, NodeType type, int varCount) {
-//		void* storage = nullptr;
-//		switch (type) {
-//			case typeConstant:break;
-//			case typeVariableDef:break;
-//			case typeVariable:break;
-//			case typeFunctionDef:
-//				storage = malloc(size + varCount * sizeof(VariableDefNode));
-//				break;
-//			case typeFunction:
-//				storage = malloc(size + varCount * sizeof(ConstantNode*));
-//				break;
-//			case typeObjectDef:
-//				storage = malloc(size + varCount * sizeof(VariableDefNode));
-//				break;
-//			case typeObject:break;
-//			case typeOperator:
-//				storage = malloc(size  + varCount * sizeof(Node*));
-//				break;
-//			case typeReturn:break;
-//			case typeEmpty:break;
-//		}
-//
-//		if (storage == nullptr) {
-//			std::cerr << "allocation fail : no free memory" << std::endl;
-//			throw "allocation fail : no free memory";
-//		}
-//		return storage;
-//	}
-//
-//	static void operator delete(void* ptr) {
-//		free(ptr);
-//	}
-
 };
+
+std::ostream& operator<<(std::ostream& out, Node::Type value);
 
 
 #endif

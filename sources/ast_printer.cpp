@@ -21,6 +21,7 @@ void MC::AstPrinter::printOperator(Node* node) {
 		case token::IF:			out << "IF"; break;
 		case token::FOR:		out << "FOR"; break;
 		case ';':				out << "SEMICOLON"; break;
+		case '.':				out << "DOT"; break;
 		case '=':				out << "ASSIGN"; break;
 
 		case token::UMINUS:		out << "UNARY MINUS"; break;
@@ -41,7 +42,7 @@ void MC::AstPrinter::printOperator(Node* node) {
 		case token::GE:			out << "GE"; break;
 		case token::EQ:			out << "EQ"; break;
 		case token::NE:			out << "NE"; break;
-		default:				break;
+		default:				out << "<unknown>"; break;
 	}
 }
 
@@ -56,34 +57,34 @@ void MC::AstPrinter::printNode(bool entering, Node* node) {
 		out << static_cast<char>(192); /* └ */
 
 	switch (node->getType()) {
-		case typeConstant:
+		case Node::Constant:
 			out << "Constant " << node->constant.getType() << " " << node->constant;
 			break;
-		case typeOperator:
+		case Node::Operator:
 			printOperator(node);
 			break;
-		case typeVariableDef:
+		case Node::VariableDef:
 			out << "Variable Definition " << node->variableDef;
 			break;
-		case typeVariable:
+		case Node::Variable:
 			out << "Variable " << node->variable.name;
 			break;
-		case typeFunctionDef:
+		case Node::FunctionDef:
 			out << "Function Definition " << node->functionDef.name;
 			break;
-		case typeFunction:
+		case Node::Function:
 			out << "Function " << node->function.name;
 			break;
-		case typeObjectDef:
+		case Node::ObjectDef:
 			out << "Object Definition " << node->objectDef.name;
 			break;
-		case typeObject:
+		case Node::Object:
 			out << "Object " << node->object.name;
 			break;
-		case typeReturn:
+		case Node::Return:
 			out << "Return " << node->ret.value;
 			break;
-		case typeEmpty:
+		case Node::Empty:
 			out << "EMPTY";
 			break;
 		default:
@@ -95,14 +96,14 @@ void MC::AstPrinter::printNode(bool entering, Node* node) {
 
 void MC::AstPrinter::enterNode(Node* node) {
 	stack.push_back(node);
-	if (stack.back()->getType() != typeOperator || stack.back()->oper.oper != ';') {
+	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
 		printNode(true, node);
 		indent++;
 	}
 }
 
 void MC::AstPrinter::exitNode(Node* node) {
-	if (stack.back()->getType() != typeOperator || stack.back()->oper.oper != ';') {
+	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
 		indent--;
 		printNode(false, node);
 	}

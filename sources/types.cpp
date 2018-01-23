@@ -6,19 +6,19 @@
 #include <c++/sstream>
 #include "headers/types.hpp"
 
-std::ostream& operator<<(std::ostream& out, const NodeType value) {
+std::ostream& operator<<(std::ostream& out, const Node::Type value) {
 	switch (value) {
-		case typeConstant:		return out << "constant";
-		case typeVariableDef:	return out << "variableDef";
-		case typeVariable:		return out << "variable";
-		case typeFunctionDef:	return out << "functionDef";
-		case typeFunction:		return out << "function";
-		case typeObjectDef:		return out << "objectDef";
-		case typeObject:		return out << "object";
-		case typeOperator:		return out << "operator";
-		case typeReturn:		return out << "return";
-		case typeEmpty:			return out << "empty";
-		default:				return out << "unknown";
+		case Node::Constant:	return out << "constant";
+		case Node::VariableDef:	return out << "variableDef";
+		case Node::Variable:	return out << "variable";
+		case Node::FunctionDef:	return out << "functionDef";
+		case Node::Function:	return out << "function";
+		case Node::ObjectDef:	return out << "objectDef";
+		case Node::Object:		return out << "object";
+		case Node::Operator:	return out << "operator";
+		case Node::Return:		return out << "return";
+		case Node::Empty:		return out << "empty";
+		default:				return out << "<unknown>";
 	}
 }
 
@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& out, const DataType value) {
 		case typeDouble:	return out << "double";
 		case typeString:	return out << "string";
 		case typeBool:		return out << "bool";
-		case typeObj:		return out << "object";
+		case typeObject:	return out << "object";
 		case typeUndefined:	return out << "<undefined>";
 		default:			return out << "<unknown>";
 	}
@@ -41,10 +41,11 @@ std::ostream& operator<<(std::ostream& out, ConstantNode& constant) {
 		case typeDouble:	return out << constant.doubleVal;
 		case typeString:	return out << constant.stringVal;
 		case typeBool:		return out << (constant.boolVal ? "true" : "false");
-		case typeObj:		if (constant.objectVal == nullptr)
-								return out << "null";
-							else
-								return out << "<object " << constant.objectTypeName << ">";
+		case typeObject:
+			if (constant.objectVal == nullptr)
+				return out << "null";
+			else
+				return out << "<object " << constant.objectTypeName << ">";
 		case typeUndefined:	return out << "<undefined>";
 		default:			return out << "<unknown>";
 	}

@@ -80,6 +80,7 @@ namespace MC {
 		void ifx(Node* p, Node* result);
 
 		void delimiter(Node* p, Node* result);
+		void dot(Node* p, Node* result);
 		void assign(Node* p, Node* result);
 		void uminus(Node* p, Node* result);
 

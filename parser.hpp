@@ -28,7 +28,7 @@ void deleteNode(Node* node) {
 	if (!node)
 		return;
 
-	if (node->getType() == typeOperator) {
+	if (node->getType() == Node::Operator) {
 		for (auto& i : node->oper.op) {
 			deleteNode(i);
 		}
@@ -56,7 +56,7 @@ Node* functionDef(Node* typedVariable, Node* params, Node* root) {
 	VariableNode variable = typedVariable->variable;
 	FunctionDefNode* functionDef = &function->functionDef;
 
-	function->setType(typeFunctionDef);
+	function->setType(Node::FunctionDef);
 	functionDef->dataType = variable.dataType;
 	functionDef->name = variable.name;
 	functionDef->root = root;
@@ -78,7 +78,7 @@ Node* functionDef(Node* typedVariable, Node* params, Node* root) {
 
 Node* function(const std::string& name, Node* params) {
 	auto* functionCall = new Node;
-	functionCall->setType(typeFunction);
+	functionCall->setType(Node::Function);
 	functionCall->function.name = name;
 
 	/* retrieve actual parameters */
@@ -95,7 +95,7 @@ Node* function(const std::string& name, Node* params) {
 
 Node* constantInt(int value) {
 	auto* constant = new Node();
-	constant->setType(typeConstant);
+	constant->setType(Node::Constant);
 	constant->constant.setType(typeInt);
 	constant->constant.intVal = value;
 	return constant;
@@ -103,7 +103,7 @@ Node* constantInt(int value) {
 
 Node* constantDouble(double value) {
 	auto* constant = new Node();
-	constant->setType(typeConstant);
+	constant->setType(Node::Constant);
 	constant->constant.setType(typeDouble);
 	constant->constant.doubleVal = value;
 	return constant;
@@ -111,7 +111,7 @@ Node* constantDouble(double value) {
 
 Node* constantString(const std::string &value) {
 	auto* constant = new Node();
-	constant->setType(typeConstant);
+	constant->setType(Node::Constant);
 	constant->constant.setType(typeString);
 	constant->constant.stringVal = value;
 	return constant;
@@ -119,7 +119,7 @@ Node* constantString(const std::string &value) {
 
 Node* constantBool(bool value) {
 	auto* constant = new Node();
-	constant->setType(typeConstant);
+	constant->setType(Node::Constant);
 	constant->constant.setType(typeBool);
 	constant->constant.boolVal = value;
 	return constant;
@@ -127,8 +127,8 @@ Node* constantBool(bool value) {
 
 Node* constantNull() {
 	auto* constant = new Node();
-	constant->setType(typeConstant);
-	constant->constant.setType(typeObj);
+	constant->setType(Node::Constant);
+	constant->constant.setType(typeObject);
 	constant->constant.objectVal = nullptr;
 	constant->constant.objectTypeName = "null";
 	return constant;
@@ -141,7 +141,7 @@ Node* objectDef(const std::string &name, Node* vars) {
 
 	/* allocate node, extending params array */
 	auto* result = new Node;
-	result->setType(typeObjectDef);
+	result->setType(Node::ObjectDef);
 	result->objectDef.name = name;
 	while (varCount > 0) {
 		varCount--;
@@ -155,7 +155,7 @@ Node* objectDef(const std::string &name, Node* vars) {
 
 Node* object(const std::string &name) {
 	auto* result = new Node();
-	result->setType(typeObject);
+	result->setType(Node::Object);
 	result->object.name = name;
 	return result;
 }
@@ -163,7 +163,7 @@ Node* object(const std::string &name) {
 
 Node* variableDef(Node* typedVariable, Node* defaultValue) {
 	auto* result = new Node();
-	result->setType(typeVariableDef);
+	result->setType(Node::VariableDef);
 
 	VariableDefNode* variableDef = &result->variableDef;
 
@@ -176,7 +176,7 @@ Node* variableDef(Node* typedVariable, Node* defaultValue) {
 
 Node* typedVariable(const std::string& name, DataType type) {
 	auto* variable = new Node();
-	variable->setType(typeVariable);
+	variable->setType(Node::Variable);
 	variable->variable.dataType = type;
 	variable->variable.name = name;
 	return variable;
@@ -189,14 +189,14 @@ Node* variable(const std::string& name) {
 
 Node* empty() {
 	auto* empty = new Node();
-	empty->setType(typeEmpty);
+	empty->setType(Node::Empty);
 	return empty;
 }
 
 Node* op(int oper, int opCount, ...) {
 	auto* operand = new Node;
 
-	operand->setType(typeOperator);
+	operand->setType(Node::Operator);
 	operand->oper.oper = oper;
 	operand->oper.op = std::vector<Node*>(static_cast<unsigned long long int>(opCount));
 
