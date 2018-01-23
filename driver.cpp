@@ -659,8 +659,11 @@ Node* MC::Driver::ex(Node* p) {
 			ObjectNode* objectVal = new ObjectNode;
 			for (size_t i = 0; i < objectDef->vars.size(); i++) {
 				VariableDefNode& varDef = objectDef->vars[i];
+				if (varDef.defaultValue != nullptr) {
+					Node* defaultVal = ex(varDef.defaultValue);
+					varDef.value = defaultVal->constant;
+				}
 				objectVal->vars.push_back(varDef.value);
-//				TODO: defaultValue
 			}
 
 			result->setType(Node::Constant);
