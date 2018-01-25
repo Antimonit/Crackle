@@ -28,6 +28,7 @@ std::ostream& operator<<(std::ostream& out, const DataType value) {
 		case typeDouble:	return out << "double";
 		case typeString:	return out << "string";
 		case typeBool:		return out << "bool";
+		case typeVoid:		return out << "void";
 		case typeObject:	return out << "object";
 		case typeUndefined:	return out << "<undefined>";
 		default:			return out << "<unknown>";
@@ -39,8 +40,9 @@ std::ostream& operator<<(std::ostream& out, ConstantNode& constant) {
 	switch (type) {
 		case typeInt:		return out << constant.intVal;
 		case typeDouble:	return out << constant.doubleVal;
-		case typeString:	return out << constant.stringVal;
 		case typeBool:		return out << (constant.boolVal ? "true" : "false");
+		case typeString:	return out << constant.stringVal;
+		case typeVoid:		return out << "void";
 		case typeObject:
 			if (constant.objectVal == nullptr)
 				return out << "null";

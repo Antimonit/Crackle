@@ -68,7 +68,7 @@
 %token ','
 %nonassoc '.'
 %token IF ELSE WHILE DO FOR
-%token INT DOUBLE BOOL STRING
+%token INT DOUBLE BOOL STRING VOID
 %token LEX_ERROR
 
 %type <Node*> primitive_value object_value variable_value
@@ -137,11 +137,12 @@ typed_identifier
 		: type_specifier IDENTIFIER { $$ = typedVariable($2, $1); }
 
 type_specifier
-		: INT		{ $$ = typeInt; }
-		| DOUBLE	{ $$ = typeDouble; }
-		| BOOL	    { $$ = typeBool; }
-		| STRING	{ $$ = typeString; }
-		| IDENTIFIER{ $$ = typeObject; }
+		: INT		    { $$ = typeInt; }
+		| DOUBLE	    { $$ = typeDouble; }
+		| BOOL	        { $$ = typeBool; }
+		| STRING	    { $$ = typeString; }
+		| VOID          { $$ = typeVoid; }
+		| IDENTIFIER    { $$ = typeObject; }
 
 var_definition
 		: typed_identifier ';' { $$ = variableDef($1, NULL); }
@@ -168,6 +169,7 @@ fun_param_list
 
 return_statement
 		: RETURN expression ';'							{ $$ = op(token::RETURN, 1, $2); }
+		| RETURN ';'									{ $$ = op(token::RETURN, 0); }
 
 fun_call
 		: IDENTIFIER '(' argument_expression_list ')'	{ $$ = function($1, $3); }

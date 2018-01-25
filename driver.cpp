@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cassert>
 #include <c++/iostream>
+#include <headers/types.hpp>
 #include "parser.tab.hh"
 #include "driver.hpp"
 
@@ -122,11 +123,14 @@ int MC::Driver::parse() {
 
 
 void MC::Driver::returnx(Node* p, Node* result) {
-	Node* v = ex(p->oper.op[0]);
-	ConstantNode& value = (v->getType() == Node::Variable) ? v->variable->value : v->constant;
-
 	result->setType(Node::Return);
-	result->ret.value = value;
+	if (p->oper.op.empty()) {
+		result->ret.value.setType(typeVoid);
+	} else {
+		Node* v = ex(p->oper.op[0]);
+		ConstantNode& value = (v->getType() == Node::Variable) ? v->variable->value : v->constant;
+		result->ret.value = value;
+	}
 }
 
 void MC::Driver::whilex(Node* p, Node* result) {
@@ -727,7 +731,8 @@ Node* MC::Driver::ex(Node* p) {
 			Node* res = ex(functionDef->root);
 			popSymbolTableScope();
 
-			if (functionDef->dataType != res->constant.getType()) {
+			if (functionDef->dataType != typeVoid &&
+				functionDef->dataType != res->constant.getType()) {
 				std::cerr << "Warning: Wrong return type. Expecting " << functionDef->dataType
 						  << ", received " << res->constant.getType()
 						  << "." << std::endl;

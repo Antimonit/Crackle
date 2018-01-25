@@ -11,6 +11,7 @@ enum DataType {
     typeDouble,
 	typeString,
 	typeBool,
+	typeVoid,
 	typeObject,
 	typeUndefined
 };
@@ -41,6 +42,7 @@ private:
 			case typeDouble:	doubleVal = other.doubleVal; break;
 			case typeBool:		boolVal = other.boolVal; break;
 			case typeString:	stringVal = other.stringVal; break;
+			case typeVoid:		break;
 			case typeObject:
 				objectVal = other.objectVal;
 				objectTypeName = other.objectTypeName;

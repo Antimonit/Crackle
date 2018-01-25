@@ -77,6 +77,7 @@ string      \"(\\.|[^\\"])*\"
 "double"    return token::DOUBLE;
 "bool"      return token::BOOL;
 "string"    return token::STRING;
+"void"      return token::VOID;
 
 "return"	return token::RETURN;
 
