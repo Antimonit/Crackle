@@ -53,22 +53,22 @@ int getParamCount(Node* params) {
 Node* functionDef(Node* typedVariable, Node* params, Node* root) {
 	auto* function = new Node;
 
-	VariableNode variable = typedVariable->variable;
+	VariableNode* variable = typedVariable->variable;
 	FunctionDefNode* functionDef = &function->functionDef;
 
 	function->setType(Node::FunctionDef);
-	functionDef->dataType = variable.dataType;
-	functionDef->name = variable.name;
+	functionDef->dataType = variable->value.getType();
+	functionDef->name = variable->name;
 	functionDef->root = root;
 
 	/* retrieve actual parameters */
 	int paramCount = getParamCount(params);
 	while (paramCount > 0) {
 		paramCount--;
-		VariableNode& var = params->oper.op[1]->variable;
-		VariableDefNode variableDef;
-		variableDef.name = var.name;
-		variableDef.value.setType(var.dataType);
+		VariableNode* var = params->oper.op[1]->variable;
+		VariableDefNode variableDef = *new VariableDefNode;
+		variableDef.name = var->name;
+		variableDef.value.setType(var->value.getType());
 		functionDef->params.push_back(variableDef);
 		params = params->oper.op[0];
 	}
@@ -167,8 +167,8 @@ Node* variableDef(Node* typedVariable, Node* defaultValue) {
 
 	VariableDefNode* variableDef = &result->variableDef;
 
-	variableDef->name = typedVariable->variable.name;
-	variableDef->value.setType(typedVariable->variable.dataType);
+	variableDef->name = typedVariable->variable->name;
+	variableDef->value.setType(typedVariable->variable->value.getType());
 	variableDef->defaultValue = defaultValue;
 
 	return result;
@@ -177,8 +177,9 @@ Node* variableDef(Node* typedVariable, Node* defaultValue) {
 Node* typedVariable(const std::string& name, DataType type) {
 	auto* variable = new Node();
 	variable->setType(Node::Variable);
-	variable->variable.dataType = type;
-	variable->variable.name = name;
+	variable->variable = new VariableNode;
+	variable->variable->name = name;
+	variable->variable->value.setType(type);
 	return variable;
 }
 

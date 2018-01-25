@@ -67,7 +67,7 @@ void MC::AstPrinter::printNode(bool entering, Node* node) {
 			out << "Variable Definition " << node->variableDef;
 			break;
 		case Node::Variable:
-			out << "Variable " << node->variable.name;
+			out << "Variable " << node->variable->name;
 			break;
 		case Node::FunctionDef:
 			out << "Function Definition " << node->functionDef.name;

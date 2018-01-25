@@ -66,11 +66,12 @@
 %token '{' '}'
 %token ';'
 %token ','
+%nonassoc '.'
 %token IF ELSE WHILE DO FOR
 %token INT DOUBLE BOOL STRING
 %token LEX_ERROR
 
-%type <Node*> primitive_value object_value
+%type <Node*> primitive_value object_value variable_value
 %type <Node*> expression lex_error
 %type <Node*> statement statement_list
 %type <Node*> expression_statement for_statement if_statement while_statement
@@ -193,13 +194,12 @@ expression
 		| expression '/' expression		{ $$ = op('/', 2, $1, $3); }
 		| expression '%' expression		{ $$ = op('%', 2, $1, $3); }
 		| '-' expression %prec UMINUS	{ $$ = op(token::UMINUS, 1, $2); }
-		| IDENTIFIER '=' expression	    { $$ = op('=', 2, variable($1), $3); }
-		| IDENTIFIER                    { $$ = variable($1); }
+		| variable_value '=' expression { $$ = op('=', 2, $1, $3); }
 		| fun_call						{ $$ = $1; }
 		| primitive_value				{ $$ = $1; }
 		| object_value                  { $$ = $1; }
+		| variable_value                { $$ = $1; }
 		| lex_error						{ $$ = $1; }
-		| expression '.' IDENTIFIER     { $$ = op('.', 2, $1, variable($3)); }
 
 primitive_value
 		: INT_VALUE		{ $$ = constantInt($1); }
@@ -210,6 +210,10 @@ primitive_value
 object_value
 		: NEW IDENTIFIER    { $$ = object($2); }
 		| NULL_VALUE        { $$ = constantNull(); }
+
+variable_value
+		: IDENTIFIER                    { $$ = variable($1); }
+		| expression '.' IDENTIFIER     { $$ = op('.', 2, $1, variable($3)); }
 
 lex_error
 		: LEX_ERROR {

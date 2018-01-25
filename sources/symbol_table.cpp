@@ -17,7 +17,7 @@ SymbolTable::~SymbolTable() {
 //	}
 }
 
-ConstantNode* SymbolTable::findVariableInTable(const std::string& symbol) {
+VariableNode* SymbolTable::findVariableInTable(const std::string& symbol) {
 	if (variables.find(symbol) != variables.end()) {
 		return variables[symbol];
 	}
@@ -36,10 +36,10 @@ ObjectDefNode* SymbolTable::findObjectInTable(const std::string& symbol) {
 	return nullptr;
 }
 
-ConstantNode* SymbolTable::findVariable(const std::string& symbol) {
+VariableNode* SymbolTable::findVariable(const std::string& symbol) {
 	SymbolTable* table = this;
 	while (table != nullptr) {
-		ConstantNode* res = table->findVariableInTable(symbol);
+		VariableNode* res = table->findVariableInTable(symbol);
 		if (res != nullptr) {
 			return res;
 		}
@@ -70,33 +70,33 @@ ObjectDefNode* SymbolTable::findObject(const std::string& symbol) {
 	return nullptr;
 }
 
-void SymbolTable::addVariable(VariableDefNode* variableDef) {
-	ConstantNode* symbol = findVariableInTable(variableDef->name);
+void SymbolTable::addVariable(VariableNode* variableDef) {
+	VariableNode* symbol = findVariableInTable(variableDef->name);
 	if (symbol != nullptr) {
 		std::cerr << "Warning: Trying to redeclare variable '" << variableDef->name
-				  << "' of type " << symbol->getType()
+				  << "' of type " << symbol->value.getType()
 				  << " to type " << variableDef->value.getType()
 				  << "." << std::endl;
 		return;
 	}
-	variables.insert(std::pair<std::string, ConstantNode*>(variableDef->name, &variableDef->value));
+	variables.insert(std::pair<std::string, VariableNode*>(variableDef->name, variableDef));
 }
-void SymbolTable::addFunction(FunctionDefNode* function) {
-	FunctionDefNode* symbol = findFunctionInTable(function->name);
+void SymbolTable::addFunction(FunctionDefNode& function) {
+	FunctionDefNode* symbol = findFunctionInTable(function.name);
 	if (symbol != nullptr) {
-		std::cerr << "Warning: Trying to redeclare function '" << *function
+		std::cerr << "Warning: Trying to redeclare function '" << function
 				  << "' as '" << *symbol
 				  << "'." << std::endl;
 		return;
 	}
-	functions.insert(std::pair<std::string, FunctionDefNode*>(function->name, function));
+	functions.insert(std::pair<std::string, FunctionDefNode*>(function.name, &function));
 }
-void SymbolTable::addObject(ObjectDefNode* object) {
-	ObjectDefNode* symbol = findObjectInTable(object->name);
+void SymbolTable::addObject(ObjectDefNode& object) {
+	ObjectDefNode* symbol = findObjectInTable(object.name);
 	if (symbol != nullptr) {
-		std::cerr << "Warning: Trying to redeclare object '" << object->name
+		std::cerr << "Warning: Trying to redeclare object '" << object.name
 				  << "'." << std::endl;
 		return;
 	}
-	objects.insert(std::pair<std::string, ObjectDefNode*>(object->name, object));
+	objects.insert(std::pair<std::string, ObjectDefNode*>(object.name, &object));
 }

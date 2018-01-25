@@ -112,7 +112,7 @@ std::ostream& operator<<(std::ostream& out, VariableDefNode& variableDef);
 
 struct VariableNode {
 	std::string name;
-	DataType dataType;
+	ConstantNode value;
 };
 
 struct FunctionDefNode {
@@ -135,7 +135,7 @@ struct ObjectDefNode {
 
 struct ObjectNode {
 	std::string name;
-	std::vector<ConstantNode> vars;
+	std::vector<VariableNode*> vars;
 };
 
 struct ReturnNode {
@@ -165,7 +165,7 @@ public:
 	union {
         ConstantNode constant;
         VariableDefNode variableDef;
-        VariableNode variable;
+        VariableNode* variable;
 		FunctionDefNode functionDef;
         FunctionNode function;
 		ObjectDefNode objectDef;

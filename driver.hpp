@@ -53,7 +53,7 @@ namespace MC {
 		void pushSymbolTableScope();
 		void popSymbolTableScope();
 
-		ConstantNode* findVariable(const std::string &symbol) {
+		VariableNode* findVariable(const std::string &symbol) {
 			return currentSymbolTable->findVariable(symbol);
 		}
 		FunctionDefNode* findFunction(const std::string &symbol) {
@@ -63,13 +63,13 @@ namespace MC {
 			return currentSymbolTable->findObject(symbol);
 		}
 
-		void addVariable(VariableDefNode* variableDef) {
+		void addVariable(VariableNode* variableDef) {
 			currentSymbolTable->addVariable(variableDef);
 		}
-		void addFunction(FunctionDefNode* function) {
+		void addFunction(FunctionDefNode& function) {
 			currentSymbolTable->addFunction(function);
 		}
-		void addObject(ObjectDefNode* object) {
+		void addObject(ObjectDefNode& object) {
 			currentSymbolTable->addObject(object);
 		}
 
