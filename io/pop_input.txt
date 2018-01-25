@@ -1,0 +1,103 @@
+bool assert(bool condition, string message) {
+	if (!condition) {
+	    println message;
+	}
+}
+
+int one() {
+    return 1;
+}
+
+int same(int that) {
+    return that;
+}
+
+int sameRec(int that) {
+    return sameRec(that-1) + 1;
+}
+
+int max(int a, int b) {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+int recFib(int n) {
+    if (n <= 0) {
+        return 0;
+    } else {
+        if (n == 1) {
+            return 1;
+        } else {
+            return recFib(n-1) + recFib(n-2);
+        }
+    }
+}
+
+int iterFib(int n) {
+    int a = 0;
+    int b = 1;
+
+    int i = 1;
+    while (i <= n) {
+        int c = a + b;
+        a = b;
+        b = c;
+        i = i + 1;
+    }
+    return a;
+}
+
+int printFibs() {
+    int n = 0;
+    while (n < 10) {
+        print "Fibonacci ";
+        println n;
+        print "    Recursive: ";
+        println recFib(n);
+        print "    Iterative: ";
+        println iterFib(n);
+        n = n + 1;
+    }
+    return 0;
+}
+
+object Node {
+	int value;
+	Node left;
+	Node right;
+}
+
+Node root = new Node;
+root.value = 5;
+println root.value;
+int changeValue(Node a) {
+	a.value = 111;
+	println a.value;
+	reutrn 0;
+}
+changeValue(root);
+println root.value;
+
+int addValue(Node root, int value) {
+	if (root == null) {
+		root = new Node;
+		root.value = value;
+	} else {
+		if (value < root.value) {
+
+			addValue(root.left, value);
+		} else {
+			addValue(root.right, value);
+		}
+	}
+	return 0;
+}
+
+
+
+
+
+printFibs();

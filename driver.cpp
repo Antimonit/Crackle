@@ -381,46 +381,64 @@ void MC::Driver::modulo(Node* p, Node* result) {
 }
 
 void MC::Driver::andx(Node* p, Node* result) {
-	Node* l = ex(p->oper.op[0]);
-	Node* r = ex(p->oper.op[1]);
-	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
-	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	result->setType(Node::Constant);
 	result->constant.setType(typeUndefined);
 
+	Node* l = ex(p->oper.op[0]);
+	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
 	if (left.getType() != typeBool) {
 		std::cerr << "Warning: Invalid argument of type " << left.getType()
 				  << " to AND operator." << std::endl;
+		return;
+	} else if (!left.boolVal) {
+		result->constant.setType(typeBool);
+		result->constant.boolVal = false;
+		return;
 	}
+
+	Node* r = ex(p->oper.op[1]);
+	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	if (right.getType() != typeBool) {
 		std::cerr << "Warning: Invalid argument of type " << right.getType()
 				  << " to AND operator." << std::endl;
-	}
-	if (left.getType() == typeBool && right.getType() == typeBool) {
+	} else if (!right.boolVal) {
 		result->constant.setType(typeBool);
-		result->constant.boolVal = left.boolVal && right.boolVal;
+		result->constant.boolVal = false;
+		return;
 	}
+
+	result->constant.setType(typeBool);
+	result->constant.boolVal = true;
 }
 void MC::Driver::orx(Node* p, Node* result) {
-	Node* l = ex(p->oper.op[0]);
-	Node* r = ex(p->oper.op[1]);
-	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
-	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	result->setType(Node::Constant);
 	result->constant.setType(typeUndefined);
 
+	Node* l = ex(p->oper.op[0]);
+	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
 	if (left.getType() != typeBool) {
 		std::cerr << "Warning: Invalid argument of type " << left.getType()
 				  << " to OR operator." << std::endl;
+		return;
+	} else if (left.boolVal) {
+		result->constant.setType(typeBool);
+		result->constant.boolVal = true;
+		return;
 	}
+
+	Node* r = ex(p->oper.op[1]);
+	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	if (right.getType() != typeBool) {
 		std::cerr << "Warning: Invalid argument of type " << right.getType()
 				  << " to OR operator." << std::endl;
-	}
-	if (left.getType() == typeBool && right.getType() == typeBool) {
+		return;
+	} else if (right.boolVal) {
 		result->constant.setType(typeBool);
-		result->constant.boolVal = left.boolVal || right.boolVal;
+		result->constant.boolVal = true;
+		return;
 	}
+	result->constant.setType(typeBool);
+	result->constant.boolVal = false;
 }
 void MC::Driver::neg(Node* p, Node* result) {
 	Node* v = ex(p->oper.op[0]);
@@ -731,8 +749,7 @@ Node* MC::Driver::ex(Node* p) {
 			Node* res = ex(functionDef->root);
 			popSymbolTableScope();
 
-			if (functionDef->dataType != typeVoid &&
-				functionDef->dataType != res->constant.getType()) {
+			if (functionDef->dataType != res->constant.getType()) {
 				std::cerr << "Warning: Wrong return type. Expecting " << functionDef->dataType
 						  << ", received " << res->constant.getType()
 						  << "." << std::endl;
@@ -740,7 +757,13 @@ Node* MC::Driver::ex(Node* p) {
 			}
 
 			result->setType(Node::Constant);
-			result->constant = res->constant;
+
+			if (functionDef->dataType == typeVoid) {
+				result->constant.setType(typeVoid);
+			} else {
+				result->constant = res->constant;
+			}
+
 			goto end;
 		}
 		case Node::ObjectDef: {

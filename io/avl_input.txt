@@ -1,0 +1,149 @@
+
+object Node {
+        int value;
+        int height = 1;
+        Node left;
+        Node right;
+}
+
+object Tree {
+    Node root;
+}
+
+
+int height(Node node) {
+    if (node == null) {
+        return 0;
+    } else {
+        return node.height;
+    }
+}
+
+int max(int a, int b) {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+Node rightRotate(Node y) {
+    Node x = y.left;
+    Node T2 = x.right;
+
+    x.right = y;
+    y.left = T2;
+
+    y.height = max(height(y.left), height(y.right)) + 1;
+    x.height = max(height(x.left), height(x.right)) + 1;
+
+    return x;
+}
+
+Node leftRotate(Node x) {
+    Node y = x.right;
+    Node T2 = y.left;
+
+    y.left = x;
+    x.right = T2;
+
+    x.height = max(height(x.left), height(x.right)) + 1;
+    y.height = max(height(y.left), height(y.right)) + 1;
+
+    return y;
+}
+
+int getBalance(Node N) {
+    if (N == null) {
+        return 0;
+    }
+    return height(N.left) - height(N.right);
+}
+
+Node insert(Node node, int value) {
+    if (node == null) {
+        node = new Node;
+        node.value = value;
+        return node;
+    }
+
+    if (value < node.value) {
+        node.left = insert(node.left, value);
+    } else {
+        if (value > node.value) {
+            node.right = insert(node.right, value);
+        } else {
+            return node;
+        }
+    }
+
+    node.height = 1 + max(height(node.left), height(node.right));
+
+    int balance = getBalance(node);
+    if ((balance > 1) && (value < node.left.value)) {
+        return rightRotate(node);
+    }
+
+    if ((balance < -1) && (value > node.right.value)) {
+        return leftRotate(node);
+    }
+
+    if ((balance > 1) && (value > node.left.value)) {
+        node.left = leftRotate(node.left);
+        return rightRotate(node);
+    }
+
+    if ((balance < -1) && (value < node.right.value)) {
+        node.right = rightRotate(node.right);
+        return leftRotate(node);
+    }
+
+    return node;
+}
+
+void printSpaces(int spaces) {
+    for (;spaces > 0; spaces--) {
+        print "    ";
+    }
+    return;
+}
+
+void printInOrder(Root root, int depth) {
+    if (root != null) {
+        printInOrder(root.left, depth + 1);
+        printSpaces(depth);
+        println root.value;
+        printInOrder(root.right, depth + 1);
+    }
+    return;
+}
+
+
+
+void add(Tree tree, int value) {
+    tree.root = insert(tree.root, value);
+    return;
+}
+void printTree(Tree tree) {
+    printInOrder(tree.root, 0);
+    return;
+}
+
+void main() {
+    Tree tree = new Tree;
+    add(tree, 5);
+    add(tree, 8);
+    add(tree, 1);
+    add(tree, 13);
+    add(tree, 4);
+    add(tree, 2);
+    add(tree, 9);
+    add(tree, 7);
+    add(tree, 15);
+    add(tree, 3);
+    add(tree, 12);
+    printTree(tree);
+    return;
+}
+
+main();

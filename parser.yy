@@ -184,14 +184,14 @@ expression
 		| expression INC                { $$ = op(token::INC, 1, $1); }
 		| expression DEC                { $$ = op(token::DEC, 1, $1); }
 		| NEG expression				{ $$ = op(token::NEG, 1, $2); }
-		| expression OR expression		{ $$ = op(token::OR, 2, $1, $3); }
-		| expression AND expression		{ $$ = op(token::AND, 2, $1, $3); }
 		| expression LT expression		{ $$ = op(token::LT, 2, $1, $3); }
 		| expression LE expression		{ $$ = op(token::LE, 2, $1, $3); }
 		| expression GT expression		{ $$ = op(token::GT, 2, $1, $3); }
 		| expression GE expression		{ $$ = op(token::GE, 2, $1, $3); }
 		| expression EQ expression		{ $$ = op(token::EQ, 2, $1, $3); }
 		| expression NE expression		{ $$ = op(token::NE, 2, $1, $3); }
+		| expression OR expression		{ $$ = op(token::OR, 2, $1, $3); }
+		| expression AND expression		{ $$ = op(token::AND, 2, $1, $3); }
 		| expression '+' expression		{ $$ = op('+', 2, $1, $3); }
 		| expression '-' expression		{ $$ = op('-', 2, $1, $3); }
 		| expression '*' expression		{ $$ = op('*', 2, $1, $3); }
