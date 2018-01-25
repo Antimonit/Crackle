@@ -94,6 +94,9 @@ namespace MC {
 		void orx(Node* p, Node* result);
 		void neg(Node* p, Node* result);
 
+		void inc(Node* p, Node* result);
+		void dec(Node* p, Node* result);
+
 		void lt(Node* p, Node* result);
 		void le(Node* p, Node* result);
 		void gt(Node* p, Node* result);

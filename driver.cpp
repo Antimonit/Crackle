@@ -434,6 +434,47 @@ void MC::Driver::neg(Node* p, Node* result) {
 	}
 }
 
+void MC::Driver::inc(Node* p, Node* result) {
+	Node* v = ex(p->oper.op[0]);
+	if (v->getType() != Node::Variable) {
+		std::cerr << "Warning: Cannot increment non-variable." << std::endl;
+	} else {
+		ConstantNode& value = v->variable->value;
+		result->setType(Node::Constant);
+
+		if (value.getType() == typeInt) {
+			result->constant.setType(typeInt);
+			result->constant.intVal = ++value.intVal;
+		} else if (value.getType() == typeDouble) {
+			result->constant.setType(typeDouble);
+			result->constant.doubleVal = ++value.doubleVal;
+		} else {
+			result->constant.setType(typeUndefined);
+			std::cerr << "Warning: Cannot increment non-numeric variable." << std::endl;
+		}
+	}
+}
+void MC::Driver::dec(Node* p, Node* result) {
+	Node* v = ex(p->oper.op[0]);
+	if (v->getType() != Node::Variable) {
+		std::cerr << "Warning: Cannot decrement non-variable." << std::endl;
+	} else {
+		ConstantNode& value = v->variable->value;
+		result->setType(Node::Constant);
+
+		if (value.getType() == typeInt) {
+			result->constant.setType(typeInt);
+			result->constant.intVal = --value.intVal;
+		} else if (value.getType() == typeDouble) {
+			result->constant.setType(typeDouble);
+			result->constant.doubleVal = --value.doubleVal;
+		} else {
+			result->constant.setType(typeUndefined);
+			std::cerr << "Warning: Cannot decrement non-numeric variable." << std::endl;
+		}
+	}
+}
+
 void MC::Driver::lt(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -624,6 +665,9 @@ Node* MC::Driver::ex(Node* p) {
 				case token::AND:	andx(p, result); break;
 				case token::OR:		orx(p, result); break;
 				case token::NEG:	neg(p, result); break;
+
+				case token::INC:	inc(p, result); break;
+				case token::DEC:	dec(p, result); break;
 
 				case token::LT:		lt(p, result); break;
 				case token::LE:		le(p, result); break;

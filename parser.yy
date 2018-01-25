@@ -179,6 +179,8 @@ argument_expression_list
 
 expression
 		: '(' expression ')'			{ $$ = $2; }
+		| expression INC                { $$ = op(token::INC, 1, $1); }
+		| expression DEC                { $$ = op(token::DEC, 1, $1); }
 		| NEG expression				{ $$ = op(token::NEG, 1, $2); }
 		| expression OR expression		{ $$ = op(token::OR, 2, $1, $3); }
 		| expression AND expression		{ $$ = op(token::AND, 2, $1, $3); }
