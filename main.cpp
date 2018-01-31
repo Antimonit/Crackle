@@ -1,40 +1,40 @@
 #include <iostream>
 #include <cstring>
 
-#include "driver.hpp"
+#include "Driver.hpp"
 
 int main(const int argc, const char **argv) {
 
-	MC::Driver driver;
+	MC::Driver::Builder builder;
 
-	for (int argx = 1; argx < argc; argx++) {
-		if (std::strncmp(argv[argx], "-i", 2) == 0) {
-			argx++;
-			if (argx < argc) {
-				driver.input(std::string(argv[argx]));
+	for (int i = 1; i < argc; i++) {
+		if (std::strncmp(argv[i], "-i", 2) == 0) {
+			i++;
+			if (i < argc) {
+				builder.input(std::string(argv[i]));
 			} else {
 				std::cout << "Unspecified input file name." << std::endl;
 				return (EXIT_FAILURE);
 			}
-		} else if (std::strncmp(argv[argx], "-o", 2) == 0) {
-			argx++;
-			if (argx < argc) {
-				driver.output(std::string(argv[argx]));
+		} else if (std::strncmp(argv[i], "-o", 2) == 0) {
+			i++;
+			if (i < argc) {
+				builder.output(std::string(argv[i]));
 			} else {
 				std::cout << "Unspecified output file name." << std::endl;
 				return (EXIT_FAILURE);
 			}
-		} else if (std::strncmp(argv[argx], "-d", 2) == 0) {
-			argx++;
-			if (argx < argc) {
-				driver.debug(std::string(argv[argx]));
+		} else if (std::strncmp(argv[i], "-d", 2) == 0) {
+			i++;
+			if (i < argc) {
+				builder.debug(std::string(argv[i]));
 			} else {
 				std::cout << "Unspecified debug file name." << std::endl;
 				return (EXIT_FAILURE);
 			}
-		} else if (std::strncmp(argv[argx], "-f", 2) == 0) {
-			driver.debug(std::cout);
-		} else if (std::strncmp(argv[argx], "-h", 2) == 0) {
+		} else if (std::strncmp(argv[i], "-f", 2) == 0) {
+			builder.debug(std::cout);
+		} else if (std::strncmp(argv[i], "-h", 2) == 0) {
 			std::cout << "Use -i <path_to_file> to specify input file (defaults to standard input)" << std::endl;
 			std::cout << "Use -o <path_to_file> to specify output file (defaults to standard output)" << std::endl;
 			std::cout << "Use -d <path_to_file> to specify debug file (none by default)" << std::endl;
@@ -46,6 +46,8 @@ int main(const int argc, const char **argv) {
 			return (EXIT_FAILURE);
 		}
 	}
+
+	MC::Driver driver = builder.build();
 
 	const int accept(0);
 	if (driver.parse() == accept) {

@@ -21,7 +21,7 @@ ADD_FLEX_BISON_DEPENDENCY(lexer parser)
 add_executable(Pop
         scanner.hpp
         main.cpp
-        driver.cpp
+        Driver.cpp
         parser.hpp
         sources/symbol_table.cpp
         headers/symbol_table.hpp

@@ -1,17 +1,75 @@
 #include <cctype>
 #include <fstream>
-#include <cassert>
 #include <c++/iostream>
 #include <headers/types.hpp>
 #include "parser.tab.hh"
-#include "driver.hpp"
+#include "Driver.hpp"
 
 using token = MC::Parser::token;
 
-MC::Driver::Driver() {
+
+MC::Driver::Builder::Builder() {
 	in = &std::cin;
 	out = &std::cout;
 	deb = nullptr;
+}
+
+void MC::Driver::Builder::input(std::string filename) {
+	auto* file = new std::ifstream(filename);
+	if (!file->good()) {
+		exit(EXIT_FAILURE);
+	}
+	in = file;
+}
+
+void MC::Driver::Builder::input(std::istream& is) {
+	if (!is.good() && is.eof()) {
+		return;
+	}
+	in = &is;
+}
+
+void MC::Driver::Builder::output(std::string filename) {
+	auto* file = new std::ofstream(filename);
+	if (!file->good()) {
+		exit(EXIT_FAILURE);
+	}
+	out = file;
+}
+
+void MC::Driver::Builder::output(std::ostream& os) {
+	if (!os.good() && os.eof()) {
+		return;
+	}
+	out = &os;
+}
+
+void MC::Driver::Builder::debug(std::string filename) {
+	auto* file = new std::ofstream(filename);
+	if (!file->good()) {
+		exit(EXIT_FAILURE);
+	}
+	deb = file;
+}
+
+void MC::Driver::Builder::debug(std::ostream& os) {
+	if (!os.good() && os.eof()) {
+		return;
+	}
+	deb = &os;
+}
+
+MC::Driver MC::Driver::Builder::build() {
+	return Driver(in, out, deb);
+};
+
+
+MC::Driver::Driver(std::istream* in,
+				   std::ostream* out,
+				   std::ostream* deb) {
+	this->in = in;
+	this->out = out;
+	this->deb = deb;
 }
 
 MC::Driver::~Driver() {
@@ -35,51 +93,6 @@ MC::Driver::~Driver() {
 	}
 }
 
-void MC::Driver::input(std::string filename) {
-	auto* file = new std::ifstream(filename);
-	if (!file->good()) {
-		exit(EXIT_FAILURE);
-	}
-	in = file;
-}
-
-void MC::Driver::input(std::istream& is) {
-	if (!is.good() && is.eof()) {
-		return;
-	}
-	in = &is;
-}
-
-void MC::Driver::output(std::string filename) {
-	auto* file = new std::ofstream(filename);
-	if (!file->good()) {
-		exit(EXIT_FAILURE);
-	}
-	out = file;
-}
-
-void MC::Driver::output(std::ostream& os) {
-	if (!os.good() && os.eof()) {
-		return;
-	}
-	out = &os;
-}
-
-void MC::Driver::debug(std::string filename) {
-	auto* file = new std::ofstream(filename);
-	if (!file->good()) {
-		exit(EXIT_FAILURE);
-	}
-	deb = file;
-}
-
-void MC::Driver::debug(std::ostream& os) {
-	if (!os.good() && os.eof()) {
-		return;
-	}
-	deb = &os;
-}
-
 int MC::Driver::parse() {
 	if (!in->good() && in->eof()) {
 		return 1;
@@ -91,7 +104,7 @@ int MC::Driver::parse() {
 	delete scanner;
 	try {
 		scanner = new MC::Scanner(in);
-	} catch (std::bad_alloc &ba) {
+	} catch (std::bad_alloc& ba) {
 		std::cerr << "Failed to allocate scanner: (" << ba.what() << "), exiting!!\n";
 		exit(EXIT_FAILURE);
 	}
@@ -100,7 +113,7 @@ int MC::Driver::parse() {
 	try {
 		parser = new MC::Parser((*scanner) /* scanner */,
 								(*this) /* driver */ );
-	} catch (std::bad_alloc &ba) {
+	} catch (std::bad_alloc& ba) {
 		std::cerr << "Failed to allocate parser: (" << ba.what() << "), exiting!!\n";
 		exit(EXIT_FAILURE);
 	}
@@ -109,7 +122,7 @@ int MC::Driver::parse() {
 	if (deb != nullptr) {
 		try {
 			printer = new MC::AstPrinter(deb);
-		} catch (std::bad_alloc &ba) {
+		} catch (std::bad_alloc& ba) {
 			std::cerr << "Failed to allocate printer: (" << ba.what() << "), exiting!!\n";
 			exit(EXIT_FAILURE);
 		}
@@ -119,7 +132,6 @@ int MC::Driver::parse() {
 
 	return parser->parse();
 }
-
 
 
 void MC::Driver::returnx(Node* p, Node* result) {
@@ -321,6 +333,7 @@ void MC::Driver::plus(Node* p, Node* result) {
 		std::cerr << "Warning: Invalid argument to plus operator." << std::endl;
 	}
 }
+
 void MC::Driver::minus(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -336,6 +349,7 @@ void MC::Driver::minus(Node* p, Node* result) {
 		std::cerr << "Warning: Invalid argument to minus operator.\n" << std::endl;
 	}
 }
+
 void MC::Driver::multiply(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -351,6 +365,7 @@ void MC::Driver::multiply(Node* p, Node* result) {
 		std::cerr << "Warning: Invalid argument to multiply operator.\n" << std::endl;
 	}
 }
+
 void MC::Driver::divide(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -366,6 +381,7 @@ void MC::Driver::divide(Node* p, Node* result) {
 		std::cerr << "Warning: Invalid argument to divide operator.\n" << std::endl;
 	}
 }
+
 void MC::Driver::modulo(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -410,6 +426,7 @@ void MC::Driver::andx(Node* p, Node* result) {
 	result->constant.setType(typeBool);
 	result->constant.boolVal = true;
 }
+
 void MC::Driver::orx(Node* p, Node* result) {
 	result->setType(Node::Constant);
 	result->constant.setType(typeUndefined);
@@ -440,6 +457,7 @@ void MC::Driver::orx(Node* p, Node* result) {
 	result->constant.setType(typeBool);
 	result->constant.boolVal = false;
 }
+
 void MC::Driver::neg(Node* p, Node* result) {
 	Node* v = ex(p->oper.op[0]);
 	ConstantNode& value = (v->getType() == Node::Variable) ? v->variable->value : v->constant;
@@ -476,6 +494,7 @@ void MC::Driver::inc(Node* p, Node* result) {
 		}
 	}
 }
+
 void MC::Driver::dec(Node* p, Node* result) {
 	Node* v = ex(p->oper.op[0]);
 	if (v->getType() != Node::Variable) {
@@ -521,6 +540,7 @@ void MC::Driver::lt(Node* p, Node* result) {
 				  << " to LT operator." << std::endl;
 	}
 }
+
 void MC::Driver::le(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -530,6 +550,7 @@ void MC::Driver::le(Node* p, Node* result) {
 	result->constant.setType(typeBool);
 	result->constant.boolVal = left.intVal <= right.intVal;
 }
+
 void MC::Driver::gt(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -539,6 +560,7 @@ void MC::Driver::gt(Node* p, Node* result) {
 	result->constant.setType(typeBool);
 	result->constant.boolVal = left.intVal > right.intVal;
 }
+
 void MC::Driver::ge(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -548,6 +570,7 @@ void MC::Driver::ge(Node* p, Node* result) {
 	result->constant.setType(typeBool);
 	result->constant.boolVal = left.intVal >= right.intVal;
 }
+
 void MC::Driver::eq(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -557,6 +580,7 @@ void MC::Driver::eq(Node* p, Node* result) {
 	result->constant.setType(typeBool);
 	result->constant.boolVal = left.intVal == right.intVal;
 }
+
 void MC::Driver::ne(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
 	Node* r = ex(p->oper.op[1]);
@@ -573,12 +597,23 @@ void MC::Driver::printx(Node* p, Node* result) {
 	switch (value->getType()) {
 		case Node::Operator:
 			switch (value->oper.oper) {
-				case token::FOR: 	*out << "FOR";		break;
-				case token::WHILE:	*out << "WHILE";	break;
-				case token::IF:		*out << "IF";		break;
-				case token::FUN:	*out << "FUN";		break;
-				case token::VAR:	*out << "VAR";		break;
-				default:			*out << "WRONG OPERATOR";
+				case token::FOR:
+					*out << "FOR";
+					break;
+				case token::WHILE:
+					*out << "WHILE";
+					break;
+				case token::IF:
+					*out << "IF";
+					break;
+				case token::FUN:
+					*out << "FUN";
+					break;
+				case token::VAR:
+					*out << "VAR";
+					break;
+				default:
+					*out << "WRONG OPERATOR";
 			}
 			break;
 		case Node::Constant:
@@ -599,6 +634,7 @@ void MC::Driver::printx(Node* p, Node* result) {
 
 	result->setType(Node::Empty);
 }
+
 void MC::Driver::println(Node* p, Node* result) {
 	printx(p, result);
 	*out << std::endl;
@@ -627,7 +663,8 @@ Node* MC::Driver::ex(Node* p) {
 			ConstantNode& varDefValue = variableDef.value;
 			if (variableDef.defaultValue != nullptr) {
 				Node* defaultValue = ex(variableDef.defaultValue);
-				ConstantNode& value = (defaultValue->getType() == Node::Variable) ? defaultValue->variable->value : defaultValue->constant;
+				ConstantNode& value = (defaultValue->getType() == Node::Variable) ? defaultValue->variable->value
+																				  : defaultValue->constant;
 
 				if (varDefValue.getType() != value.getType()) {
 					std::cerr << "Warning: Defined value of type " << varDefValue.getType()
@@ -665,39 +702,91 @@ Node* MC::Driver::ex(Node* p) {
 		}
 		case Node::Operator: {
 			switch (p->oper.oper) {
-				case token::PRINT:		printx(p, result); break;
-				case token::PRINTLN:	println(p, result); break;
-				case token::RETURN:		returnx(p, result); break;
+				case token::PRINT:
+					printx(p, result);
+					break;
+				case token::PRINTLN:
+					println(p, result);
+					break;
+				case token::RETURN:
+					returnx(p, result);
+					break;
 
-				case token::WHILE:	whilex(p, result); break;
-				case token::IF:		ifx(p, result); break;
-				case token::FOR:	forx(p, result); break;
-				case ';':			delimiter(p, result); break;
-				case '.':			dot(p, result); break;
-				case '=':			assign(p, result); break;
+				case token::WHILE:
+					whilex(p, result);
+					break;
+				case token::IF:
+					ifx(p, result);
+					break;
+				case token::FOR:
+					forx(p, result);
+					break;
+				case ';':
+					delimiter(p, result);
+					break;
+				case '.':
+					dot(p, result);
+					break;
+				case '=':
+					assign(p, result);
+					break;
 
-				case token::UMINUS:	uminus(p, result); break;
+				case token::UMINUS:
+					uminus(p, result);
+					break;
 
-				case '+':			plus(p, result); break;
-				case '-':			minus(p, result); break;
-				case '*':			multiply(p, result); break;
-				case '/':			divide(p, result); break;
-				case '%':			modulo(p, result); break;
+				case '+':
+					plus(p, result);
+					break;
+				case '-':
+					minus(p, result);
+					break;
+				case '*':
+					multiply(p, result);
+					break;
+				case '/':
+					divide(p, result);
+					break;
+				case '%':
+					modulo(p, result);
+					break;
 
-				case token::AND:	andx(p, result); break;
-				case token::OR:		orx(p, result); break;
-				case token::NEG:	neg(p, result); break;
+				case token::AND:
+					andx(p, result);
+					break;
+				case token::OR:
+					orx(p, result);
+					break;
+				case token::NEG:
+					neg(p, result);
+					break;
 
-				case token::INC:	inc(p, result); break;
-				case token::DEC:	dec(p, result); break;
+				case token::INC:
+					inc(p, result);
+					break;
+				case token::DEC:
+					dec(p, result);
+					break;
 
-				case token::LT:		lt(p, result); break;
-				case token::LE:		le(p, result); break;
-				case token::GT:		gt(p, result); break;
-				case token::GE:		ge(p, result); break;
-				case token::EQ:		eq(p, result); break;
-				case token::NE:		ne(p, result); break;
-					
+				case token::LT:
+					lt(p, result);
+					break;
+				case token::LE:
+					le(p, result);
+					break;
+				case token::GT:
+					gt(p, result);
+					break;
+				case token::GE:
+					ge(p, result);
+					break;
+				case token::EQ:
+					eq(p, result);
+					break;
+				case token::NE:
+					ne(p, result);
+					break;
+
 				default:
 					std::cerr << "Error: unknown operator '" << p->oper.oper << "'." << std::endl;
 			}
@@ -773,7 +862,7 @@ Node* MC::Driver::ex(Node* p) {
 		case Node::Object: {
 			std::string name = p->object.name;
 
-			ObjectDefNode *objectDef = findObject(name);
+			ObjectDefNode* objectDef = findObject(name);
 			if (objectDef == nullptr) {
 				std::cerr << "Warning: Undefined object '" << name
 						  << "'." << std::endl;
@@ -837,6 +926,30 @@ void MC::Driver::popSymbolTableScope() {
 	SymbolTable* table = currentSymbolTable;
 	currentSymbolTable = table->previousTable;
 	delete table;
+}
+
+VariableNode* MC::Driver::findVariable(const std::string& symbol) {
+	return currentSymbolTable->findVariable(symbol);
+}
+
+FunctionDefNode* MC::Driver::findFunction(const std::string& symbol) {
+	return currentSymbolTable->findFunction(symbol);
+}
+
+ObjectDefNode* MC::Driver::findObject(const std::string& symbol) {
+	return currentSymbolTable->findObject(symbol);
+}
+
+void MC::Driver::addVariable(VariableNode* variableDef) {
+	currentSymbolTable->addVariable(variableDef);
+}
+
+void MC::Driver::addFunction(FunctionDefNode& function) {
+	currentSymbolTable->addFunction(function);
+}
+
+void MC::Driver::addObject(ObjectDefNode& object) {
+	currentSymbolTable->addObject(object);
 }
 
 
