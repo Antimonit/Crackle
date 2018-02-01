@@ -34,11 +34,20 @@ int main(const int argc, const char **argv) {
 			}
 		} else if (std::strncmp(argv[i], "-f", 2) == 0) {
 			builder.debug(std::cout);
+		} else if (std::strncmp(argv[i], "--heap", 6) == 0) {
+			i++;
+			if (i < argc) {
+				builder.heap(atoi(argv[i]));
+			} else {
+				std::cout << "Unspecified heap size." << std::endl;
+				return (EXIT_FAILURE);
+			}
 		} else if (std::strncmp(argv[i], "-h", 2) == 0) {
 			std::cout << "Use -i <path_to_file> to specify input file (defaults to standard input)" << std::endl;
 			std::cout << "Use -o <path_to_file> to specify output file (defaults to standard output)" << std::endl;
 			std::cout << "Use -d <path_to_file> to specify debug file (none by default)" << std::endl;
 			std::cout << "Use -f to print debug to standard output" << std::endl;
+			std::cout << "Use --heap <heap_size> to set the heap size" << std::endl;
 			std::cout << "Use -h to get help." << std::endl;
 			return (EXIT_SUCCESS);
 		} else {

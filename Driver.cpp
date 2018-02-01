@@ -59,17 +59,19 @@ void MC::Driver::Builder::debug(std::ostream& os) {
 	deb = &os;
 }
 
+void MC::Driver::Builder::heap(int heapSize) {
+	this->heapSize = heapSize;
+}
+
 MC::Driver MC::Driver::Builder::build() {
-	return Driver(in, out, deb);
+	return Driver(in, out, deb, heapSize);
 };
 
 
 MC::Driver::Driver(std::istream* in,
 				   std::ostream* out,
-				   std::ostream* deb) {
-	this->in = in;
-	this->out = out;
-	this->deb = deb;
+				   std::ostream* deb,
+				   int heapSize): in(in), out(out), deb(deb), heap(heapSize) {
 }
 
 MC::Driver::~Driver() {

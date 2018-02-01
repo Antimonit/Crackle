@@ -18,12 +18,14 @@ namespace MC {
 	public:
 
 		class Builder {
-		public:
-			Builder();
-
+		private:
 			std::istream* in;
 			std::ostream* out;
 			std::ostream* deb;
+			int heapSize = DEFAULT_HEAP_SIZE;
+
+		public:
+			Builder();
 
 			void input(std::istream& is);
 
@@ -36,6 +38,8 @@ namespace MC {
 			void debug(std::ostream& os);
 
 			void debug(std::string filename);
+
+			void heap(int heapSize);
 
 			Driver build();
 
@@ -50,7 +54,9 @@ namespace MC {
 	private:
 		Driver(std::istream* in,
 			   std::ostream* out,
-			   std::ostream* deb);
+			   std::ostream* deb,
+			   int heapSize
+		);
 
 		std::istream* in;
 		std::ostream* out;

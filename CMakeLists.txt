@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(pop_interpreter CXX)
+project(crackle_interpreter CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17")
@@ -18,7 +18,7 @@ FLEX_TARGET(lexer
         ${CMAKE_CURRENT_BINARY_DIR}/lexer.yy.cc)
 ADD_FLEX_BISON_DEPENDENCY(lexer parser)
 
-add_executable(Pop
+add_executable(Crackle
         scanner.hpp
         main.cpp
         Driver.cpp
@@ -35,10 +35,10 @@ add_executable(Pop
         ${BISON_parser_OUTPUTS}
         sources/Heap.cpp headers/Heap.hpp)
 
-target_include_directories(Pop
+target_include_directories(Crackle
         PRIVATE
         .
         ${CMAKE_CURRENT_BINARY_DIR})
 
-set_property(TARGET Pop
+set_property(TARGET Crackle
              PROPERTY CXX_STANDARD 17)

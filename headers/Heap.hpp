@@ -28,8 +28,6 @@ namespace MC {
 
 		explicit Heap(int size);
 
-		Heap();
-
 		bool isFull();
 
 		ObjectNode* allocateNewObject();;

@@ -9,9 +9,6 @@ MC::Heap::Heap(int size) {
 	}
 }
 
-MC::Heap::Heap() : Heap(DEFAULT_HEAP_SIZE) {
-}
-
 bool MC::Heap::isFull() {
 	return allocatedObjects == size;
 }
