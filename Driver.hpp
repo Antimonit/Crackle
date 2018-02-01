@@ -7,9 +7,10 @@
 #include "scanner.hpp"
 #include "parser.tab.hh"
 #include "headers/types.hpp"
-#include "headers/ast_printer.hpp"
-#include "headers/symbol_table.hpp"
+#include "headers/AstPrinter.hpp"
+#include "headers/SymbolTable.hpp"
 #include "headers/node_helpers.hpp"
+#include "headers/Heap.hpp"
 
 namespace MC {
 
@@ -59,8 +60,10 @@ namespace MC {
 		MC::Scanner* scanner = nullptr;
 		MC::AstPrinter* printer = nullptr;
 
-		SymbolTable* rootSymbolTable = new SymbolTable();
-		SymbolTable* currentSymbolTable = rootSymbolTable;
+		MC::Heap heap;
+
+		MC::SymbolTable* rootSymbolTable = new SymbolTable();
+		MC::SymbolTable* currentSymbolTable = rootSymbolTable;
 
 		void replaceSymbolTableScope();
 

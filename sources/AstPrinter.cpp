@@ -4,7 +4,7 @@
 
 #include <list>
 #include <parser.tab.hh>
-#include "headers/ast_printer.hpp"
+#include "headers/AstPrinter.hpp"
 
 using token = MC::Parser::token;
 

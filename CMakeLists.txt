@@ -23,17 +23,17 @@ add_executable(Pop
         main.cpp
         Driver.cpp
         parser.hpp
-        sources/symbol_table.cpp
-        headers/symbol_table.hpp
+        sources/SymbolTable.cpp
+        headers/SymbolTable.hpp
         sources/node_helpers.cpp
         headers/node_helpers.hpp
         sources/types.cpp
         headers/types.hpp
-        sources/ast_printer.cpp
-        headers/ast_printer.hpp
+        sources/AstPrinter.cpp
+        headers/AstPrinter.hpp
         ${FLEX_lexer_OUTPUTS}
         ${BISON_parser_OUTPUTS}
-)
+        sources/Heap.cpp headers/Heap.hpp)
 
 target_include_directories(Pop
         PRIVATE

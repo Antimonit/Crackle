@@ -136,6 +136,7 @@ struct ObjectDefNode {
 };
 
 struct ObjectNode {
+	bool marked;
 	std::string name;
 	std::vector<VariableNode*> vars;
 };

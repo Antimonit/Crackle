@@ -210,7 +210,7 @@ void MC::Driver::delimiter(Node* p, Node* result) {
 	result->setType(Node::Operator);
 	result->oper.oper = ';';
 
-	if (p->oper.op.size() > 0) {
+	if (!p->oper.op.empty()) {
 		Node* left = ex(p->oper.op[0]);
 		if (left->getType() == Node::Return) {
 			result->setType(Node::Return);
@@ -677,7 +677,7 @@ Node* MC::Driver::ex(Node* p) {
 				defaultConstant(varDefValue);
 			}
 
-			VariableNode* variable = new VariableNode;
+			auto* variable = new VariableNode;
 			variable->name = variableDef.name;
 			variable->value = variableDef.value;
 
@@ -696,8 +696,6 @@ Node* MC::Driver::ex(Node* p) {
 
 			result->setType(Node::Variable);
 			result->variable = variable;
-//			result->variable->name = variable->name;
-//			result->variable->value = variable->value;
 			goto end;
 		}
 		case Node::Operator: {
@@ -870,9 +868,18 @@ Node* MC::Driver::ex(Node* p) {
 				goto end;
 			}
 
-			auto* objectVal = new ObjectNode;
+			if (heap.isFull()) {
+				heap.performGarbageCollection(currentSymbolTable);
+			}
+
+			auto* objectVal = heap.allocateNewObject();
+			if (objectVal == nullptr) {
+				std::cerr << "ERROR: Heap is full. Cannot allocate new objects." << std::endl;
+				goto end;
+			}
+
 			for (auto& varDef : objectDef->vars) {
-				VariableNode* var = new VariableNode;
+				auto* var = new VariableNode;
 				var->name = varDef.name;
 				var->value = varDef.value;
 				if (varDef.defaultValue != nullptr) {

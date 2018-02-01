@@ -15,7 +15,7 @@
 #include <utility>
 #include <c++/iostream>
 #include "headers/types.hpp"
-#include "headers/symbol_table.hpp"
+#include "headers/SymbolTable.hpp"
 
 
 int yyerror(const std::string &message) {
