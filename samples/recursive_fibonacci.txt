@@ -1,0 +1,21 @@
+int recFib(int n) {
+    if (n <= 0) {
+        return 0;
+    } else {
+        if (n == 1) {
+            return 1;
+        } else {
+            return recFib(n-1) + recFib(n-2);
+        }
+    }
+}
+
+
+int n = 0;
+while (n < 10) {
+    print "Fibonacci ";
+    print n;
+    print ": ";
+    println recFib(n);
+    n = n + 1;
+}

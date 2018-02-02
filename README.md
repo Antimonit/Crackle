@@ -1,7 +1,7 @@
 # Crackle
 
-Crackle is a statically strongly typed interpreter with similar syntax
-to Java and written in C++ using Flex and Bison.
+Crackle is a statically typed interpreter with similar syntax
+to Java and is written in C++ using Flex and Bison tools.
 
 The language is named Crackle after the fifth derivative of position.
 
@@ -10,8 +10,7 @@ The language is named Crackle after the fifth derivative of position.
 Crackle follows similar grammar rules as the Java language.
 Crackle is, similarly to Java, statically typed and so every variable
 assignment has to assign appropriate value, functions have to
-be called with declared parameter types, etc. Moreover it is strongly
-typed, meaning that a value cannot be assigned to a variable with
+be called with declared parameter types, etc.
 
 #### Primitive types
 For simplicity reasons, Crackle supports only following primitive types:
@@ -127,17 +126,19 @@ line arguments:
 * **--heap <heap_size>** sets the heap size to <heap_size>
 * **--heap <heap_size>** sets the heap size to <heap_size>
 
-
 ### How to compile
 Crackle uses Flex scanner and Bison parser tools to facilitate the
 lexical and syntax analysis.
-It was developed mostly in the CLion IDE and compiled using CMake.
-CMake handles Flex and Bison dependencies by itself and one does not
-have to provide the binaries.
+Crackle is compiled using CMake. CMake handles Flex and Bison
+dependencies by itself and one does not have to provide the binaries.
+CMake file is a part of source code.
 
 ### To be implemented
 
 * Comments
-* Function reference as a type
+* Function reference as a type -> higher order functions
+* Arrays
 * Crash nicely when OOM
 * Fix leaks
+* Unit tests
+* Rename object to record (https://en.wikipedia.org/wiki/Record_(computer_science))

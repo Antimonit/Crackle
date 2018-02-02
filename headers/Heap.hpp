@@ -1,7 +1,7 @@
 #ifndef POP_INTERPRETER_HEAP_H
 #define POP_INTERPRETER_HEAP_H
 
-#define DEFAULT_HEAP_SIZE 4
+#define DEFAULT_HEAP_SIZE 1024
 
 #include "headers/types.hpp"
 #include "SymbolTable.hpp"
