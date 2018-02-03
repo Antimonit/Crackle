@@ -1,5 +1,5 @@
-#ifndef TYPES_H_
-#define TYPES_H_
+#ifndef __TYPES_HPP__
+#define __TYPES_HPP__
 
 #include <c++/string>
 #include <c++/iostream>

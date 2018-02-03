@@ -81,18 +81,18 @@ MC::Driver::~Driver() {
 	parser = nullptr;
 	delete printer;
 	printer = nullptr;
-	if (in != nullptr && in != &std::cin) {
-		delete in;
-		in = nullptr;
-	}
-	if (out != nullptr && out != &std::cout && out != &std::cerr) {
-		delete out;
-		out = nullptr;
-	}
-	if (deb != nullptr && deb != &std::cout && deb != &std::cerr) {
-		delete deb;
-		deb = nullptr;
-	}
+//	if (in != nullptr && in != &std::cin) {
+//		delete in;
+//		in = nullptr;
+//	}
+//	if (out != nullptr && out != &std::cout && out != &std::cerr) {
+//		delete out;
+//		out = nullptr;
+//	}
+//	if (deb != nullptr && deb != &std::cout && deb != &std::cerr) {
+//		delete deb;
+//		deb = nullptr;
+//	}
 }
 
 int MC::Driver::parse() {

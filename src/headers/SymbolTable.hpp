@@ -1,5 +1,5 @@
-#ifndef SYMBOL_TABLE_H
-#define SYMBOL_TABLE_H
+#ifndef __SYMBOL_TABLE_HPP__
+#define __SYMBOL_TABLE_HPP__
 
 #include <cstdlib>
 #include <map>

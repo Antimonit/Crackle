@@ -131,7 +131,7 @@ Crackle uses Flex scanner and Bison parser tools to facilitate the
 lexical and syntax analysis.
 Crackle is compiled using CMake. CMake handles Flex and Bison
 dependencies by itself and one does not have to provide the binaries.
-CMake file is a part of source code.
+CMake file is a part of src code.
 
 ### To be implemented
 

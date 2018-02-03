@@ -8,11 +8,11 @@
 // This code is derived from software contributed to Berkeley by
 // Kent Williams and Tom Epperly.
 //
-//  Redistribution and use in source and binary forms, with or without
+//  Redistribution and use in src and binary forms, with or without
 //  modification, are permitted provided that the following conditions
 //  are met:
 
-//  1. Redistributions of source code must retain the above copyright
+//  1. Redistributions of src code must retain the above copyright
 //  notice, this list of conditions and the following disclaimer.
 //  2. Redistributions in binary form must reproduce the above copyright
 //  notice, this list of conditions and the following disclaimer in the
@@ -168,7 +168,7 @@ protected:
   yy_state_type yy_try_NUL_trans( yy_state_type current_state );
   int yy_get_next_buffer();
 
-  std::istream yyin;  // input source for default LexerInput
+  std::istream yyin;  // input src for default LexerInput
   std::ostream yyout; // output sink for default LexerOutput
 
   // yy_hold_char holds the character lost when yytext is formed.

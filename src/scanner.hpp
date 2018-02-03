@@ -1,5 +1,5 @@
 #ifndef __SCANNER_HPP__
-#define __SCANNER_HPP__ 1
+#define __SCANNER_HPP__
 
 #if ! defined(yyFlexLexerOnce)
 #include "FlexLexer.h"

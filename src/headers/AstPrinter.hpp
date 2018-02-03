@@ -2,8 +2,8 @@
 // Created by DAVE on 8. 1. 2018.
 //
 
-#ifndef CRACKLE_INTERPRETER_AST_PRINTER_H
-#define CRACKLE_INTERPRETER_AST_PRINTER_H
+#ifndef __AST_PRINTER_HPP__
+#define __AST_PRINTER_HPP__
 
 #include <list>
 #include "headers/types.hpp"

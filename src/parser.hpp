@@ -1,9 +1,5 @@
-//
-// Created by DAVE on 31. 12. 2017.
-//
-
-#ifndef CRACKLE_INTERPRETER_PARSER_H
-#define CRACKLE_INTERPRETER_PARSER_H
+#ifndef __PARSER_HPP__
+#define __PARSER_HPP__
 
 #include <cstdio>
 #include <cstdarg>

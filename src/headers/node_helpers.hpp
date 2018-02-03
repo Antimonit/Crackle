@@ -1,5 +1,5 @@
-#ifndef CRACKLE_INTERPRETER_NODE_HELPERS_H
-#define CRACKLE_INTERPRETER_NODE_HELPERS_H
+#ifndef __NODE_HELPERS_HPP__
+#define __NODE_HELPERS_HPP__
 
 #include "types.hpp"
 

@@ -1,5 +1,5 @@
-#ifndef __MCDRIVER_HPP__
-#define __MCDRIVER_HPP__ 1
+#ifndef __DRIVER_HPP__
+#define __DRIVER_HPP__
 
 #include <string>
 #include <cstddef>

@@ -1,5 +1,5 @@
-#ifndef POP_INTERPRETER_HEAP_H
-#define POP_INTERPRETER_HEAP_H
+#ifndef __HEAP_HPP__
+#define __HEAP_HPP__
 
 #define DEFAULT_HEAP_SIZE 1024
 
