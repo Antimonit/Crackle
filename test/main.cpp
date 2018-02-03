@@ -1,26 +1,22 @@
 //
 // Created by DAVE on 3. 2. 2018.
 //
-#include <c++/iostream>
+#include <iostream>
+#include <sstream>
 #include <fstream>
-#include <c++/cstring>
-#include <c++/sstream>
 #include "Driver.hpp"
 
-bool test(const std::string& testName) {
+using namespace std;
+
+bool test(const string& testName) {
 	MC::Driver::Builder builder;
 
-	std::string folder = std::string("./");
-	std::string prefix = std::string("test_");
-	std::string in_postfix = std::string("_in.txt");
-	std::string out_postfix = std::string("_out.txt");
+	string inFileName = "./in/" + testName;
+	string outFileName = "./out/" + testName;
 
-	std::string inFileName = folder + prefix + testName + in_postfix;
-	std::string outFileName = folder + prefix + testName + out_postfix;
-
-	std::ifstream inFile(inFileName);
-	std::ifstream expectedOutFile(outFileName);
-	std::stringstream actualOut;
+	ifstream inFile(inFileName);
+	ifstream expectedOutFile(outFileName);
+	stringstream actualOut;
 
 	builder.input(inFile);
 	builder.output(actualOut);
@@ -28,34 +24,38 @@ bool test(const std::string& testName) {
 	builder.heap(1024);
 
 	if (builder.build().parse() != 0) {
-		std::cerr << "Parsing failed!" << std::endl;
+		cerr << "Parsing test \"" << testName << "\" failed." << endl;
 		return false;
 	}
 
-	std::stringstream expectedOut;
+	stringstream expectedOut;
 	expectedOut << expectedOutFile.rdbuf();
 
-	std::string expectedOutString = expectedOut.str();
-	std::string actualOutString = actualOut.str();
+	string expectedOutString = expectedOut.str();
+	string actualOutString = actualOut.str();
 
-//	std::cout << '"' << expectedOutString << '"' << std::endl;
-//	std::cout << '"' << actualOutString << '"' << std::endl;
-
-	return expectedOutString == actualOutString;
+	if (expectedOutString == actualOutString) {
+		return true;
+	} else {
+		cerr << "Test \"" << testName << "\" failed." << endl;
+		return false;
+	}
 }
 
 int main(const int argc, const char **argv) {
 
-	std::cout << "Starting tests." << std::endl;
+	cout << "Starting tests." << endl;
 	int failed = 0;
 
-	failed += test("iterative_fibonacci") ? 0 : 1;
+	failed += test("iterative_fibonacci.txt") ? 0 : 1;
+	failed += test("recursive_fibonacci.txt") ? 0 : 1;
+	failed += test("avl.txt") ? 0 : 1;
 
 	if (failed > 0) {
-		std::cout << "Tests failed." << std::endl;
+		cout << failed << " tests failed." << endl;
 		return (EXIT_FAILURE);
 	} else {
-		std::cout << "All tests passed." << std::endl;
+		cout << "All tests passed." << endl;
 		return (EXIT_SUCCESS);
 	}
 }
