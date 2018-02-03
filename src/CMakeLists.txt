@@ -17,10 +17,15 @@ add_library(crackle_lib
         parser.hpp
         Driver.cpp
         sources/SymbolTable.cpp
+        headers/SymbolTable.hpp
         sources/node_helpers.cpp
+        headers/node_helpers.hpp
         sources/types.cpp
+        headers/types.hpp
         sources/AstPrinter.cpp
+        headers/AstPrinter.hpp
         sources/Heap.cpp
+        headers/Heap.hpp
         ${FLEX_lexer_OUTPUTS}
         ${BISON_parser_OUTPUTS}
         )

@@ -14,53 +14,60 @@ MC::Driver::Builder::Builder() {
 	deb = nullptr;
 }
 
-void MC::Driver::Builder::input(std::string filename) {
+MC::Driver::Builder MC::Driver::Builder::input(std::string filename) {
 	auto* file = new std::ifstream(filename);
 	if (!file->good()) {
 		exit(EXIT_FAILURE);
 	}
 	in = file;
+	return *this;
 }
 
-void MC::Driver::Builder::input(std::istream& is) {
+MC::Driver::Builder MC::Driver::Builder::input(std::istream& is) {
 	if (!is.good() && is.eof()) {
-		return;
+		return *this;
 	}
 	in = &is;
+	return *this;
 }
 
-void MC::Driver::Builder::output(std::string filename) {
+MC::Driver::Builder MC::Driver::Builder::output(std::string filename) {
 	auto* file = new std::ofstream(filename);
 	if (!file->good()) {
 		exit(EXIT_FAILURE);
 	}
 	out = file;
+	return *this;
 }
 
-void MC::Driver::Builder::output(std::ostream& os) {
+MC::Driver::Builder MC::Driver::Builder::output(std::ostream& os) {
 	if (!os.good() && os.eof()) {
-		return;
+		return *this;
 	}
 	out = &os;
+	return *this;
 }
 
-void MC::Driver::Builder::debug(std::string filename) {
+MC::Driver::Builder MC::Driver::Builder::debug(std::string filename) {
 	auto* file = new std::ofstream(filename);
 	if (!file->good()) {
 		exit(EXIT_FAILURE);
 	}
 	deb = file;
+	return *this;
 }
 
-void MC::Driver::Builder::debug(std::ostream& os) {
+MC::Driver::Builder MC::Driver::Builder::debug(std::ostream& os) {
 	if (!os.good() && os.eof()) {
-		return;
+		return *this;
 	}
 	deb = &os;
+	return *this;
 }
 
-void MC::Driver::Builder::heap(int heapSize) {
+MC::Driver::Builder MC::Driver::Builder::heap(int heapSize) {
 	this->heapSize = heapSize;
+	return *this;
 }
 
 MC::Driver MC::Driver::Builder::build() {
@@ -81,25 +88,10 @@ MC::Driver::~Driver() {
 	parser = nullptr;
 	delete printer;
 	printer = nullptr;
-//	if (in != nullptr && in != &std::cin) {
-//		delete in;
-//		in = nullptr;
-//	}
-//	if (out != nullptr && out != &std::cout && out != &std::cerr) {
-//		delete out;
-//		out = nullptr;
-//	}
-//	if (deb != nullptr && deb != &std::cout && deb != &std::cerr) {
-//		delete deb;
-//		deb = nullptr;
-//	}
 }
 
 int MC::Driver::parse() {
 	if (!in->good() && in->eof()) {
-		return 1;
-	}
-	if (!out->good() && out->eof()) {
 		return 1;
 	}
 

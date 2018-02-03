@@ -14,7 +14,13 @@
 
 namespace MC {
 
+	class DriverTest;
+
 	class Driver {
+//#ifdef UNIT_TEST
+		friend DriverTest;
+//#endif
+
 	public:
 
 		class Builder {
@@ -27,19 +33,19 @@ namespace MC {
 		public:
 			Builder();
 
-			void input(std::istream& is);
+			MC::Driver::Builder input(std::istream& is);
 
-			void input(std::string filename);
+			MC::Driver::Builder input(std::string filename);
 
-			void output(std::ostream& os);
+			MC::Driver::Builder output(std::ostream& os);
 
-			void output(std::string filename);
+			MC::Driver::Builder output(std::string filename);
 
-			void debug(std::ostream& os);
+			MC::Driver::Builder debug(std::ostream& os);
 
-			void debug(std::string filename);
+			MC::Driver::Builder debug(std::string filename);
 
-			void heap(int heapSize);
+			MC::Driver::Builder heap(int heapSize);
 
 			Driver build();
 

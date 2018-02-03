@@ -1,61 +1,34 @@
 //
 // Created by DAVE on 3. 2. 2018.
 //
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include "Driver.hpp"
 
-using namespace std;
-
-bool test(const string& testName) {
-	MC::Driver::Builder builder;
-
-	string inFileName = "./in/" + testName;
-	string outFileName = "./out/" + testName;
-
-	ifstream inFile(inFileName);
-	ifstream expectedOutFile(outFileName);
-	stringstream actualOut;
-
-	builder.input(inFile);
-	builder.output(actualOut);
-//	builder.debug();
-	builder.heap(1024);
-
-	if (builder.build().parse() != 0) {
-		cerr << "Parsing test \"" << testName << "\" failed." << endl;
-		return false;
-	}
-
-	stringstream expectedOut;
-	expectedOut << expectedOutFile.rdbuf();
-
-	string expectedOutString = expectedOut.str();
-	string actualOutString = actualOut.str();
-
-	if (expectedOutString == actualOutString) {
-		return true;
-	} else {
-		cerr << "Test \"" << testName << "\" failed." << endl;
-		return false;
-	}
-}
+#include <c++/iostream>
+#include "io_test.hpp"
+#include "DriverTest.hpp"
 
 int main(const int argc, const char **argv) {
 
-	cout << "Starting tests." << endl;
-	int failed = 0;
+	std::cout << "Starting tests." << std::endl;
 
-	failed += test("iterative_fibonacci.txt") ? 0 : 1;
-	failed += test("recursive_fibonacci.txt") ? 0 : 1;
-	failed += test("avl.txt") ? 0 : 1;
+	try {
+		ioTest("iterative_fibonacci.txt");
+		ioTest("recursive_fibonacci.txt");
+		ioTest("avl.txt");
 
-	if (failed > 0) {
-		cout << failed << " tests failed." << endl;
+		MC::DriverTest::testEQ();
+		MC::DriverTest::testINC();
+
+	} catch (const std::string& e) {
+		std::cerr << e << std::endl;
 		return (EXIT_FAILURE);
-	} else {
-		cout << "All tests passed." << endl;
-		return (EXIT_SUCCESS);
+	} catch (const char* e) {
+		std::cerr << e << std::endl;
+		return (EXIT_FAILURE);
+	} catch (...) {
+		std::cerr << "Test failed." << std::endl;
+		return (EXIT_FAILURE);
 	}
+
+	std::cout << "All tests passed." << std::endl;
+	return (EXIT_SUCCESS);
 }
