@@ -541,8 +541,23 @@ void MC::Driver::le(Node* p, Node* result) {
 	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
 	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	result->setType(Node::Constant);
-	result->constant.setType(typeBool);
-	result->constant.boolVal = left.intVal <= right.intVal;
+	result->constant.setType(typeUndefined);
+
+	DataType max = maxType(left, right);
+
+	if (max == typeInt) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.intVal <= right.intVal;
+	} else if (max == typeDouble) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.doubleVal <= right.doubleVal;
+	} else {
+		std::cerr << "Warning: Invalid arguments of types " << left.getType()
+				  << " and " << right.getType()
+				  << " to LE operator." << std::endl;
+	}
 }
 
 void MC::Driver::gt(Node* p, Node* result) {
@@ -551,9 +566,23 @@ void MC::Driver::gt(Node* p, Node* result) {
 	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
 	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	result->setType(Node::Constant);
-	result->constant.setType(typeBool);
-	result->constant.boolVal = left.intVal > right.intVal;
-}
+	result->constant.setType(typeUndefined);
+
+	DataType max = maxType(left, right);
+
+	if (max == typeInt) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.intVal > right.intVal;
+	} else if (max == typeDouble) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.doubleVal > right.doubleVal;
+	} else {
+		std::cerr << "Warning: Invalid arguments of types " << left.getType()
+				  << " and " << right.getType()
+				  << " to GT operator." << std::endl;
+	}}
 
 void MC::Driver::ge(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
@@ -561,9 +590,23 @@ void MC::Driver::ge(Node* p, Node* result) {
 	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
 	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	result->setType(Node::Constant);
-	result->constant.setType(typeBool);
-	result->constant.boolVal = left.intVal >= right.intVal;
-}
+	result->constant.setType(typeUndefined);
+
+	DataType max = maxType(left, right);
+
+	if (max == typeInt) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.intVal >= right.intVal;
+	} else if (max == typeDouble) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.doubleVal >= right.doubleVal;
+	} else {
+		std::cerr << "Warning: Invalid arguments of types " << left.getType()
+				  << " and " << right.getType()
+				  << " to GE operator." << std::endl;
+	}}
 
 void MC::Driver::eq(Node* p, Node* result) {
 	Node* l = ex(p->oper.op[0]);
@@ -572,7 +615,24 @@ void MC::Driver::eq(Node* p, Node* result) {
 	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	result->setType(Node::Constant);
 	result->constant.setType(typeBool);
-	result->constant.boolVal = left.intVal == right.intVal;
+	result->setType(Node::Constant);
+	result->constant.setType(typeUndefined);
+
+	DataType max = maxType(left, right);
+
+	if (max == typeInt) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.intVal == right.intVal;
+	} else if (max == typeDouble) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.doubleVal == right.doubleVal;
+	} else {
+		std::cerr << "Warning: Invalid arguments of types " << left.getType()
+				  << " and " << right.getType()
+				  << " to EQ operator." << std::endl;
+	}
 }
 
 void MC::Driver::ne(Node* p, Node* result) {
@@ -581,8 +641,23 @@ void MC::Driver::ne(Node* p, Node* result) {
 	ConstantNode& left = (l->getType() == Node::Variable) ? l->variable->value : l->constant;
 	ConstantNode& right = (r->getType() == Node::Variable) ? r->variable->value : r->constant;
 	result->setType(Node::Constant);
-	result->constant.setType(typeBool);
-	result->constant.boolVal = left.intVal != right.intVal;
+	result->constant.setType(typeUndefined);
+
+	DataType max = maxType(left, right);
+
+	if (max == typeInt) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.intVal != right.intVal;
+	} else if (max == typeDouble) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.doubleVal != right.doubleVal;
+	} else {
+		std::cerr << "Warning: Invalid arguments of types " << left.getType()
+				  << " and " << right.getType()
+				  << " to NE operator." << std::endl;
+	}
 }
 
 void MC::Driver::printx(Node* p, Node* result) {
