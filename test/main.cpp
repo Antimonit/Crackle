@@ -17,6 +17,10 @@ int main(const int argc, const char **argv) {
 
 		MC::DriverTest::testEQ();
 		MC::DriverTest::testINC();
+		MC::DriverTest::testPLUSIntInt();
+		MC::DriverTest::testPLUSDoubleDouble();
+		MC::DriverTest::testPLUSIntDouble();
+		MC::DriverTest::testPLUSIntBoolean();
 
 	} catch (const std::string& e) {
 		std::cerr << e << std::endl;

@@ -17,7 +17,7 @@ enum DataType {
 };
 
 std::ostream& operator<<(std::ostream& out, DataType value);
-
+std::string operator+(const std::string& out, DataType value);
 
 class ConstantNode;
 class OperatorNode;
@@ -177,7 +177,7 @@ public:
         ReturnNode ret;
     };
 
-	Type getType() {
+	Type getType() const {
 		return type;
 	}
 

@@ -21,18 +21,23 @@ std::ostream& operator<<(std::ostream& out, const Node::Type value) {
 		default:				return out << "<unknown>";
 	}
 }
-
-std::ostream& operator<<(std::ostream& out, const DataType value) {
+std::string toString(DataType value) {
 	switch (value) {
-		case typeInt:		return out << "int";
-		case typeDouble:	return out << "double";
-		case typeString:	return out << "string";
-		case typeBool:		return out << "bool";
-		case typeVoid:		return out << "void";
-		case typeObject:	return out << "object";
-		case typeUndefined:	return out << "<undefined>";
-		default:			return out << "<unknown>";
+		case typeInt:		return "int";
+		case typeDouble:	return "double";
+		case typeString:	return "string";
+		case typeBool:		return "bool";
+		case typeVoid:		return "void";
+		case typeObject:	return "object";
+		case typeUndefined:	return "<undefined>";
+		default:			return "<unknown>";
 	}
+}
+std::ostream& operator<<(std::ostream& out, const DataType value) {
+	return out << toString(value);
+}
+std::string operator+(const std::string& out, const DataType value) {
+	return out + toString(value);
 }
 
 std::ostream& operator<<(std::ostream& out, ConstantNode& constant) {

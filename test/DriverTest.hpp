@@ -117,7 +117,14 @@ namespace MC {
 			return node;
 		}
 
+		static Node testPLUS(Node* operandOne, Node* operandTwo);
+
 	public:
+
+		static void testPLUSIntInt();
+		static void testPLUSDoubleDouble();
+		static void testPLUSIntDouble();
+		static void testPLUSIntBoolean();
 
 		static void testEQ();
 

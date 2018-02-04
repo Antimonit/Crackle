@@ -11,6 +11,8 @@ DataType maxType(ConstantNode& a, ConstantNode& b) {
 	DataType typeB = b.getType();
 	if (typeA == typeInt && typeB == typeInt) {
 		return typeInt;
+	} else if (typeA == typeDouble && typeB == typeDouble) {
+		return typeDouble;
 	} else if ((typeA == typeDouble || typeB == typeDouble) && (typeA == typeInt || typeB == typeInt)) {
 		return typeDouble;
 	} else if (typeA == typeString && typeB == typeString) {
