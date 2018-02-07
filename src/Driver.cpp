@@ -628,6 +628,10 @@ void MC::Driver::eq(Node* p, Node* result) {
 		result->constant.setType(typeBool);
 		widenNodes(left, right);
 		result->constant.boolVal = left.doubleVal == right.doubleVal;
+	} else if (max == typeObject) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.objectVal == right.objectVal;
 	} else {
 		std::cerr << "Warning: Invalid arguments of types " << left.getType()
 				  << " and " << right.getType()
@@ -653,6 +657,10 @@ void MC::Driver::ne(Node* p, Node* result) {
 		result->constant.setType(typeBool);
 		widenNodes(left, right);
 		result->constant.boolVal = left.doubleVal != right.doubleVal;
+	} else if (max == typeObject) {
+		result->constant.setType(typeBool);
+		widenNodes(left, right);
+		result->constant.boolVal = left.objectVal != right.objectVal;
 	} else {
 		std::cerr << "Warning: Invalid arguments of types " << left.getType()
 				  << " and " << right.getType()

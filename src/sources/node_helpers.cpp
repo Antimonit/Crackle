@@ -17,6 +17,8 @@ DataType maxType(ConstantNode& a, ConstantNode& b) {
 		return typeDouble;
 	} else if (typeA == typeString && typeB == typeString) {
 		return typeString;
+	} else if (typeA == typeObject && typeB == typeObject) {
+		return typeObject;
 	} else {
 		return typeUndefined;
 	}
