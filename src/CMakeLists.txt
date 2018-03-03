@@ -20,7 +20,7 @@ add_library(crackle_lib
         headers/SymbolTable.hpp
         sources/node_helpers.cpp
         headers/node_helpers.hpp
-        sources/types.cpp
+        sources/node_types.cpp
         headers/types.hpp
         sources/AstPrinter.cpp
         headers/AstPrinter.hpp
@@ -28,6 +28,19 @@ add_library(crackle_lib
         headers/Heap.hpp
         ${FLEX_lexer_OUTPUTS}
         ${BISON_parser_OUTPUTS}
+        nodes/node_types.h
+        nodes/DataType.h nodes/DataType.cpp
+        nodes/xNode.cpp             nodes/xNode.h
+        nodes/xConstantNode.cpp     nodes/xConstantNode.h
+        nodes/xVariableDefNode.cpp  nodes/xVariableDefNode.h
+        nodes/xVariableNode.cpp     nodes/xVariableNode.h
+        nodes/xFunctionDefNode.cpp  nodes/xFunctionDefNode.h
+        nodes/xFunctionNode.cpp     nodes/xFunctionNode.h
+        nodes/xObjectDefNode.cpp    nodes/xObjectDefNode.h
+        nodes/xObjectNode.cpp       nodes/xObjectNode.h
+        nodes/xOperatorNode.cpp     nodes/xOperatorNode.h
+        nodes/xReturnNode.cpp       nodes/xReturnNode.h
+        nodes/xEmptyNode.cpp        nodes/xEmptyNode.h
         )
 target_include_directories(crackle_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(crackle_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

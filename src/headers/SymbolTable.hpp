@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 #include <map>
-#include "types.hpp"
+#include "nodes/node_types.h"
 
 namespace MC {
 
@@ -13,13 +13,13 @@ namespace MC {
 		friend class Heap;
 	private:
 
-		std::map<std::string, VariableNode*> variables{};
-		std::map<std::string, FunctionDefNode*> functions{};
-		std::map<std::string, ObjectDefNode*> objects{};
+		std::map<std::string, xVariableNode*> variables{};
+		std::map<std::string, xFunctionDefNode*> functions{};
+		std::map<std::string, xObjectDefNode*> objects{};
 
-		VariableNode* findVariableInTable(const std::string &symbol);
-		FunctionDefNode* findFunctionInTable(const std::string &symbol);
-		ObjectDefNode* findObjectInTable(const std::string &symbol);
+		xVariableNode* findVariableInTable(const std::string &symbol);
+		xFunctionDefNode* findFunctionInTable(const std::string &symbol);
+		xObjectDefNode* findObjectInTable(const std::string &symbol);
 
 	public:
 
@@ -29,13 +29,13 @@ namespace MC {
 		SymbolTable* previousTable = nullptr;	// can point to a sibling (when calling a function)
 		// when popping the symbolTable, restore previous table and not the parent table
 
-		VariableNode* findVariable(const std::string& symbol);
-		FunctionDefNode* findFunction(const std::string& symbol);
-		ObjectDefNode* findObject(const std::string&symbol);
+		xVariableNode* findVariable(const std::string& symbol);
+		xFunctionDefNode* findFunction(const std::string& symbol);
+		xObjectDefNode* findObject(const std::string&symbol);
 
-		void addVariable(VariableNode* variableDef);
-		void addFunction(FunctionDefNode& function);
-		void addObject(ObjectDefNode& object);
+		void addVariable(xVariableNode* variableDef);
+		void addFunction(xFunctionDefNode* function);
+		void addObject(xObjectDefNode* object);
 
 	};
 

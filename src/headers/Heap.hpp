@@ -12,7 +12,7 @@ namespace MC {
 	private:
 		int size;
 		int allocatedObjects;
-		ObjectNode** objects;
+		xObjectNode** objects;
 
 		int findFreeSlotInHeap();;
 
@@ -20,7 +20,7 @@ namespace MC {
 
 		void gcMarkTable(SymbolTable* table);
 
-		void gcMarkNode(ObjectNode* object);
+		void gcMarkNode(xObjectNode* object);
 
 		void gcSweep();
 
@@ -30,7 +30,7 @@ namespace MC {
 
 		bool isFull();
 
-		ObjectNode* allocateNewObject();;
+		xObjectNode* allocateNewObject();;
 
 		void performGarbageCollection(SymbolTable* currentTable);
 

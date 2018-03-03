@@ -6,7 +6,8 @@
 #define __AST_PRINTER_HPP__
 
 #include <list>
-#include "headers/types.hpp"
+#include "nodes/xNode.h"
+#include "nodes/xOperatorNode.h"
 
 namespace MC {
 
@@ -16,19 +17,19 @@ namespace MC {
 		explicit AstPrinter(std::ostream* out) : out(out ? out->rdbuf() : std::cout.rdbuf()) {
 		};
 
-		void enterNode(Node* node);
+		void enterNode(xNode* node);
 
-		void exitNode(Node* node);
+		void exitNode(xNode* node);
 
 	private:
 
 		std::ostream out;
-		std::list<Node*> stack;
+		std::list<xNode*> stack;
 		int indent = 0;
 
-		void printOperator(Node* node);
+		void printOperator(xOperatorNode* node);
 
-		void printNode(bool entering, Node* node);
+		void printNode(bool entering, xNode* node);
 
 	};
 

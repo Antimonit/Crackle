@@ -10,6 +10,12 @@
 #include <headers/node_helpers.hpp>
 #include <utility>
 #include <c++/iostream>
+#include <nodes/xNode.h>
+#include <nodes/xOperatorNode.h>
+#include <nodes/xObjectNode.h>
+#include <nodes/xEmptyNode.h>
+#include <nodes/xFunctionNode.h>
+#include <nodes/xFunctionDefNode.h>
 #include "headers/types.hpp"
 #include "headers/SymbolTable.hpp"
 
@@ -20,191 +26,154 @@ int yyerror(const std::string &message) {
 }
 
 
-void deleteNode(Node* node) {
-	if (!node)
-		return;
+//void deleteNode(xNode* node) {
+//	if (!node)
+//		return;
+//
+//	if (node->getType() == Node::Operator) {
+//		for (auto& i : node->oper.op) {
+//			deleteNode(i);
+//		}
+//	}
+//	free(node);
+//}
 
-	if (node->getType() == Node::Operator) {
-		for (auto& i : node->oper.op) {
-			deleteNode(i);
-		}
-	}
-	free(node);
-}
 
-
-int getParamCount(Node* params) {
+int getParamCount(xOperatorNode* params) {
 	int paramCount = 0;
 	if (params != nullptr) {
 		paramCount = 1;
-		Node *countingParams = params;
-		while (countingParams->oper.op[0] != nullptr) {
+		xOperatorNode *countingParams = params;
+		while (countingParams->op[0] != nullptr) {
 			paramCount++;
-			countingParams = countingParams->oper.op[0];
+			countingParams = countingParams->op[0];
 		}
 	}
 	return paramCount;
 }
 
-Node* functionDef(Node* typedVariable, Node* params, Node* root) {
-	auto* function = new Node;
+xFunctionDefNode* functionDef(xVariableNode* typedVariable, xOperatorNode* params, xNode* root) {
+	auto* functionDefNode = new xFunctionDefNode;
 
-	VariableNode* variable = typedVariable->variable;
-	FunctionDefNode* functionDef = &function->functionDef;
+	xVariableNode* variable = typedVariable;
+	xFunctionDefNode* functionDef = functionDefNode;
 
-	function->setType(Node::FunctionDef);
-	functionDef->dataType = variable->value.getType();
-	functionDef->name = variable->name;
-	functionDef->root = root;
+	functionDefNode->dataType = variable->value->getType();
+	functionDefNode->name = variable->name;
+	functionDefNode->root = root;
 
 	/* retrieve actual parameters */
 	int paramCount = getParamCount(params);
 	while (paramCount > 0) {
 		paramCount--;
-		VariableNode* var = params->oper.op[1]->variable;
-		VariableDefNode variableDef = *new VariableDefNode;
+		xVariableNode* var = params->op[1]->variable;
+		xVariableDefNode variableDef = *new xVariableDefNode;
 		variableDef.name = var->name;
-		variableDef.value.setType(var->value.getType());
-		functionDef->params.push_back(variableDef);
-		params = params->oper.op[0];
+		variableDef.value->setType(var->value->getType());
+		functionDefNode->params->push_back(variableDef);
+		params = params->op[0];
 	}
 
-	return function;
+	return functionDefNode;
 }
 
-Node* function(const std::string& name, Node* params) {
-	auto* functionCall = new Node;
-	functionCall->setType(Node::Function);
-	functionCall->function.name = name;
+xFunctionNode* function(const std::string& name, xOperatorNode* params) {
+	auto* functionCall = new xFunctionNode;
+	functionCall->name = name;
 
 	/* retrieve actual parameters */
 	int paramCount = getParamCount(params);
 	while (paramCount > 0) {
 		paramCount--;
-		functionCall->function.params.push_back(params->oper.op[1]);
-		params = params->oper.op[0];
+		functionCall->params.push_back(params->op[1]);
+		params = params->op[0];
 	}
 
 	return functionCall;
 }
 
 
-Node* constantInt(int value) {
-	auto* constant = new Node();
-	constant->setType(Node::Constant);
-	constant->constant.setType(typeInt);
-	constant->constant.intVal = value;
-	return constant;
+xConstantNode* constantInt(int value) {
+	return new xConstantNode(value);
 }
 
-Node* constantDouble(double value) {
-	auto* constant = new Node();
-	constant->setType(Node::Constant);
-	constant->constant.setType(typeDouble);
-	constant->constant.doubleVal = value;
-	return constant;
+xConstantNode* constantDouble(double value) {
+	return new xConstantNode(value);
 }
 
-Node* constantString(const std::string &value) {
-	auto* constant = new Node();
-	constant->setType(Node::Constant);
-	constant->constant.setType(typeString);
-	constant->constant.stringVal = value;
-	return constant;
+xConstantNode* constantString(const std::string &value) {
+	return new xConstantNode(value);
 }
 
-Node* constantBool(bool value) {
-	auto* constant = new Node();
-	constant->setType(Node::Constant);
-	constant->constant.setType(typeBool);
-	constant->constant.boolVal = value;
-	return constant;
+xConstantNode* constantBool(bool value) {
+	return new xConstantNode(value);
 }
 
-Node* constantNull() {
-	auto* constant = new Node();
-	constant->setType(Node::Constant);
-	constant->constant.setType(typeObject);
-	constant->constant.objectVal = nullptr;
-	constant->constant.objectTypeName = "null";
-	return constant;
+xConstantNode* constantNull() {
+	return new xConstantNode(nullptr, "null");
 }
 
 
-Node* objectDef(const std::string &name, Node* vars) {
+xObjectDefNode* objectDef(const std::string &name, xOperatorNode* vars) {
 	/* count number of vars */
 	int varCount = getParamCount(vars);
 
 	/* allocate node, extending params array */
-	auto* result = new Node;
-	result->setType(Node::ObjectDef);
-	result->objectDef.name = name;
+	auto* node = new xObjectDefNode();
+	node->name = name;
 	while (varCount > 0) {
 		varCount--;
-		Node *p = vars->oper.op[1]; // p is variableDef
-		result->objectDef.vars.push_back(p->variableDef);
-		vars = vars->oper.op[0];
+		xVariableDefNode* p = vars->op[1]; // p is variableDef
+		node->vars.push_back(p);
+		vars = vars->op[0];
 	}
 
+	return node;
+}
+
+xObjectNode* object(const std::string &name) {
+	auto* node = new xObjectNode;
+	node->name = name;
+	return node;
+}
+
+
+xVariableDefNode* variableDef(xVariableNode* typedVariable, xNode* defaultValue) {
+	auto* result = new xVariableDefNode();
+	result->name = typedVariable->name;
+	result->value->setType(typedVariable->value->getType());
+	result->defaultValue = defaultValue;
 	return result;
 }
 
-Node* object(const std::string &name) {
-	auto* result = new Node();
-	result->setType(Node::Object);
-	result->object.name = name;
-	return result;
+xVariableNode* typedVariable(const std::string& name, DataType type) {
+	auto* variableNode = new xVariableNode();
+	variableNode->name = name;
+	variableNode->value->setType(type);
+	return variableNode;
 }
 
-
-Node* variableDef(Node* typedVariable, Node* defaultValue) {
-	auto* result = new Node();
-	result->setType(Node::VariableDef);
-
-	VariableDefNode* variableDef = &result->variableDef;
-
-	variableDef->name = typedVariable->variable->name;
-	variableDef->value.setType(typedVariable->variable->value.getType());
-	variableDef->defaultValue = defaultValue;
-
-	return result;
-}
-
-Node* typedVariable(const std::string& name, DataType type) {
-	auto* variable = new Node();
-	variable->setType(Node::Variable);
-	variable->variable = new VariableNode;
-	variable->variable->name = name;
-	variable->variable->value.setType(type);
-	return variable;
-}
-
-Node* variable(const std::string& name) {
+xVariableNode* variable(const std::string& name) {
 	return typedVariable(name, typeUndefined);
 }
 
 
-Node* empty() {
-	auto* empty = new Node();
-	empty->setType(Node::Empty);
-	return empty;
+xEmptyNode* empty() {
+	return new xEmptyNode;
 }
 
-Node* op(int oper, int opCount, ...) {
-	auto* operand = new Node;
-
-	operand->setType(Node::Operator);
-	operand->oper.oper = oper;
-	operand->oper.op = std::vector<Node*>(static_cast<unsigned long long int>(opCount));
+xOperatorNode* op(int oper, int opCount, ...) {
+	auto* operatorNode = new xOperatorNode(oper);
+	operatorNode->oper = oper;
+	operatorNode->op = std::vector<xNode*>(static_cast<unsigned long long int>(opCount));
 
 	va_list ap;
 	va_start(ap, opCount);
 	for (int i = 0; i < opCount; i++) {
-		operand->oper.op[i] = va_arg(ap, Node*);
+		operatorNode->op[i] = va_arg(ap, xNode*);
 	}
 	va_end(ap);
-
-	return operand;
+	return operatorNode;
 }
 
 #endif //CRACKLE_INTERPRETER_PARSER_H

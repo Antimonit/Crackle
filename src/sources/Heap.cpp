@@ -1,9 +1,10 @@
 #include "headers/Heap.hpp"
+#include "nodes/xObjectNode.h"
 
 MC::Heap::Heap(int size) {
 	this->size = size;
 	this->allocatedObjects = 0;
-	this->objects = new ObjectNode*[size];
+	this->objects = new xObjectNode*[size];
 	for (int i = 0; i < size; ++i) {
 		this->objects[i] = nullptr;
 	}
@@ -13,7 +14,7 @@ bool MC::Heap::isFull() {
 	return allocatedObjects == size;
 }
 
-ObjectNode* MC::Heap::allocateNewObject() {
+xObjectNode* MC::Heap::allocateNewObject() {
 	int heapIndex = findFreeSlotInHeap();
 
 	if (heapIndex == -1) {
@@ -21,7 +22,7 @@ ObjectNode* MC::Heap::allocateNewObject() {
 		return nullptr;
 	}
 
-	auto* newData = new ObjectNode;
+	auto* newData = new xObjectNode;
 
 	objects[heapIndex] = newData;
 	allocatedObjects++;
@@ -60,19 +61,19 @@ void MC::Heap::gcMarkAllTables(MC::SymbolTable* table) {
 void MC::Heap::gcMarkTable(MC::SymbolTable* table) {
 	for (auto item : table->variables) {
 		auto rootValue = item.second->value;
-		if (rootValue.getType() == typeObject) {
-			gcMarkNode(rootValue.objectVal);
+		if (rootValue->getType() == typeObject) {
+			gcMarkNode(rootValue->objectVal);
 		}
 	}
 }
 
-void MC::Heap::gcMarkNode(ObjectNode* object) {
+void MC::Heap::gcMarkNode(xObjectNode* object) {
 	if (object != nullptr && !object->marked) {
 		object->marked = true;
 
 		for (auto childVar : object->vars) {
-			if (childVar->value.getType() == typeObject) {
-				gcMarkNode(childVar->value.objectVal);
+			if (childVar->value->getType() == typeObject) {
+				gcMarkNode(childVar->value->objectVal);
 			}
 		}
 	}
@@ -80,7 +81,7 @@ void MC::Heap::gcMarkNode(ObjectNode* object) {
 
 void MC::Heap::gcSweep() {
 	for (int i = 0; i < size; i++) {
-		ObjectNode* object = objects[i];
+		xObjectNode* object = objects[i];
 
 		if (!object->marked) {
 			delete object;

@@ -4,13 +4,15 @@
 
 #include <list>
 #include <parser.tab.hh>
+#include <nodes/xNode.h>
+#include <nodes/xOperatorNode.h>
 #include "headers/AstPrinter.hpp"
 
 using token = MC::Parser::token;
 
-void MC::AstPrinter::printOperator(Node* node) {
+void MC::AstPrinter::printOperator(xOperatorNode* node) {
 	out << "Operator ";
-	switch (node->oper.oper) {
+	switch (node->oper) {
 		case token::PRINT: 		out << "PRINT"; break;
 		case token::PRINTLN: 	out << "PRINTLN"; break;
 		case token::VAR: 		out << "VAR"; break;
@@ -46,7 +48,7 @@ void MC::AstPrinter::printOperator(Node* node) {
 	}
 }
 
-void MC::AstPrinter::printNode(bool entering, Node* node) {
+void MC::AstPrinter::printNode(bool entering, xNode* node) {
 	out << '\t';
 	for (int i = 0; i < indent; ++i) {
 		out << static_cast<char>(179) << " ";	/* │ */
@@ -61,7 +63,7 @@ void MC::AstPrinter::printNode(bool entering, Node* node) {
 			out << "Constant " << node->constant.getType() << " " << node->constant;
 			break;
 		case Node::Operator:
-			printOperator(node);
+			printOperator(const_cast<>node);
 			break;
 		case Node::VariableDef:
 			out << "Variable Definition " << node->variableDef;
@@ -94,7 +96,7 @@ void MC::AstPrinter::printNode(bool entering, Node* node) {
 	out << std::endl;
 }
 
-void MC::AstPrinter::enterNode(Node* node) {
+void MC::AstPrinter::enterNode(xNode* node) {
 	stack.push_back(node);
 	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
 		printNode(true, node);
@@ -102,7 +104,7 @@ void MC::AstPrinter::enterNode(Node* node) {
 	}
 }
 
-void MC::AstPrinter::exitNode(Node* node) {
+void MC::AstPrinter::exitNode(xNode* node) {
 	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
 		indent--;
 		printNode(false, node);

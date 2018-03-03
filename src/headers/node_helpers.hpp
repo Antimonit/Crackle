@@ -3,10 +3,10 @@
 
 #include "types.hpp"
 
-DataType maxType(ConstantNode& a, ConstantNode& b);
+DataType maxType(xConstantNode& a, xConstantNode& b);
 
-DataType widenNodes(ConstantNode& a, ConstantNode& b);
+DataType widenNodes(xConstantNode& a, xConstantNode& b);
 
-void defaultConstant(ConstantNode& def);
+void defaultConstant(xConstantNode& def);
 
 #endif //CRACKLE_INTERPRETER_NODE_HELPERS_H

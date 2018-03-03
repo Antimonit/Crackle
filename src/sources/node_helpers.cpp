@@ -3,10 +3,12 @@
 //
 
 #include <iostream>
+#include <nodes/DataType.h>
+#include <nodes/xConstantNode.h>
 #include "headers/types.hpp"
 #include "headers/node_helpers.hpp"
 
-DataType maxType(ConstantNode& a, ConstantNode& b) {
+DataType maxType(xConstantNode& a, xConstantNode& b) {
 	DataType typeA = a.getType();
 	DataType typeB = b.getType();
 	if (typeA == typeInt && typeB == typeInt) {
@@ -24,7 +26,7 @@ DataType maxType(ConstantNode& a, ConstantNode& b) {
 	}
 }
 
-void widenNode(ConstantNode& a, DataType maxType) {
+void widenNode(xConstantNode& a, DataType maxType) {
 	if (a.getType() == maxType) {
 		return;
 	}
@@ -38,24 +40,25 @@ void widenNode(ConstantNode& a, DataType maxType) {
 	}
 }
 
-DataType widenNodes(ConstantNode& a, ConstantNode& b) {
+DataType widenNodes(xConstantNode& a, xConstantNode& b) {
 	DataType max = maxType(a, b);
 	widenNode(a, max);
 	widenNode(b, max);
 	return max;
 }
 
-void defaultConstant(ConstantNode& def) {
-	if (def.getType() == typeInt) {
-		def.intVal = 0;
-	} else if (def.getType() == typeDouble) {
-		def.doubleVal = 0.0;
-	} else if (def.getType() == typeString) {
-		def.stringVal = "";
-	} else if (def.getType() == typeBool) {
-		def.boolVal = false;
-	} else if (def.getType() == typeObject) {
-		def.objectVal = nullptr;
-		def.objectTypeName = "null";
-	}
-}
+
+//void defaultConstant(ConstantNode& def) {
+//	if (def.getType() == typeInt) {
+//		def.intVal = 0;
+//	} else if (def.getType() == typeDouble) {
+//		def.doubleVal = 0.0;
+//	} else if (def.getType() == typeString) {
+//		def.stringVal = "";
+//	} else if (def.getType() == typeBool) {
+//		def.boolVal = false;
+//	} else if (def.getType() == typeObject) {
+//		def.objectVal = nullptr;
+//		def.objectTypeName = "null";
+//	}
+//}

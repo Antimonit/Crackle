@@ -11,7 +11,9 @@
 		class Driver;
         class Scanner;
 	}
-	#include "headers/types.hpp"
+	#include "nodes/DataType.h"
+	#include "nodes/xNode.h"
+	#include "nodes/xConstantNode.h"
 
 	/* The following definitions is missing when %locations isn't used */
 	#ifndef YY_NULLPTR
@@ -34,8 +36,10 @@
 	#include <cstdlib>
 	#include <fstream>
 	#include "driver.hpp"
-	#include "headers/types.hpp"
 	#include "parser.hpp"
+	#include "nodes/DataType.h"
+	#include "nodes/xNode.h"
+	#include "nodes/xConstantNode.h"
 
 	#undef yylex
 	#define yylex scanner.yylex
@@ -47,7 +51,7 @@
 %token <bool> BOOL_VALUE "bool"
 %token <void*> NULL_VALUE "null"
 %token <std::string> IDENTIFIER "identifier"
-%token <Node*> NODE "node"
+%token <xNode*> NODE "node"
 %token <DataType> DATA_TYPE_ENUM "dataType"
 
 %token NEW OBJECT
@@ -71,16 +75,17 @@
 %token INT DOUBLE BOOL STRING VOID
 %token LEX_ERROR
 
-%type <Node*> primitive_value object_value variable_value
-%type <Node*> expression lex_error
-%type <Node*> statement statement_list
-%type <Node*> expression_statement for_statement if_statement while_statement
-%type <Node*> var_definition var_definition_list
-%type <Node*> fun_definition fun_param_list
-%type <Node*> fun_call argument_expression_list
-%type <Node*> return_statement
-%type <Node*> typed_identifier
-%type <Node*> object_definition
+%type <xConstantNode*> primitive_value
+%type <xNode*> object_value variable_value
+%type <xNode*> expression lex_error
+%type <xNode*> statement statement_list
+%type <xNode*> expression_statement for_statement if_statement while_statement
+%type <xNode*> var_definition var_definition_list
+%type <xNode*> fun_definition fun_param_list
+%type <xNode*> fun_call argument_expression_list
+%type <xNode*> return_statement
+%type <xNode*> typed_identifier
+%type <xNode*> object_definition
 %type <DataType> type_specifier
 
 %locations
@@ -91,7 +96,7 @@
 program
 		: statement {
 			driver.ex($1);
-//			Node* result = ex($1);
+//			xNode* result = ex($1);
 //			freeNode(result);
 //			deleteNode($1);
 		} program

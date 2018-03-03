@@ -6,7 +6,10 @@
 #include <istream>
 #include "scanner.hpp"
 #include "parser.tab.hh"
-#include "headers/types.hpp"
+
+#include "nodes/xNode.h"
+#include "nodes/node_types.h"
+
 #include "headers/AstPrinter.hpp"
 #include "headers/SymbolTable.hpp"
 #include "headers/node_helpers.hpp"
@@ -53,9 +56,38 @@ namespace MC {
 
 		int parse();
 
-		Node* ex(Node* p);
+		xNode* ex(xNode* p);
 
 		virtual ~Driver();
+
+		void replaceSymbolTableScope();
+
+		void pushSymbolTableScope();
+
+		void popSymbolTableScope();
+
+		xVariableNode* findVariable(const std::string& symbol);
+
+		xFunctionDefNode* findFunction(const std::string& symbol);
+
+		xObjectDefNode* findObject(const std::string& symbol);
+
+		void addVariable(xVariableNode* variableDef);
+
+		void addFunction(xFunctionDefNode* function);
+
+		void addObject(xObjectDefNode* object);
+
+		xObjectNode* allocateNewObject() {
+			if (heap.isFull()) {
+				heap.performGarbageCollection(currentSymbolTable);
+			}
+			return heap.allocateNewObject();
+		}
+
+		std::istream* in;
+		std::ostream* out;
+		std::ostream* deb;
 
 	private:
 		Driver(std::istream* in,
@@ -63,10 +95,6 @@ namespace MC {
 			   std::ostream* deb,
 			   int heapSize
 		);
-
-		std::istream* in;
-		std::ostream* out;
-		std::ostream* deb;
 
 		MC::Parser* parser = nullptr;
 		MC::Scanner* scanner = nullptr;
@@ -76,77 +104,6 @@ namespace MC {
 
 		MC::SymbolTable* rootSymbolTable = new SymbolTable();
 		MC::SymbolTable* currentSymbolTable = rootSymbolTable;
-
-		void replaceSymbolTableScope();
-
-		void pushSymbolTableScope();
-
-		void popSymbolTableScope();
-
-		VariableNode* findVariable(const std::string& symbol);
-
-		FunctionDefNode* findFunction(const std::string& symbol);
-
-		ObjectDefNode* findObject(const std::string& symbol);
-
-		void addVariable(VariableNode* variableDef);
-
-		void addFunction(FunctionDefNode& function);
-
-		void addObject(ObjectDefNode& object);
-
-
-		void returnx(Node* p, Node* result);
-
-		void whilex(Node* p, Node* result);
-
-		void forx(Node* p, Node* result);
-
-		void ifx(Node* p, Node* result);
-
-		void delimiter(Node* p, Node* result);
-
-		void dot(Node* p, Node* result);
-
-		void assign(Node* p, Node* result);
-
-		void uminus(Node* p, Node* result);
-
-		void plus(Node* p, Node* result);
-
-		void minus(Node* p, Node* result);
-
-		void multiply(Node* p, Node* result);
-
-		void divide(Node* p, Node* result);
-
-		void modulo(Node* p, Node* result);
-
-		void andx(Node* p, Node* result);
-
-		void orx(Node* p, Node* result);
-
-		void neg(Node* p, Node* result);
-
-		void inc(Node* p, Node* result);
-
-		void dec(Node* p, Node* result);
-
-		void lt(Node* p, Node* result);
-
-		void le(Node* p, Node* result);
-
-		void gt(Node* p, Node* result);
-
-		void ge(Node* p, Node* result);
-
-		void eq(Node* p, Node* result);
-
-		void ne(Node* p, Node* result);
-
-		void printx(Node* p, Node* result);
-
-		void println(Node* p, Node* result);
 
 	};
 
