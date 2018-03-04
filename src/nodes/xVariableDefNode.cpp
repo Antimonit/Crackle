@@ -50,5 +50,5 @@ std::string xVariableDefNode::print() const {
 }
 
 std::ostream& xVariableDefNode::print(std::ostream& out) const {
-	return out << name;
+	return out << value->getType() << " " << name;
 }

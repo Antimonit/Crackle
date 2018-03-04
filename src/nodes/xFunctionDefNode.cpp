@@ -18,6 +18,7 @@ std::string xFunctionDefNode::print() const {
 }
 
 std::ostream& xFunctionDefNode::print(std::ostream& out) const {
-	return out << name << " "
+	return out << dataType << " "
+			   << name << " "
 			   << params.size() << " params";
 }

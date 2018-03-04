@@ -9,7 +9,6 @@
 #include "DataType.h"
 
 class xVariableDefNode;
-
 class xFunctionDefNode : public xNode {
 public:
 	std::string name;

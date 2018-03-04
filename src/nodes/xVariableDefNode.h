@@ -8,7 +8,6 @@
 #include "xNode.h"
 
 class xConstantNode;
-
 class xVariableDefNode : public xNode {
 public:
 	std::string name;
@@ -23,7 +22,6 @@ public:
 
 	xConstantNode* getValue() override;
 
-private:
 	std::string print() const override;
 
 	std::ostream& print(std::ostream& out) const override;
