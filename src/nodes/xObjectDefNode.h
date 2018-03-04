@@ -5,31 +5,20 @@
 #ifndef CRACKLE_XOBJECTDEFNODE_H
 #define CRACKLE_XOBJECTDEFNODE_H
 
-
-
-#include "Driver.hpp"
-#include "node_types.h"
 #include "xNode.h"
-#include "xEmptyNode.h"
 
-class xObjectDefNode : xNode {
+class xVariableDefNode;
+
+class xObjectDefNode : public xNode {
 public:
 	std::string name;
 	std::vector<xVariableDefNode*> vars;
 
-	xNode* ex(MC::Driver* driver) override {
-		driver->addObject(this);
-		return new xEmptyNode;
-	}
+	xNode* ex(MC::Driver* driver) override;
 
-	std::string print() const override {
-		return "Object definition";
-	}
+	std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override {
-		return out << name << " "
-	  			   << vars.size() << " vars";
-	}
+	std::ostream& print(std::ostream& out) const override;
 
 };
 

@@ -7,22 +7,26 @@
 %error-verbose
 
 %code requires {
-	namespace MC {
-		class Driver;
-        class Scanner;
-	}
-	#include "nodes/DataType.h"
-	#include "nodes/xNode.h"
-	#include "nodes/xConstantNode.h"
+namespace MC { // parser requires
+	class Driver;
+    class Scanner;
+    class Parser;
+}
+#include "nodes/DataType.h"
+#include "nodes/xNode.h"
+#include "nodes/xConstantNode.h"
+#include "nodes/xVariableNode.h"
+#include "nodes/xOperatorNode.h"
+//#include "scanner.hpp"
 
-	/* The following definitions is missing when %locations isn't used */
-	#ifndef YY_NULLPTR
-	 #if defined __cplusplus && 201103L <= __cplusplus
-	  #define YY_NULLPTR nullptr
-	 #else
-	  #define YY_NULLPTR 0
-	 #endif
-	#endif
+/* The following definitions is missing when %locations isn't used */
+#ifndef YY_NULLPTR
+ #if defined __cplusplus && 201103L <= __cplusplus
+  #define YY_NULLPTR nullptr
+ #else
+  #define YY_NULLPTR 0
+ #endif
+#endif
 }
 
 %parse-param { Scanner &scanner }
@@ -37,12 +41,16 @@
 	#include <fstream>
 	#include "driver.hpp"
 	#include "parser.hpp"
+	#include "scanner.hpp"
 	#include "nodes/DataType.h"
 	#include "nodes/xNode.h"
 	#include "nodes/xConstantNode.h"
+	#include "nodes/xVariableNode.h"
+	#include "nodes/xOperatorNode.h"
 
-	#undef yylex
-	#define yylex scanner.yylex
+#undef yylex
+#define yylex scanner.yylex
+
 }
 
 %token <int> INT_VALUE "integer"
@@ -80,11 +88,14 @@
 %type <xNode*> expression lex_error
 %type <xNode*> statement statement_list
 %type <xNode*> expression_statement for_statement if_statement while_statement
-%type <xNode*> var_definition var_definition_list
-%type <xNode*> fun_definition fun_param_list
-%type <xNode*> fun_call argument_expression_list
+%type <xNode*> var_definition
+%type <xNode*> fun_definition
+%type <xNode*> fun_call
+%type <xOperatorNode*> var_definition_list
+%type <xOperatorNode*> fun_param_list
+%type <xOperatorNode*> argument_expression_list
 %type <xNode*> return_statement
-%type <xNode*> typed_identifier
+%type <xVariableNode*> typed_identifier
 %type <xNode*> object_definition
 %type <DataType> type_specifier
 

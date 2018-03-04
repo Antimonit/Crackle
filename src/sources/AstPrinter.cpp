@@ -2,11 +2,12 @@
 // Created by DAVE on 8. 1. 2018.
 //
 
-#include <list>
+#include "headers/AstPrinter.hpp"
+
+#include <c++/list>
 #include <parser.tab.hh>
 #include <nodes/xNode.h>
 #include <nodes/xOperatorNode.h>
-#include "headers/AstPrinter.hpp"
 
 using token = MC::Parser::token;
 
@@ -58,56 +59,57 @@ void MC::AstPrinter::printNode(bool entering, xNode* node) {
 	else
 		out << static_cast<char>(192); /* └ */
 
-	switch (node->getType()) {
-		case Node::Constant:
-			out << "Constant " << node->constant.getType() << " " << node->constant;
-			break;
-		case Node::Operator:
-			printOperator(const_cast<>node);
-			break;
-		case Node::VariableDef:
-			out << "Variable Definition " << node->variableDef;
-			break;
-		case Node::Variable:
-			out << "Variable " << node->variable->name;
-			break;
-		case Node::FunctionDef:
-			out << "Function Definition " << node->functionDef.name;
-			break;
-		case Node::Function:
-			out << "Function " << node->function.name;
-			break;
-		case Node::ObjectDef:
-			out << "Object Definition " << node->objectDef.name;
-			break;
-		case Node::Object:
-			out << "Object " << node->object.name;
-			break;
-		case Node::Return:
-			out << "Return " << node->ret.value;
-			break;
-		case Node::Empty:
-			out << "EMPTY";
-			break;
-		default:
-			out << "unknown";
-			break;
-	}
+//	switch (node->getType()) {
+//		case Node::Constant:
+//			out << "Constant " << node->constant.getType() << " " << node->constant;
+//			break;
+//		case Node::Operator:
+//			printOperator(const_cast<>node);
+//			break;
+//		case Node::VariableDef:
+//			out << "Variable Definition " << node->variableDef;
+//			break;
+//		case Node::Variable:
+//			out << "Variable " << node->variable->name;
+//			break;
+//		case Node::FunctionDef:
+//			out << "Function Definition " << node->functionDef.name;
+//			break;
+//		case Node::Function:
+//			out << "Function " << node->function.name;
+//			break;
+//		case Node::ObjectDef:
+//			out << "Object Definition " << node->objectDef.name;
+//			break;
+//		case Node::Object:
+//			out << "Object " << node->object.name;
+//			break;
+//		case Node::Return:
+//			out << "Return " << node->ret.value;
+//			break;
+//		case Node::Empty:
+//			out << "EMPTY";
+//			break;
+//		default:
+//			out << "unknown";
+//			break;
+//	}
+	out << "unknown";
 	out << std::endl;
 }
 
 void MC::AstPrinter::enterNode(xNode* node) {
 	stack.push_back(node);
-	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
+//	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
 		printNode(true, node);
 		indent++;
-	}
+//	}
 }
 
 void MC::AstPrinter::exitNode(xNode* node) {
-	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
+//	if (stack.back()->getType() != Node::Operator || stack.back()->oper.oper != ';') {
 		indent--;
 		printNode(false, node);
-	}
+//	}
 	stack.pop_back();
 }

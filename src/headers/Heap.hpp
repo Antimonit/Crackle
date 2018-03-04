@@ -3,8 +3,9 @@
 
 #define DEFAULT_HEAP_SIZE 1024
 
-#include "headers/types.hpp"
 #include "SymbolTable.hpp"
+
+class xObjectNode;
 
 namespace MC {
 

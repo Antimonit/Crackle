@@ -29,7 +29,7 @@ add_library(crackle_lib
         ${FLEX_lexer_OUTPUTS}
         ${BISON_parser_OUTPUTS}
         nodes/node_types.h
-        nodes/DataType.h nodes/DataType.cpp
+        nodes/DataType.h            nodes/DataType.cpp
         nodes/xNode.cpp             nodes/xNode.h
         nodes/xConstantNode.cpp     nodes/xConstantNode.h
         nodes/xVariableDefNode.cpp  nodes/xVariableDefNode.h

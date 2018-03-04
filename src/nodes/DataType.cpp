@@ -3,7 +3,7 @@
 //
 
 #include <c++/ostream>
-#include "DataType.h
+#include "DataType.h"
 
 std::string toString(DataType value) {
 	switch (value) {

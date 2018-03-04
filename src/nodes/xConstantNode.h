@@ -5,12 +5,10 @@
 #ifndef CRACKLE_XCONSTANTNODE_H
 #define CRACKLE_XCONSTANTNODE_H
 
-
-#include "Driver.hpp"
-#include "DataType.h"
 #include "xNode.h"
-#include "xObjectNode.h"
+#include "DataType.h"
 
+class xObjectNode;
 
 class xConstantNode : public xNode {
 	DataType dataType {typeUndefined};
@@ -96,37 +94,13 @@ public:
 		}
 	}
 
-	xNode* ex(MC::Driver* driver) override {
-		auto* result = new xConstantNode(typeUndefined);
-		result->copyConstantNode(*this);
-		return result;
-	}
+	xNode* ex(MC::Driver* driver) override;
 
-	xConstantNode* getValue() override {
-		return this;
-	}
+	xConstantNode* getValue() override;
 
-	std::string print() const override {
-		return "Constant";
-	}
+	std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override {
-		DataType type = getType();
-		switch (type) {
-			case typeInt:		return out << intVal;
-			case typeDouble:	return out << doubleVal;
-			case typeBool:		return out << (boolVal ? "true" : "false");
-			case typeString:	return out << stringVal;
-			case typeVoid:		return out << "void";
-			case typeObject:
-				if (objectVal == nullptr)
-					return out << "null";
-				else
-					return out << "<object " << objectTypeName << ">";
-			case typeUndefined:	return out << "<undefined>";
-			default:			return out << "<unknown>";
-		}
-	}
+	std::ostream& print(std::ostream& out) const override;
 
 };
 

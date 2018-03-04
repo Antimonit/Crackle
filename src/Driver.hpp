@@ -1,25 +1,26 @@
 #ifndef __DRIVER_HPP__
 #define __DRIVER_HPP__
 
-#include <string>
-#include <cstddef>
-#include <istream>
-#include "scanner.hpp"
+#include <c++/string>
+#include <c++/cstddef>
+#include <c++/istream>
+//#include "scanner.hpp"
 #include "parser.tab.hh"
-
-#include "nodes/xNode.h"
-#include "nodes/node_types.h"
 
 #include "headers/AstPrinter.hpp"
 #include "headers/SymbolTable.hpp"
 #include "headers/node_helpers.hpp"
 #include "headers/Heap.hpp"
 
+class xNode;
+
 namespace MC {
 
 	class DriverTest;
-
+//	class Scanner;
+//	class Parser;
 	class Driver {
+
 //#ifdef UNIT_TEST
 		friend DriverTest;
 //#endif

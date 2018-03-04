@@ -29,95 +29,65 @@ namespace MC {
 
 	class DriverTest {
 	private:
-		static Node* constantNode(int val) {
-			Node* node = new Node;
-			node->setType(Node::Type::Constant);
-			node->constant.setType(typeInt);
-			node->constant.intVal = val;
-			return node;
+		static xConstantNode* constantNode(int val) {
+			return new xConstantNode(val);
 		}
-		static Node* constantNode(double val) {
-			auto* node = new Node;
-			node->setType(Node::Type::Constant);
-			node->constant.setType(typeDouble);
-			node->constant.doubleVal = val;
-			return node;
+		static xConstantNode* constantNode(double val) {
+			return new xConstantNode(val);
 		}
-		static Node* constantNode(std::string val) {
-			auto* node = new Node;
-			node->setType(Node::Type::Constant);
-			node->constant.setType(typeString);
-			node->constant.stringVal = val;
-			return node;
+		static xConstantNode* constantNode(std::string val) {
+			return new xConstantNode(val);
 		}
-		static Node* constantNode(bool val) {
-			auto* node = new Node;
-			node->setType(Node::Type::Constant);
-			node->constant.setType(typeBool);
-			node->constant.boolVal = val;
-			return node;
+		static xConstantNode* constantNode(bool val) {
+			return new xConstantNode(val);
 		}
 
-		static VariableNode* variable(const std::string& name) {
-			auto var = new VariableNode;
+		static xVariableNode* variable(const std::string& name) {
+			auto var = new xVariableNode;
 			var->name = name;
 			return var;
 		}
-		static VariableNode* variable(const std::string& name, int val) {
+		static xVariableNode* variable(const std::string& name, int val) {
 			auto var = variable(name);
-			var->value.setType(typeInt);
-			var->value.intVal = val;
+			var->value->setType(typeInt);
+			var->value->intVal = val;
 			return var;
 		}
-		static VariableNode* variable(const std::string& name, double val) {
+		static xVariableNode* variable(const std::string& name, double val) {
 			auto var = variable(name);
-			var->value.setType(typeDouble);
-			var->value.doubleVal = val;
+			var->value->setType(typeDouble);
+			var->value->doubleVal = val;
 			return var;
 		}
-		static VariableNode* variable(const std::string& name, std::string val) {
+		static xVariableNode* variable(const std::string& name, std::string val) {
 			auto var = variable(name);
-			var->value.setType(typeString);
-			var->value.stringVal = val;
+			var->value->setType(typeString);
+			var->value->stringVal = val;
 			return var;
 		}
-		static VariableNode* variable(const std::string& name, bool val) {
+		static xVariableNode* variable(const std::string& name, bool val) {
 			auto var = variable(name);
-			var->value.setType(typeBool);
-			var->value.boolVal = val;
+			var->value->setType(typeBool);
+			var->value->boolVal = val;
 			return var;
 		}
 
-		static Node* variableNode(const std::string& name) {
-			auto* node = new Node;
-			node->setType(Node::Type::Variable);
-			node->variable = variable(name);
+		static xOperatorNode* operatorNode(int oper) {
+			return new xOperatorNode(oper);
+		}
+		static xOperatorNode* operatorNode(int oper, xNode* operandOne) {
+			auto* node = new xOperatorNode(oper);
+			node->op.push_back(operandOne);
+			return node;
+		}
+		static xOperatorNode* operatorNode(int oper, xNode* operandOne, xNode* operandTwo) {
+			auto* node = new xOperatorNode(oper);
+			node->op.push_back(operandOne);
+			node->op.push_back(operandTwo);
 			return node;
 		}
 
-		static Node* operatorNode(int oper) {
-			Node* node = new Node;
-			node->setType(Node::Type::Operator);
-			node->oper.oper = oper;
-			return node;
-		}
-		static Node* operatorNode(int oper, Node* operandOne) {
-			Node* node = new Node;
-			node->setType(Node::Type::Operator);
-			node->oper.oper = oper;
-			node->oper.op.push_back(operandOne);
-			return node;
-		}
-		static Node* operatorNode(int oper, Node* operandOne, Node* operandTwo) {
-			Node* node = new Node;
-			node->setType(Node::Type::Operator);
-			node->oper.oper = oper;
-			node->oper.op.push_back(operandOne);
-			node->oper.op.push_back(operandTwo);
-			return node;
-		}
-
-		static Node testPLUS(Node* operandOne, Node* operandTwo);
+		static xNode* testPLUS(xConstantNode* operandOne, xConstantNode* operandTwo);
 
 	public:
 

@@ -4,7 +4,10 @@
 
 #include <parser.tab.hh>
 #include <headers/node_helpers.hpp>
+
 #include "xOperatorNode.h"
+#include "Driver.hpp"
+
 #include "xEmptyNode.h"
 #include "xConstantNode.h"
 #include "xReturnNode.h"
@@ -354,7 +357,7 @@ xNode* xOperatorNode::neg(MC::Driver* driver) {
 	xNode* v = op[0]->ex(driver);
 	auto* variable = dynamic_cast<xVariableNode*>(v);
 	auto* constant = dynamic_cast<xConstantNode*>(v);
-	xConstantNode& value = (variable != nullptr) ? variable->value : *constant;
+	xConstantNode& value = (variable != nullptr) ? *variable->value : *constant;
 
 	if (value.getType() == typeBool) {
 		return new xConstantNode(!value.boolVal);
@@ -410,8 +413,8 @@ xNode* xOperatorNode::lt(MC::Driver* driver) {
 	auto* rVariable = dynamic_cast<xVariableNode*>(r);
 	auto* lConstant = dynamic_cast<xConstantNode*>(l);
 	auto* rConstant = dynamic_cast<xConstantNode*>(r);
-	xConstantNode& left = (lVariable != nullptr) ? lVariable->value : *lConstant;
-	xConstantNode& right = (rVariable != nullptr) ? rVariable->value : *rConstant;
+	xConstantNode& left = (lVariable != nullptr) ? *lVariable->value : *lConstant;
+	xConstantNode& right = (rVariable != nullptr) ? *rVariable->value : *rConstant;
 
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
@@ -435,8 +438,8 @@ xNode* xOperatorNode::le(MC::Driver* driver) {
 	auto* rVariable = dynamic_cast<xVariableNode*>(r);
 	auto* lConstant = dynamic_cast<xConstantNode*>(l);
 	auto* rConstant = dynamic_cast<xConstantNode*>(r);
-	xConstantNode& left = (lVariable != nullptr) ? lVariable->value : *lConstant;
-	xConstantNode& right = (rVariable != nullptr) ? rVariable->value : *rConstant;
+	xConstantNode& left = (lVariable != nullptr) ? *lVariable->value : *lConstant;
+	xConstantNode& right = (rVariable != nullptr) ? *rVariable->value : *rConstant;
 
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
@@ -460,8 +463,8 @@ xNode* xOperatorNode::gt(MC::Driver* driver) {
 	auto* rVariable = dynamic_cast<xVariableNode*>(r);
 	auto* lConstant = dynamic_cast<xConstantNode*>(l);
 	auto* rConstant = dynamic_cast<xConstantNode*>(r);
-	xConstantNode& left = (lVariable != nullptr) ? lVariable->value : *lConstant;
-	xConstantNode& right = (rVariable != nullptr) ? rVariable->value : *rConstant;
+	xConstantNode& left = (lVariable != nullptr) ? *lVariable->value : *lConstant;
+	xConstantNode& right = (rVariable != nullptr) ? *rVariable->value : *rConstant;
 
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
@@ -485,8 +488,8 @@ xNode* xOperatorNode::ge(MC::Driver* driver) {
 	auto* rVariable = dynamic_cast<xVariableNode*>(r);
 	auto* lConstant = dynamic_cast<xConstantNode*>(l);
 	auto* rConstant = dynamic_cast<xConstantNode*>(r);
-	xConstantNode& left = (lVariable != nullptr) ? lVariable->value : *lConstant;
-	xConstantNode& right = (rVariable != nullptr) ? rVariable->value : *rConstant;
+	xConstantNode& left = (lVariable != nullptr) ? *lVariable->value : *lConstant;
+	xConstantNode& right = (rVariable != nullptr) ? *rVariable->value : *rConstant;
 
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
@@ -510,8 +513,8 @@ xNode* xOperatorNode::eq(MC::Driver* driver) {
 	auto* rVariable = dynamic_cast<xVariableNode*>(r);
 	auto* lConstant = dynamic_cast<xConstantNode*>(l);
 	auto* rConstant = dynamic_cast<xConstantNode*>(r);
-	xConstantNode& left = (lVariable != nullptr) ? lVariable->value : *lConstant;
-	xConstantNode& right = (rVariable != nullptr) ? rVariable->value : *rConstant;
+	xConstantNode& left = (lVariable != nullptr) ? *lVariable->value : *lConstant;
+	xConstantNode& right = (rVariable != nullptr) ? *rVariable->value : *rConstant;
 
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
@@ -538,8 +541,8 @@ xNode* xOperatorNode::ne(MC::Driver* driver) {
 	auto* rVariable = dynamic_cast<xVariableNode*>(r);
 	auto* lConstant = dynamic_cast<xConstantNode*>(l);
 	auto* rConstant = dynamic_cast<xConstantNode*>(r);
-	xConstantNode& left = (lVariable != nullptr) ? lVariable->value : *lConstant;
-	xConstantNode& right = (rVariable != nullptr) ? rVariable->value : *rConstant;
+	xConstantNode& left = (lVariable != nullptr) ? *lVariable->value : *lConstant;
+	xConstantNode& right = (rVariable != nullptr) ? *rVariable->value : *rConstant;
 
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
@@ -593,11 +596,11 @@ xNode* xOperatorNode::printx(MC::Driver* driver) {
 				*driver->out << "WRONG OPERATOR";
 		}
 	} else if (constantNode != nullptr) {
-		*driver->out << constantNode;
+		*driver->out << *constantNode;
 	} else if (variableNode != nullptr) {
-		*driver->out << variableNode;
+		*driver->out << *variableNode;
 	} else if (variableDefNode != nullptr) {
-		*driver->out << variableDefNode;
+		*driver->out << *variableDefNode;
 	} else if (functionDefNode != nullptr) {
 		*driver->out << "Function " << functionDefNode->name << " defined";
 	} else if (emptyNode != nullptr) {

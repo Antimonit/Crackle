@@ -5,23 +5,15 @@
 #ifndef CRACKLE_XEMPTYNODE_H
 #define CRACKLE_XEMPTYNODE_H
 
-
-#include "Driver.hpp"
 #include "xNode.h"
 
-class xEmptyNode : xNode {
+class xEmptyNode : public xNode {
 
-	xNode* ex(MC::Driver* driver) override {
-		return this;
-	}
+	xNode* ex(MC::Driver* driver) override;
 
-	std::string print() const override {
-		return "EMPTY";
-	}
+	std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override {
-		return out ;
-	}
+	std::ostream& print(std::ostream& out) const override;
 
 };
 

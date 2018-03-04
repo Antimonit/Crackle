@@ -1,10 +1,12 @@
-#include <cctype>
-#include <fstream>
+#include <c++/cctype>
+#include <c++/fstream>
 #include <c++/iostream>
 #include "nodes/xNode.h"
 #include "nodes/xEmptyNode.h"
-#include "parser.tab.hh"
+
 #include "Driver.hpp"
+#include "scanner.hpp"
+#include "parser.tab.hh"
 
 using token = MC::Parser::token;
 
@@ -131,8 +133,7 @@ int MC::Driver::parse() {
 
 xNode* MC::Driver::ex(xNode* p) {
 	if (!p) {
-		xEmptyNode* empty = new xEmptyNode();
-		return empty;
+		return new xEmptyNode();
 	}
 
 	if (printer != nullptr) {

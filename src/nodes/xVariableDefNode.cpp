@@ -3,34 +3,51 @@
 //
 
 #include "xVariableDefNode.h"
+#include "Driver.hpp"
+#include "xConstantNode.h"
 #include "xVariableNode.h"
 #include "xEmptyNode.h"
 
-xNode* xVariableDefNode::ex() {
-	xVariableDefNode& variableDef = *this;
+xVariableDefNode::xVariableDefNode() {
+	name = "";
+	value = new xConstantNode(typeUndefined);
+}
 
-	xConstantNode& varDefValue = value;
+xNode* xVariableDefNode::ex(MC::Driver* driver) {
+
+	xConstantNode* varDefValue = value;
 	if (defaultValue != nullptr) {
-		xNode* defVal = defaultValue->ex();
-		xConstantNode& value = (defVal->getType() == Node::Variable) ? defVal->variable->value
-																	 : defVal->constant;
+		xNode* defValue = defaultValue->ex(driver);
+		xConstantNode* value = defValue->getValue();
 
-		if (varDefValue.getType() != value.getType()) {
-			std::cerr << "Warning: Defined value of type " << varDefValue.getType()
-					  << " is incompatible with variable type " << value.getType()
+		if (varDefValue->getType() != value->getType()) {
+			std::cerr << "Warning: Defined value of type " << varDefValue->getType()
+					  << " is incompatible with variable type " << value->getType()
 					  << "." << std::endl;
 		} else {
-			varDefValue = value;
+			varDefValue = value;	// TODO: check this
 		}
 	} else {
-		varDefValue.defaultValue();
+		varDefValue->defaultValue();
 	}
 
-	auto* variable = new xVariableNode();
+	auto* variable = new xVariableNode;
 	variable->name = name;
 	variable->value = value;
 
-	addVariable(variable);
+	driver->addVariable(variable);
 
 	return new xEmptyNode();
+}
+
+xConstantNode* xVariableDefNode::getValue() {
+	return value;
+}
+
+std::string xVariableDefNode::print() const {
+	return "Variable definition";
+}
+
+std::ostream& xVariableDefNode::print(std::ostream& out) const {
+	return out << name;
 }

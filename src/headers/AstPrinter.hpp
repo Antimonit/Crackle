@@ -5,9 +5,11 @@
 #ifndef __AST_PRINTER_HPP__
 #define __AST_PRINTER_HPP__
 
-#include <list>
-#include "nodes/xNode.h"
-#include "nodes/xOperatorNode.h"
+#include <c++/list>
+#include <c++/iostream>
+
+class xNode;
+class xOperatorNode;
 
 namespace MC {
 

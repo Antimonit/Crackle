@@ -5,46 +5,26 @@
 #ifndef CRACKLE_XVARIABLEDEFNODE_H
 #define CRACKLE_XVARIABLEDEFNODE_H
 
-
-#include <Driver.hpp>
 #include "xNode.h"
-#include "xConstantNode.h"
 
-class xVariableDefNode : xNode {
+class xConstantNode;
+
+class xVariableDefNode : public xNode {
 public:
 	std::string name;
 	xConstantNode* value;
 	xNode* defaultValue;
 
-	xNode* ex(MC::Driver* driver) override {
-		xVariableDefNode* variableDef = this;
+	xVariableDefNode();
 
-		xConstantNode* varDefValue = variableDef->value;
-		if (variableDef->defaultValue != nullptr) {
-			xNode* defaultValue = variableDef->defaultValue->ex(driver);
-			xConstantNode* value = defaultValue->getValue();
+	xNode* ex(MC::Driver* driver) override;
 
-			if (varDefValue->getType() != value->getType()) {
-				std::cerr << "Warning: Defined value of type " << varDefValue->getType()
-						  << " is incompatible with variable type " << value->getType()
-						  << "." << std::endl;
-			} else {
-				varDefValue = value;
-			}
-		} else {
-			varDefValue->defaultValue();
-		}
+	xConstantNode* getValue() override;
 
-		auto* variable = new xVariableNode;
-		variable->name = variableDef->name;
-		variable->value = variableDef->value;
+private:
+	std::string print() const override;
 
-		driver->addVariable(variable);
-	}
-
-	xConstantNode* getValue() override {
-		return value;
-	}
+	std::ostream& print(std::ostream& out) const override;
 
 };
 

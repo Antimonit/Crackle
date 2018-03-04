@@ -3,7 +3,10 @@
 
 #include <cstdlib>
 #include <map>
-#include "nodes/node_types.h"
+
+class xVariableNode;
+class xFunctionDefNode;
+class xObjectDefNode;
 
 namespace MC {
 

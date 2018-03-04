@@ -13,9 +13,13 @@
 #include <nodes/xNode.h>
 #include <nodes/xOperatorNode.h>
 #include <nodes/xObjectNode.h>
+#include <nodes/xObjectDefNode.h>
 #include <nodes/xEmptyNode.h>
+#include <nodes/xVariableNode.h>
+#include <nodes/xVariableDefNode.h>
 #include <nodes/xFunctionNode.h>
 #include <nodes/xFunctionDefNode.h>
+#include <nodes/xConstantNode.h>
 #include "headers/types.hpp"
 #include "headers/SymbolTable.hpp"
 
@@ -43,53 +47,52 @@ int getParamCount(xOperatorNode* params) {
 	int paramCount = 0;
 	if (params != nullptr) {
 		paramCount = 1;
-		xOperatorNode *countingParams = params;
+		xOperatorNode* countingParams = params;
 		while (countingParams->op[0] != nullptr) {
 			paramCount++;
-			countingParams = countingParams->op[0];
+			countingParams = dynamic_cast<xOperatorNode*>(countingParams->op[0]);
 		}
 	}
 	return paramCount;
 }
 
 xFunctionDefNode* functionDef(xVariableNode* typedVariable, xOperatorNode* params, xNode* root) {
-	auto* functionDefNode = new xFunctionDefNode;
+	auto* functionDef = new xFunctionDefNode;
 
 	xVariableNode* variable = typedVariable;
-	xFunctionDefNode* functionDef = functionDefNode;
 
-	functionDefNode->dataType = variable->value->getType();
-	functionDefNode->name = variable->name;
-	functionDefNode->root = root;
+	functionDef->dataType = variable->value->getType();
+	functionDef->name = variable->name;
+	functionDef->root = root;
 
 	/* retrieve actual parameters */
 	int paramCount = getParamCount(params);
 	while (paramCount > 0) {
 		paramCount--;
-		xVariableNode* var = params->op[1]->variable;
-		xVariableDefNode variableDef = *new xVariableDefNode;
-		variableDef.name = var->name;
-		variableDef.value->setType(var->value->getType());
-		functionDefNode->params->push_back(variableDef);
-		params = params->op[0];
+		xVariableNode* var = dynamic_cast<xVariableNode*>(params->op[1]);
+		xVariableDefNode* variableDef = new xVariableDefNode;
+		variableDef->name = var->name;
+		variableDef->value->setType(var->value->getType());
+		functionDef->params.push_back(variableDef);
+		params = dynamic_cast<xOperatorNode*>(params->op[0]);
 	}
 
-	return functionDefNode;
+	return functionDef;
 }
 
 xFunctionNode* function(const std::string& name, xOperatorNode* params) {
-	auto* functionCall = new xFunctionNode;
-	functionCall->name = name;
+	auto* function = new xFunctionNode;
+	function->name = name;
 
 	/* retrieve actual parameters */
 	int paramCount = getParamCount(params);
 	while (paramCount > 0) {
 		paramCount--;
-		functionCall->params.push_back(params->op[1]);
-		params = params->op[0];
+		function->params.push_back(params->op[1]);
+		params = dynamic_cast<xOperatorNode*>(params->op[0]);
 	}
 
-	return functionCall;
+	return function;
 }
 
 
@@ -123,9 +126,9 @@ xObjectDefNode* objectDef(const std::string &name, xOperatorNode* vars) {
 	node->name = name;
 	while (varCount > 0) {
 		varCount--;
-		xVariableDefNode* p = vars->op[1]; // p is variableDef
+		xVariableDefNode* p = dynamic_cast<xVariableDefNode*>(vars->op[1]); // p is variableDef
 		node->vars.push_back(p);
-		vars = vars->op[0];
+		vars = dynamic_cast<xOperatorNode*>(vars->op[0]);
 	}
 
 	return node;

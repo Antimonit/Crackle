@@ -1,5 +1,11 @@
 #include "headers/Heap.hpp"
+#include <c++/iostream>
+
+#include "nodes/DataType.h"
+
 #include "nodes/xObjectNode.h"
+#include "nodes/xVariableNode.h"
+#include "nodes/xConstantNode.h"
 
 MC::Heap::Heap(int size) {
 	this->size = size;

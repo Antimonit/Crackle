@@ -7,12 +7,18 @@
 
 #include <c++/string>
 #include <c++/vector>
-#include "Driver.hpp"
-#include "node_types.h"
 
+namespace MC { // xNode requires
+	class Driver;
+	class Scanner;
+	class Parser;
+}
+
+class xConstantNode;
 
 class xNode {
 public:
+
 	virtual xNode* ex(MC::Driver* driver) = 0;
 
 	virtual std::string print() const = 0;

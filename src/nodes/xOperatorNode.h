@@ -6,10 +6,9 @@
 #define CRACKLE_XOPERATORNODE_H
 
 
-#include <c++/vector>
 #include "xNode.h"
 
-class xOperatorNode : xNode {
+class xOperatorNode : public xNode {
 public:
 	int oper;
 	std::vector<xNode*> op;
@@ -25,7 +24,7 @@ public:
 	}
 
 	std::ostream& print(std::ostream& out) const override {
-		return out << const_cast<char>(oper) << " "
+		return out << static_cast<char>(oper) << " "
 				   << op.size() << " operands";
 	}
 

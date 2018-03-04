@@ -11,16 +11,16 @@ int main(const int argc, const char **argv) {
 	std::cout << "Starting tests." << std::endl;
 
 	try {
-		ioTest("iterative_fibonacci.txt");
-		ioTest("recursive_fibonacci.txt");
-		ioTest("avl.txt");
-
 		MC::DriverTest::testEQ();
-		MC::DriverTest::testINC();
 		MC::DriverTest::testPLUSIntInt();
 		MC::DriverTest::testPLUSDoubleDouble();
 		MC::DriverTest::testPLUSIntDouble();
 		MC::DriverTest::testPLUSIntBoolean();
+		MC::DriverTest::testINC();
+
+		ioTest("iterative_fibonacci.txt");
+		ioTest("recursive_fibonacci.txt");
+		ioTest("avl.txt");
 
 	} catch (const std::string& e) {
 		std::cerr << e << std::endl;
