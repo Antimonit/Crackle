@@ -19,14 +19,9 @@ public:
 
 	xNode* ex(MC::Driver* driver) override;
 
-	std::string print() const override {
-		return "Operator";
-	}
+	std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override {
-		return out << static_cast<char>(oper) << " "
-				   << op.size() << " operands";
-	}
+	std::ostream& print(std::ostream& out) const override;
 
 private:
 

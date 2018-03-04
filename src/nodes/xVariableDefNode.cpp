@@ -13,22 +13,23 @@ xVariableDefNode::xVariableDefNode() {
 	value = new xConstantNode(typeUndefined);
 }
 
+//xVariableDefNode::~xVariableDefNode() {
+//	delete value;
+//}
+
 xNode* xVariableDefNode::ex(MC::Driver* driver) {
-
-	xConstantNode* varDefValue = value;
 	if (defaultValue != nullptr) {
-		xNode* defValue = defaultValue->ex(driver);
-		xConstantNode* value = defValue->getValue();
+		xConstantNode* value = defaultValue->ex(driver)->getValue();
 
-		if (varDefValue->getType() != value->getType()) {
-			std::cerr << "Warning: Defined value of type " << varDefValue->getType()
+		if (this->value->getType() != value->getType()) {
+			std::cerr << "Warning: Defined value of type " << this->value->getType()
 					  << " is incompatible with variable type " << value->getType()
 					  << "." << std::endl;
 		} else {
-			varDefValue = value;	// TODO: check this
+			this->value = value;
 		}
 	} else {
-		varDefValue->defaultValue();
+		this->value->defaultValue();
 	}
 
 	auto* variable = new xVariableNode;

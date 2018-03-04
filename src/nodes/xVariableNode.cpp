@@ -13,6 +13,10 @@ xVariableNode::xVariableNode() {
 	value = new xConstantNode(typeUndefined);
 }
 
+//xVariableNode::~xVariableNode() {
+//	delete value;
+//}
+
 xNode* xVariableNode::ex(MC::Driver* driver) {
 	xVariableNode* variable = driver->findVariable(name);
 

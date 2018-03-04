@@ -660,3 +660,12 @@ xNode* xOperatorNode::ex(MC::Driver* driver) {
 	}
 }
 
+std::string xOperatorNode::print() const {
+	return "Operator";
+}
+
+std::ostream& xOperatorNode::print(std::ostream& out) const {
+	return out << static_cast<char>(oper) << " "
+			   << op.size() << " operands";
+}
+

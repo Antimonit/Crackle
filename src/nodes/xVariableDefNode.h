@@ -17,6 +17,8 @@ public:
 
 	xVariableDefNode();
 
+//	virtual ~xVariableDefNode();
+
 	xNode* ex(MC::Driver* driver) override;
 
 	xConstantNode* getValue() override;

@@ -14,6 +14,8 @@ public:
 
 	xVariableNode();
 
+//	virtual ~xVariableNode();
+
 	xNode* ex(MC::Driver* driver) override;
 
 	std::string print() const override;
