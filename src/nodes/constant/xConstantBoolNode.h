@@ -12,6 +12,8 @@ class xConstantBoolNode : public xConstantNode {
 public:
 	bool boolVal;
 
+	explicit xConstantBoolNode();
+
 	explicit xConstantBoolNode(bool value);
 
 	void defaultValue() override { this->boolVal = false; }

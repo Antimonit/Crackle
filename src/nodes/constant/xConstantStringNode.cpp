@@ -4,6 +4,10 @@
 
 #include "xConstantStringNode.h"
 
+xConstantStringNode::xConstantStringNode() : xConstantNode() {
+	defaultValue();
+}
+
 xConstantStringNode::xConstantStringNode(const std::string& value) : xConstantNode() {
 	this->stringVal = value;
 }

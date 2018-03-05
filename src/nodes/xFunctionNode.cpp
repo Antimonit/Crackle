@@ -41,10 +41,8 @@ xNode* xFunctionNode::ex(MC::Driver* driver) {
 			return new xEmptyNode;
 		}
 
-		auto* node = new xVariableNode();
-		node->name = formalParamDef->name;
-		node->value = actualParamVar;
-		params.push_back(node);
+		auto* param = new xVariableNode(formalParamDef->name, actualParamVar);
+		params.push_back(param);
 	}
 
 	driver->replaceSymbolTableScope();

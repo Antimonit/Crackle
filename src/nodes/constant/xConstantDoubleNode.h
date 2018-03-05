@@ -12,6 +12,8 @@ class xConstantDoubleNode : public xConstantNode {
 public:
 	double doubleVal;
 
+	explicit xConstantDoubleNode();
+
 	explicit xConstantDoubleNode(double value);
 
 	void defaultValue() override { this->doubleVal = 0.0; }

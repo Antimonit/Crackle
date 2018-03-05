@@ -12,6 +12,8 @@ class xConstantStringNode : public xConstantNode {
 public:
 	std::string stringVal;
 
+	explicit xConstantStringNode();
+
 	explicit xConstantStringNode(const std::string& value);
 
 	void defaultValue() override { this->stringVal = ""; }

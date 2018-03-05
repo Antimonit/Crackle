@@ -4,6 +4,10 @@
 
 #include "xConstantObjectNode.h"
 
+xConstantObjectNode::xConstantObjectNode() : xConstantNode() {
+	defaultValue();
+}
+
 xConstantObjectNode::xConstantObjectNode(xObjectNode* value, const std::string& typeName) : xConstantNode() {
 	this->objectVal = value;
 	this->objectTypeName = typeName;

@@ -8,14 +8,17 @@
 #include "xVariableNode.h"
 #include "xEmptyNode.h"
 
-xVariableDefNode::xVariableDefNode() {
-	name = "";
-	value = new xConstantNode(typeUndefined);
-}
+xVariableDefNode::xVariableDefNode(
+		const std::string& name,
+		xConstantNode* value
+) : name(name), value(value) {}
 
-//xVariableDefNode::~xVariableDefNode() {
-//	delete value;
-//}
+xVariableDefNode::xVariableDefNode(
+		const std::string& name,
+		xConstantNode* value,
+		xNode* defaultValue
+) : name(name), value(value), defaultValue(defaultValue) {}
+
 
 xNode* xVariableDefNode::ex(MC::Driver* driver) {
 	if (defaultValue != nullptr) {
@@ -32,10 +35,7 @@ xNode* xVariableDefNode::ex(MC::Driver* driver) {
 		this->value->defaultValue();
 	}
 
-	auto* variable = new xVariableNode;
-	variable->name = name;
-	variable->value = value;
-
+	auto* variable = new xVariableNode(name, value);
 	driver->addVariable(variable);
 
 	return new xEmptyNode();

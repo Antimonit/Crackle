@@ -19,6 +19,8 @@ class xConstantObjectNode;
 class xConstantNode : public xNode {
 public:
 
+	static xConstantNode* fromType(DataType type);
+
 	virtual DataType getType() const = 0;
 
 	virtual xConstantIntNode* toInt() { throw "Cannot convert " + typeToString(getType()) + " to type int."; }
@@ -30,9 +32,9 @@ public:
 
 	virtual void defaultValue() = 0;
 
-	xConstantNode* ex(MC::Driver* driver) override;
+	virtual xConstantNode* ex(MC::Driver* driver) override;
 
-	xConstantNode* getValue() override;
+	virtual xConstantNode* getValue() override;
 
 };
 

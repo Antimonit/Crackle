@@ -15,12 +15,18 @@ int main(const int argc, const char **argv) {
 		MC::DriverTest::testPLUSIntInt();
 		MC::DriverTest::testPLUSDoubleDouble();
 		MC::DriverTest::testPLUSIntDouble();
+		std::cout << "Starting tests 2." << std::endl;
 		MC::DriverTest::testPLUSIntBoolean();
+		std::cout << "Starting tests 3." << std::endl;
 		MC::DriverTest::testINC();
+		std::cout << "Starting tests 4." << std::endl;
 
 		ioTest("iterative_fibonacci.txt");
+		std::cout << "Starting tests." << std::endl;
 		ioTest("recursive_fibonacci.txt");
+		std::cout << "Starting tests." << std::endl;
 		ioTest("avl.txt");
+		std::cout << "Starting tests." << std::endl;
 
 	} catch (const std::string& e) {
 		std::cerr << e << std::endl;

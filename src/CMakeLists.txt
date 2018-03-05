@@ -18,8 +18,6 @@ add_library(crackle_lib
         Driver.cpp
         sources/SymbolTable.cpp
         headers/SymbolTable.hpp
-        sources/node_helpers.cpp
-        headers/node_helpers.hpp
         sources/node_types.cpp
         headers/types.hpp
         sources/AstPrinter.cpp

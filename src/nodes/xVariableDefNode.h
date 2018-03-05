@@ -14,8 +14,9 @@ public:
 	xConstantNode* value;
 	xNode* defaultValue;
 
-	xVariableDefNode();
+	xVariableDefNode(const std::string& name, xConstantNode* value);
 
+	xVariableDefNode(const std::string& name, xConstantNode* value, xNode* defaultValue);
 //	virtual ~xVariableDefNode();
 
 	xNode* ex(MC::Driver* driver) override;

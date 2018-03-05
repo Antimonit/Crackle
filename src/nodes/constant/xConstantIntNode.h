@@ -12,6 +12,8 @@ class xConstantIntNode : public xConstantNode {
 public:
 	int intVal;
 
+	explicit xConstantIntNode();
+
 	explicit xConstantIntNode(int value);
 
 	void defaultValue() override { this->intVal = 0; }

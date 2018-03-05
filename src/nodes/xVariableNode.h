@@ -12,9 +12,7 @@ public:
 	std::string name;
 	xConstantNode* value;
 
-	xVariableNode();
-
-//	virtual ~xVariableNode();
+	xVariableNode(const std::string& name, xConstantNode* value);
 
 	xNode* ex(MC::Driver* driver) override;
 

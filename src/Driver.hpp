@@ -9,7 +9,6 @@
 
 #include "headers/AstPrinter.hpp"
 #include "headers/SymbolTable.hpp"
-#include "headers/node_helpers.hpp"
 #include "headers/Heap.hpp"
 
 class xNode;
@@ -17,8 +16,7 @@ class xNode;
 namespace MC {
 
 	class DriverTest;
-//	class Scanner;
-//	class Parser;
+
 	class Driver {
 
 //#ifdef UNIT_TEST

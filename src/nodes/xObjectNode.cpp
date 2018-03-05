@@ -10,6 +10,7 @@
 #include "xObjectDefNode.h"
 #include "xConstantNode.h"
 #include "xEmptyNode.h"
+#include "constant/xConstantObjectNode.h"
 
 xNode* xObjectNode::ex(MC::Driver* driver) {
 	xObjectDefNode* objectDef = driver->findObject(name);
@@ -27,20 +28,17 @@ xNode* xObjectNode::ex(MC::Driver* driver) {
 	}
 
 	for (auto* varDef : objectDef->vars) {
-		auto* var = new xVariableNode;
-		var->name = varDef->name;
-		var->value = varDef->value;
+		auto* var = new xVariableNode(varDef->name, varDef->value);
 		if (varDef->defaultValue != nullptr) {
 			xNode* defaultVal = varDef->defaultValue->ex(driver);
-			xConstantNode* defaultConstantVal = dynamic_cast<xConstantNode*>(defaultVal);
-			var->value = defaultConstantVal;
+			var->value = dynamic_cast<xConstantNode*>(defaultVal);
 		} else {
 			var->value->defaultValue();
 		}
 		objectVal->vars.push_back(var);
 	}
 
-	return new xConstantNode(objectVal, name);
+	return new xConstantObjectNode(objectVal, name);
 }
 
 std::string xObjectNode::print() const {

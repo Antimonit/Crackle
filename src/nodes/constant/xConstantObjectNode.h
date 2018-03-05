@@ -14,6 +14,8 @@ public:
 	xObjectNode* objectVal;
 	std::string objectTypeName;
 
+	explicit xConstantObjectNode();
+
 	explicit xConstantObjectNode(xObjectNode* value, const std::string& typeName);
 
 	void defaultValue() override {

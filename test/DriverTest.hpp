@@ -7,6 +7,12 @@
 
 #include <c++/sstream>
 #include "Driver.hpp"
+#include "nodes/constant/xConstantIntNode.h"
+#include "nodes/constant/xConstantDoubleNode.h"
+#include "nodes/constant/xConstantBoolNode.h"
+#include "nodes/constant/xConstantStringNode.h"
+#include "nodes/constant/xConstantVoidNode.h"
+#include "nodes/constant/xConstantObjectNode.h"
 
 /*
 
@@ -29,47 +35,21 @@ namespace MC {
 
 	class DriverTest {
 	private:
-		static xConstantNode* constantNode(int val) {
-			return new xConstantNode(val);
-		}
-		static xConstantNode* constantNode(double val) {
-			return new xConstantNode(val);
-		}
-		static xConstantNode* constantNode(std::string val) {
-			return new xConstantNode(val);
-		}
-		static xConstantNode* constantNode(bool val) {
-			return new xConstantNode(val);
-		}
 
 		static xVariableNode* variable(const std::string& name) {
-			auto var = new xVariableNode;
-			var->name = name;
-			return var;
+			return new xVariableNode(name, nullptr);
 		}
 		static xVariableNode* variable(const std::string& name, int val) {
-			auto var = variable(name);
-			var->value->setType(typeInt);
-			var->value->intVal = val;
-			return var;
+			return new xVariableNode(name, new xConstantIntNode(val));
 		}
 		static xVariableNode* variable(const std::string& name, double val) {
-			auto var = variable(name);
-			var->value->setType(typeDouble);
-			var->value->doubleVal = val;
-			return var;
+			return new xVariableNode(name, new xConstantDoubleNode(val));
 		}
 		static xVariableNode* variable(const std::string& name, std::string val) {
-			auto var = variable(name);
-			var->value->setType(typeString);
-			var->value->stringVal = val;
-			return var;
+			return new xVariableNode(name, new xConstantStringNode(val));
 		}
 		static xVariableNode* variable(const std::string& name, bool val) {
-			auto var = variable(name);
-			var->value->setType(typeBool);
-			var->value->boolVal = val;
-			return var;
+			return new xVariableNode(name, new xConstantBoolNode(val));
 		}
 
 		static xOperatorNode* operatorNode(int oper) {

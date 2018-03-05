@@ -7,7 +7,6 @@
 #include <string>
 #include <parser.tab.hh>
 #include <headers/types.hpp>
-#include <headers/node_helpers.hpp>
 #include <utility>
 #include <c++/iostream>
 #include <nodes/xNode.h>
@@ -76,9 +75,7 @@ xFunctionDefNode* functionDef(xVariableNode* typedVariable, xOperatorNode* param
 	while (paramCount > 0) {
 		paramCount--;
 		xVariableNode* var = dynamic_cast<xVariableNode*>(params->op[1]);
-		xVariableDefNode* variableDef = new xVariableDefNode;
-		variableDef->name = var->name;
-		variableDef->value->setType(var->value->getType());
+		xVariableDefNode* variableDef = new xVariableDefNode(var->name, xConstantNode::fromType(var->value->getType()));
 		functionDef->params.push_back(variableDef);
 		params = dynamic_cast<xOperatorNode*>(params->op[0]);
 	}
@@ -148,18 +145,11 @@ xObjectNode* object(const std::string &name) {
 
 
 xVariableDefNode* variableDef(xVariableNode* typedVariable, xNode* defaultValue) {
-	auto* result = new xVariableDefNode();
-	result->name = typedVariable->name;
-	result->value->setType(typedVariable->value->getType());
-	result->defaultValue = defaultValue;
-	return result;
+	return new xVariableDefNode(typedVariable->name, xConstantNode::fromType(typedVariable->value->getType()), defaultValue);
 }
 
 xVariableNode* typedVariable(const std::string& name, DataType type) {
-	auto* variableNode = new xVariableNode();
-	variableNode->name = name;
-	variableNode->value->setType(type);
-	return variableNode;
+	return new xVariableNode(name, xConstantNode::fromType(type));
 }
 
 xVariableNode* variable(const std::string& name) {

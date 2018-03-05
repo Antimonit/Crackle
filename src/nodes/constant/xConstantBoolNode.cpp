@@ -4,6 +4,10 @@
 
 #include "xConstantBoolNode.h"
 
+xConstantBoolNode::xConstantBoolNode() : xConstantNode() {
+	defaultValue();
+}
+
 xConstantBoolNode::xConstantBoolNode(bool value) : xConstantNode() {
 	this->boolVal = value;
 }

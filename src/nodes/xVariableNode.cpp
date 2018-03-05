@@ -8,22 +8,17 @@
 #include "DataType.h"
 #include "xConstantNode.h"
 
-xVariableNode::xVariableNode() {
-	name = "";
-	value = new xConstantNode(typeUndefined);
-}
-
-//xVariableNode::~xVariableNode() {
-//	delete value;
-//}
+xVariableNode::xVariableNode(
+		const std::string& name,
+		xConstantNode* value
+) : name(name), value(value) {}
 
 xNode* xVariableNode::ex(MC::Driver* driver) {
 	xVariableNode* variable = driver->findVariable(name);
 
 	if (variable == nullptr) {
 		std::cerr << "Warning: Undefined variable '" << name << "'." << std::endl;
-		xEmptyNode* empty = new xEmptyNode;
-		return empty;
+		return new xEmptyNode;
 	}
 
 	return variable;

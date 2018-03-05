@@ -13,7 +13,7 @@ class xReturnNode : public xNode {
 public:
 	xConstantNode* value;
 
-	xReturnNode();
+	explicit xReturnNode();
 
 	explicit xReturnNode(xConstantNode* value);
 

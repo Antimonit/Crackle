@@ -4,6 +4,7 @@
 
 #include "xReturnNode.h"
 #include "xConstantNode.h"
+#include "constant/xConstantVoidNode.h"
 
 xNode* xReturnNode::ex(MC::Driver* driver) {
 	return this;
@@ -14,7 +15,7 @@ xReturnNode::xReturnNode(xConstantNode* value) {
 }
 
 xReturnNode::xReturnNode() {
-	this->value = new xConstantNode(typeVoid);
+	this->value = new xConstantVoidNode();
 }
 
 std::string xReturnNode::print() const {

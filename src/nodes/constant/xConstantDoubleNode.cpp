@@ -5,6 +5,10 @@
 #include "xConstantDoubleNode.h"
 #include "xConstantIntNode.h"
 
+xConstantDoubleNode::xConstantDoubleNode() : xConstantNode() {
+	defaultValue();
+}
+
 xConstantDoubleNode::xConstantDoubleNode(double value) : xConstantNode() {
 	this->doubleVal = value;
 }
