@@ -22,6 +22,12 @@
 #include <nodes/xConstantNode.h>
 #include "headers/types.hpp"
 #include "headers/SymbolTable.hpp"
+#include "nodes/constant/xConstantIntNode.h"
+#include "nodes/constant/xConstantDoubleNode.h"
+#include "nodes/constant/xConstantStringNode.h"
+#include "nodes/constant/xConstantBoolNode.h"
+#include "nodes/constant/xConstantVoidNode.h"
+#include "nodes/constant/xConstantObjectNode.h"
 
 
 int yyerror(const std::string &message) {
@@ -97,23 +103,23 @@ xFunctionNode* function(const std::string& name, xOperatorNode* params) {
 
 
 xConstantNode* constantInt(int value) {
-	return new xConstantNode(value);
+	return new xConstantIntNode(value);
 }
 
 xConstantNode* constantDouble(double value) {
-	return new xConstantNode(value);
+	return new xConstantDoubleNode(value);
 }
 
 xConstantNode* constantString(const std::string &value) {
-	return new xConstantNode(value);
+	return new xConstantStringNode(value);
 }
 
 xConstantNode* constantBool(bool value) {
-	return new xConstantNode(value);
+	return new xConstantBoolNode(value);
 }
 
 xConstantNode* constantNull() {
-	return new xConstantNode(nullptr, "null");
+	return new xConstantObjectNode(nullptr, "null");
 }
 
 

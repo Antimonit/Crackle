@@ -2,52 +2,6 @@
 // Created by DAVE on 7. 1. 2018.
 //
 
-#include <iostream>
-#include <nodes/DataType.h>
-#include <nodes/xConstantNode.h>
-#include "headers/types.hpp"
-#include "headers/node_helpers.hpp"
-
-DataType maxType(xConstantNode& a, xConstantNode& b) {
-	DataType typeA = a.getType();
-	DataType typeB = b.getType();
-	if (typeA == typeInt && typeB == typeInt) {
-		return typeInt;
-	} else if (typeA == typeDouble && typeB == typeDouble) {
-		return typeDouble;
-	} else if ((typeA == typeDouble || typeB == typeDouble) && (typeA == typeInt || typeB == typeInt)) {
-		return typeDouble;
-	} else if (typeA == typeString && typeB == typeString) {
-		return typeString;
-	} else if (typeA == typeObject && typeB == typeObject) {
-		return typeObject;
-	} else {
-		return typeUndefined;
-	}
-}
-
-void widenNode(xConstantNode& a, DataType maxType) {
-	if (a.getType() == maxType) {
-		return;
-	}
-	if (a.getType() == typeInt && maxType == typeDouble) {
-		a.setType(typeDouble);
-		a.doubleVal = (double) a.intVal;
-	} else {
-		std::cerr << "Warning: Widening of type " << a.getType()
-				  << " to type " << maxType
-				  << "." << std::endl;
-	}
-}
-
-DataType widenNodes(xConstantNode& a, xConstantNode& b) {
-	DataType max = maxType(a, b);
-	widenNode(a, max);
-	widenNode(b, max);
-	return max;
-}
-
-
 //void defaultConstant(ConstantNode& def) {
 //	if (def.getType() == typeInt) {
 //		def.intVal = 0;

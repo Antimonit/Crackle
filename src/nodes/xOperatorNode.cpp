@@ -17,12 +17,18 @@
 #include "xObjectNode.h"
 #include "xFunctionDefNode.h"
 #include "xFunctionNode.h"
+#include "constant/xConstantIntNode.h"
+#include "constant/xConstantDoubleNode.h"
+#include "constant/xConstantBoolNode.h"
+#include "constant/xConstantStringNode.h"
+#include "constant/xConstantVoidNode.h"
+#include "constant/xConstantObjectNode.h"
 
 using token = MC::Parser::token;
 
-DataType maxType(xConstantNode& a, xConstantNode& b) {
-	DataType typeA = a.getType();
-	DataType typeB = b.getType();
+DataType maxType(xConstantNode* a, xConstantNode* b) const {
+	DataType typeA = a->getType();
+	DataType typeB = b->getType();
 	if (typeA == typeInt && typeB == typeInt) {
 		return typeInt;
 	} else if (typeA == typeDouble && typeB == typeDouble) {
@@ -38,30 +44,23 @@ DataType maxType(xConstantNode& a, xConstantNode& b) {
 	}
 }
 
-void widenNode(xConstantNode& a, DataType maxType) {
-	if (a.getType() == maxType) {
+void widenNode(xConstantNode*& a, DataType maxType) {
+	if (a->getType() == maxType) {
 		return;
 	}
-	if (a.getType() == typeInt && maxType == typeDouble) {
-		a.setType(typeDouble);
-		a.doubleVal = (double) a.intVal;
+	if (a->getType() == typeInt && maxType == typeDouble) {
+		a = a->toDouble();
 	} else {
-		std::cerr << "Warning: Widening of type " << a.getType()
+		std::cerr << "Warning: Widening of type " << a->getType()
 				  << " to type " << maxType
 				  << "." << std::endl;
 	}
 }
 
-DataType widenNodes(xConstantNode& a, xConstantNode& b) {
+DataType widenNodes(xConstantNode*& a, xConstantNode*& b) {
 	DataType max = maxType(a, b);
 	widenNode(a, max);
 	widenNode(b, max);
-	return max;
-}
-DataType widenNodes(xConstantNode* a, xConstantNode* b) {
-	DataType max = maxType(*a, *b);
-	widenNode(*a, max);
-	widenNode(*b, max);
 	return max;
 }
 
@@ -77,7 +76,7 @@ xNode* xOperatorNode::returnx(MC::Driver* driver) {
 }
 
 xNode* xOperatorNode::whilex(MC::Driver* driver) {
-	while (op[0]->ex(driver)->getValue()->boolVal) {
+	while (op[0]->ex(driver)->getValue()->toBool()->boolVal) {
 		driver->pushSymbolTableScope();
 		xNode* left = op[1]->ex(driver);
 		driver->popSymbolTableScope();
@@ -92,7 +91,7 @@ xNode* xOperatorNode::whilex(MC::Driver* driver) {
 
 xNode* xOperatorNode::forx(MC::Driver* driver) {
 	for (op[0]->ex(driver);
-		 op[1]->ex(driver)->getValue()->boolVal;
+		 op[1]->ex(driver)->getValue()->toBool()->boolVal;
 		 op[2]->ex(driver)) {
 
 		driver->pushSymbolTableScope();
@@ -111,7 +110,7 @@ xNode* xOperatorNode::ifx(MC::Driver* driver) {
 	driver->pushSymbolTableScope();
 	xConstantNode* condition = op[0]->ex(driver)->getValue();
 
-	if (condition->boolVal) {
+	if (condition->toBool()->boolVal) {
 		xNode* left = op[1]->ex(driver);
 		auto* ret = dynamic_cast<xReturnNode*>(left);
 		if (ret != nullptr) {
@@ -161,15 +160,15 @@ xNode* xOperatorNode::dot(MC::Driver* driver) {
 				  << "." << std::endl;
 		return new xEmptyNode;
 	}
-
-	if (value->objectVal == nullptr) {
+	const xConstantObjectNode* objectValue = value->toObject();
+	if (objectValue->objectVal == nullptr) {
 		std::cerr << "Warning: Unable to access '" << right->name
 				  << "' in null object." << std::endl;
 		return new xEmptyNode;
 	}
 
-	xObjectNode* object = value->objectVal;
-	xObjectDefNode* objectDef = driver->findObject(value->objectTypeName);
+	xObjectNode* object = objectValue->objectVal;
+	xObjectDefNode* objectDef = driver->findObject(objectValue->objectTypeName);
 
 	for (size_t i = 0; i < objectDef->vars.size(); i++) {
 		xVariableDefNode* varDef = objectDef->vars[i];
@@ -180,7 +179,7 @@ xNode* xOperatorNode::dot(MC::Driver* driver) {
 	}
 
 	std::cerr << "Warning: Unable to access member '" << right->name
-			  << "' in object type " << value->objectVal->name
+			  << "' in object type " << objectValue->objectVal->name
 			  << "." << std::endl;
 
 	return new xEmptyNode();
@@ -222,191 +221,172 @@ xNode* xOperatorNode::assign(MC::Driver* driver) {
 	return rvalue;
 }
 
-xNode* xOperatorNode::uminus(MC::Driver* driver) {
+xConstantNode* xOperatorNode::uminus(MC::Driver* driver) {
 	xConstantNode* value = op[0]->ex(driver)->getValue();
 
 	if (value->getType() == typeInt) {
-		return new xConstantNode(-value->intVal);
+		return new xConstantIntNode(-value->toInt()->intVal);
 	} else if (value->getType() == typeDouble) {
-		return new xConstantNode(-value->doubleVal);
+		return new xConstantDoubleNode(-value->toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid argument to unary minus." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid argument to unary minus.";
 	}
 }
 
-xNode* xOperatorNode::plus(MC::Driver* driver) {
+xConstantNode* xOperatorNode::plus(MC::Driver* driver) {
 	xConstantNode* left = op[0]->ex(driver)->getValue();
 	xConstantNode* right = op[1]->ex(driver)->getValue();
 
 	DataType maxType = widenNodes(left, right);
 	if (maxType == typeInt) {
-		return new xConstantNode(left->intVal + right->intVal);
+		return new xConstantIntNode(left->toInt()->intVal + right->toInt()->intVal);
 	} else if (maxType == typeDouble) {
-		return new xConstantNode(left->doubleVal + right->doubleVal);
+		return new xConstantDoubleNode(left->toDouble()->doubleVal + right->toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid argument to plus operator." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid argument to plus operator.";
 	}
 }
 
-xNode* xOperatorNode::minus(MC::Driver* driver) {
+xConstantNode* xOperatorNode::minus(MC::Driver* driver) {
 	xConstantNode* left = op[0]->ex(driver)->getValue();
 	xConstantNode* right = op[1]->ex(driver)->getValue();
 
 	DataType maxType = widenNodes(left, right);
 	if (maxType == typeInt) {
-		return new xConstantNode(left->intVal - right->intVal);
+		return new xConstantIntNode(left->toInt()->intVal - right->toInt()->intVal);
 	} else if (maxType == typeDouble) {
-		return new xConstantNode(left->doubleVal - right->doubleVal);
+		return new xConstantDoubleNode(left->toDouble()->doubleVal - right->toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid argument to minus operator.\n" << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid argument to minus operator.";
 	}
 }
 
-xNode* xOperatorNode::multiply(MC::Driver* driver) {
+xConstantNode* xOperatorNode::multiply(MC::Driver* driver) {
 	xConstantNode* left = op[0]->ex(driver)->getValue();
 	xConstantNode* right = op[1]->ex(driver)->getValue();
 
 	DataType maxType = widenNodes(left, right);
 	if (maxType == typeInt) {
-		return new xConstantNode(left->intVal * right->intVal);
+		return new xConstantIntNode(left->toInt()->intVal * right->toInt()->intVal);
 	} else if (maxType == typeDouble) {
-		return new xConstantNode(left->doubleVal * right->doubleVal);
+		return new xConstantDoubleNode(left->toDouble()->doubleVal * right->toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid argument to multiply operator.\n" << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid argument to multiply operator.";
 	}
 }
 
-xNode* xOperatorNode::divide(MC::Driver* driver) {
+xConstantNode* xOperatorNode::divide(MC::Driver* driver) {
 	xConstantNode* left = op[0]->ex(driver)->getValue();
 	xConstantNode* right = op[1]->ex(driver)->getValue();
 
 	DataType maxType = widenNodes(left, right);
 	if (maxType == typeInt) {
-		return new xConstantNode(left->intVal / right->intVal);
+		return new xConstantIntNode(left->toInt()->intVal / right->toInt()->intVal);
 	} else if (maxType == typeDouble) {
-		return new xConstantNode(left->doubleVal / right->doubleVal);
+		return new xConstantDoubleNode(left->toDouble()->doubleVal / right->toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid argument to divide operator.\n" << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid argument to divide operator.";
 	}
 }
 
-xNode* xOperatorNode::modulo(MC::Driver* driver) {
+xConstantNode* xOperatorNode::modulo(MC::Driver* driver) {
 	xConstantNode* left = op[0]->ex(driver)->getValue();
 	xConstantNode* right = op[1]->ex(driver)->getValue();
 
 	DataType maxType = widenNodes(left, right);
 	if (maxType == typeInt) {
-		return new xConstantNode(left->intVal % right->intVal);
+		return new xConstantIntNode(left->toInt()->intVal % right->toInt()->intVal);
 	} else {
-		std::cerr << "Warning: Invalid argument to modulo operator.\n" << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid argument to modulo operator.";
 	}
 }
 
-xNode* xOperatorNode::andx(MC::Driver* driver) {
-	xConstantNode* left = op[0]->ex(driver)->getValue();
-
-	if (left->getType() != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << left->getType()
-				  << " to AND operator." << std::endl;
-		return new xConstantNode(typeUndefined);
-	} else if (!left->boolVal) {
-		return new xConstantNode(false);
-	}
-
-	xConstantNode* right = op[1]->ex(driver)->getValue();
-
-	if (right->getType() != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << right->getType()
-				  << " to AND operator." << std::endl;
-		return new xConstantNode(typeUndefined);
-	} else if (!right->boolVal) {
-		return new xConstantNode(false);
-	}
-
-	return new xConstantNode(true);
-}
-
-xNode* xOperatorNode::orx(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::andx(MC::Driver* driver) {
 	xConstantNode* left = op[0]->ex(driver)->getValue();
 	if (left->getType() != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << left->getType()
-				  << " to OR operator." << std::endl;
-		return new xConstantNode(typeUndefined);
-	} else if (left->boolVal) {
-		return new xConstantNode(true);
+		throw "Warning: Invalid argument of type " + typeToString(left->getType()) + " to AND operator.";
+	} else if (!left->toBool()->boolVal) {
+		return new xConstantBoolNode(false);
 	}
 
 	xConstantNode* right = op[1]->ex(driver)->getValue();
 	if (right->getType() != typeBool) {
-		std::cerr << "Warning: Invalid argument of type " << right->getType()
-				  << " to OR operator." << std::endl;
-		return new xConstantNode(typeUndefined);
-	} else if (right->boolVal) {
-		return new xConstantNode(true);
+		throw "Warning: Invalid argument of type " + typeToString(right->getType()) + " to AND operator.";
+	} else if (!right->toBool()->boolVal) {
+		return new xConstantBoolNode(false);
 	}
-	return new xConstantNode(false);
+
+	return new xConstantBoolNode(true);
 }
 
-xNode* xOperatorNode::neg(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::orx(MC::Driver* driver) {
+	xConstantNode* left = op[0]->ex(driver)->getValue();
+	if (left->getType() != typeBool) {
+		throw "Warning: Invalid argument of type " + typeToString(left->getType()) + " to OR operator.";
+	} else if (left->toBool()->boolVal) {
+		return new xConstantBoolNode(true);
+	}
+
+	xConstantNode* right = op[1]->ex(driver)->getValue();
+	if (right->getType() != typeBool) {
+		throw "Warning: Invalid argument of type " + typeToString(right->getType()) + " to OR operator.";
+	} else if (right->toBool()->boolVal) {
+		return new xConstantBoolNode(true);
+	}
+
+	return new xConstantBoolNode(false);
+}
+
+xConstantBoolNode* xOperatorNode::neg(MC::Driver* driver) {
 	xNode* v = op[0]->ex(driver);
 	auto* variable = dynamic_cast<xVariableNode*>(v);
 	auto* constant = dynamic_cast<xConstantNode*>(v);
 	xConstantNode& value = (variable != nullptr) ? *variable->value : *constant;
 
-	if (value.getType() == typeBool) {
-		return new xConstantNode(!value.boolVal);
+	if (value.getType() != typeBool) {
+		throw "Warning: Invalid argument of type " + typeToString(value.getType()) + " to NEG operator.";
 	} else {
-		std::cerr << "Warning: Invalid argument of type " << value.getType()
-				  << " to NEG operator." << std::endl;
+		return new xConstantBoolNode(!value.toBool()->boolVal);
 	}
-	return new xConstantNode(typeUndefined);
 }
 
-xNode* xOperatorNode::inc(MC::Driver* driver) {
+xConstantNode* xOperatorNode::inc(MC::Driver* driver) {
 	xNode* v = op[0]->ex(driver);
 	auto* variable = dynamic_cast<xVariableNode*>(v);
 
 	if (variable == nullptr) {
-		std::cerr << "Warning: Cannot increment non-variable." << std::endl;
+		throw "Warning: Cannot increment non-variable.";
 	} else {
 		xConstantNode* value = variable->value;
 		if (value->getType() == typeInt) {
-			return new xConstantNode(++value->intVal);
+			return new xConstantIntNode(++value->toInt()->intVal);
 		} else if (value->getType() == typeDouble) {
-			return new xConstantNode(++value->doubleVal);
+			return new xConstantDoubleNode(++value->toDouble()->doubleVal);
 		} else {
-			std::cerr << "Warning: Cannot increment non-numeric variable." << std::endl;
+			throw "Warning: Cannot increment non-numeric variable.";
 		}
 	}
-	return new xConstantNode(typeUndefined);
 }
 
-xNode* xOperatorNode::dec(MC::Driver* driver) {
+xConstantNode* xOperatorNode::dec(MC::Driver* driver) {
 	xNode* v = op[0]->ex(driver);
 	auto* variable = dynamic_cast<xVariableNode*>(v);
 
 	if (variable == nullptr) {
-		std::cerr << "Warning: Cannot decrement non-variable." << std::endl;
+		throw "Warning: Cannot decrement non-variable.";
 	} else {
 		xConstantNode* value = variable->value;
 		if (value->getType() == typeInt) {
-			return new xConstantNode(--value->intVal);
+			return new xConstantIntNode(--value->toInt()->intVal);
 		} else if (value->getType() == typeDouble) {
-			return new xConstantNode(--value->doubleVal);
+			return new xConstantDoubleNode(--value->toDouble()->doubleVal);
 		} else {
-			std::cerr << "Warning: Cannot decrement non-numeric variable." << std::endl;
+			throw "Warning: Cannot decrement non-numeric variable.";
 		}
 	}
-	return new xConstantNode(typeUndefined);
 }
 
-xNode* xOperatorNode::lt(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::lt(MC::Driver* driver) {
 	xNode* l = op[0]->ex(driver);
 	xNode* r = op[1]->ex(driver);
 	auto* lVariable = dynamic_cast<xVariableNode*>(l);
@@ -419,19 +399,18 @@ xNode* xOperatorNode::lt(MC::Driver* driver) {
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
 		widenNodes(left, right);
-		return new xConstantNode(left.intVal < right.intVal);
+		return new xConstantBoolNode(left.toInt()->intVal < right.toInt()->intVal);
 	} else if (max == typeDouble) {
 		widenNodes(left, right);
-		return new xConstantNode(left.doubleVal < right.doubleVal);
+		return new xConstantBoolNode(left.toDouble()->doubleVal < right.toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid arguments of types " << left.getType()
-				  << " and " << right.getType()
-				  << " to LT operator." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid arguments of types " + typeToString(left.getType())
+			  + " and " + typeToString(right.getType())
+			  + " to LT operator.";
 	}
 }
 
-xNode* xOperatorNode::le(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::le(MC::Driver* driver) {
 	xNode* l = op[0]->ex(driver);
 	xNode* r = op[1]->ex(driver);
 	auto* lVariable = dynamic_cast<xVariableNode*>(l);
@@ -444,19 +423,18 @@ xNode* xOperatorNode::le(MC::Driver* driver) {
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
 		widenNodes(left, right);
-		return new xConstantNode(left.intVal <= right.intVal);
+		return new xConstantBoolNode(left.toInt()->intVal <= right.toInt()->intVal);
 	} else if (max == typeDouble) {
 		widenNodes(left, right);
-		return new xConstantNode(left.doubleVal <= right.doubleVal);
+		return new xConstantBoolNode(left.toDouble()->doubleVal <= right.toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid arguments of types " << left.getType()
-				  << " and " << right.getType()
-				  << " to LE operator." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid arguments of types " + typeToString(left.getType())
+			  + " and " + typeToString(right.getType())
+			  + " to LE operator.";
 	}
 }
 
-xNode* xOperatorNode::gt(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::gt(MC::Driver* driver) {
 	xNode* l = op[0]->ex(driver);
 	xNode* r = op[1]->ex(driver);
 	auto* lVariable = dynamic_cast<xVariableNode*>(l);
@@ -469,19 +447,18 @@ xNode* xOperatorNode::gt(MC::Driver* driver) {
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
 		widenNodes(left, right);
-		return new xConstantNode(left.intVal > right.intVal);
+		return new xConstantBoolNode(left.toInt()->intVal > right.toInt()->intVal);
 	} else if (max == typeDouble) {
 		widenNodes(left, right);
-		return new xConstantNode(left.doubleVal > right.doubleVal);
+		return new xConstantBoolNode(left.toDouble()->doubleVal > right.toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid arguments of types " << left.getType()
-				  << " and " << right.getType()
-				  << " to GT operator." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid arguments of types " + typeToString(left.getType())
+			  + " and " + typeToString(right.getType())
+			  + " to GT operator.";
 	}
 }
 
-xNode* xOperatorNode::ge(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::ge(MC::Driver* driver) {
 	xNode* l = op[0]->ex(driver);
 	xNode* r = op[1]->ex(driver);
 	auto* lVariable = dynamic_cast<xVariableNode*>(l);
@@ -494,19 +471,18 @@ xNode* xOperatorNode::ge(MC::Driver* driver) {
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
 		widenNodes(left, right);
-		return new xConstantNode(left.intVal >= right.intVal);
+		return new xConstantBoolNode(left.toInt()->intVal >= right.toInt()->intVal);
 	} else if (max == typeDouble) {
 		widenNodes(left, right);
-		return new xConstantNode(left.doubleVal >= right.doubleVal);
+		return new xConstantBoolNode(left.toDouble()->doubleVal >= right.toDouble()->doubleVal);
 	} else {
-		std::cerr << "Warning: Invalid arguments of types " << left.getType()
-				  << " and " << right.getType()
-				  << " to GE operator." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid arguments of types " + typeToString(left.getType())
+			  + " and " + typeToString(right.getType())
+			  + " to GE operator.";
 	}
 }
 
-xNode* xOperatorNode::eq(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::eq(MC::Driver* driver) {
 	xNode* l = op[0]->ex(driver);
 	xNode* r = op[1]->ex(driver);
 	auto* lVariable = dynamic_cast<xVariableNode*>(l);
@@ -519,22 +495,21 @@ xNode* xOperatorNode::eq(MC::Driver* driver) {
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
 		widenNodes(left, right);
-		return new xConstantNode(left.intVal == right.intVal);
+		return new xConstantBoolNode(left.toInt()->intVal == right.toInt()->intVal);
 	} else if (max == typeDouble) {
 		widenNodes(left, right);
-		return new xConstantNode(left.doubleVal == right.doubleVal);
+		return new xConstantBoolNode(left.toDouble()->doubleVal == right.toDouble()->doubleVal);
 	} else if (max == typeObject) {
 		widenNodes(left, right);
-		return new xConstantNode(left.objectVal == right.objectVal);
+		return new xConstantBoolNode(left.toObject()->objectVal == right.toObject()->objectVal);
 	} else {
-		std::cerr << "Warning: Invalid arguments of types " << left.getType()
-				  << " and " << right.getType()
-				  << " to EQ operator." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid arguments of types " + typeToString(left.getType())
+			  + " and " + typeToString(right.getType())
+			  + " to EQ operator.";
 	}
 }
 
-xNode* xOperatorNode::ne(MC::Driver* driver) {
+xConstantBoolNode* xOperatorNode::ne(MC::Driver* driver) {
 	xNode* l = op[0]->ex(driver);
 	xNode* r = op[1]->ex(driver);
 	auto* lVariable = dynamic_cast<xVariableNode*>(l);
@@ -547,18 +522,17 @@ xNode* xOperatorNode::ne(MC::Driver* driver) {
 	DataType max = maxType(left, right);
 	if (max == typeInt) {
 		widenNodes(left, right);
-		return new xConstantNode(left.intVal != right.intVal);
+		return new xConstantBoolNode(left.toInt()->intVal != right.toInt()->intVal);
 	} else if (max == typeDouble) {
 		widenNodes(left, right);
-		return new xConstantNode(left.doubleVal != right.doubleVal);
+		return new xConstantBoolNode(left.toDouble()->doubleVal != right.toDouble()->doubleVal);
 	} else if (max == typeObject) {
 		widenNodes(left, right);
-		return new xConstantNode(left.objectVal != right.objectVal);
+		return new xConstantBoolNode(left.toObject()->objectVal != right.toObject()->objectVal);
 	} else {
-		std::cerr << "Warning: Invalid arguments of types " << left.getType()
-				  << " and " << right.getType()
-				  << " to NE operator." << std::endl;
-		return new xConstantNode(typeUndefined);
+		throw "Warning: Invalid arguments of types " + typeToString(left.getType())
+				  + " and " + typeToString(right.getType())
+				  + " to NE operator.";
 	}
 }
 

@@ -41,7 +41,7 @@ add_library(crackle_lib
         nodes/xOperatorNode.cpp     nodes/xOperatorNode.h
         nodes/xReturnNode.cpp       nodes/xReturnNode.h
         nodes/xEmptyNode.cpp        nodes/xEmptyNode.h
-        )
+        nodes/constant/xConstantIntNode.cpp nodes/constant/xConstantIntNode.h nodes/constant/xConstantObjectNode.cpp nodes/constant/xConstantObjectNode.h nodes/constant/xConstantVoidNode.cpp nodes/constant/xConstantVoidNode.h nodes/constant/xConstantDoubleNode.cpp nodes/constant/xConstantDoubleNode.h nodes/constant/xConstantStringNode.cpp nodes/constant/xConstantStringNode.h nodes/constant/xConstantBoolNode.cpp nodes/constant/xConstantBoolNode.h)
 target_include_directories(crackle_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(crackle_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

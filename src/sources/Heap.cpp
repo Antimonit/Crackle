@@ -6,6 +6,7 @@
 #include "nodes/xObjectNode.h"
 #include "nodes/xVariableNode.h"
 #include "nodes/xConstantNode.h"
+#include "nodes/constant/xConstantObjectNode.h"
 
 MC::Heap::Heap(int size) {
 	this->size = size;
@@ -68,7 +69,7 @@ void MC::Heap::gcMarkTable(MC::SymbolTable* table) {
 	for (auto item : table->variables) {
 		auto rootValue = item.second->value;
 		if (rootValue->getType() == typeObject) {
-			gcMarkNode(rootValue->objectVal);
+			gcMarkNode(rootValue->toObject()->objectVal);
 		}
 	}
 }
@@ -79,7 +80,7 @@ void MC::Heap::gcMarkNode(xObjectNode* object) {
 
 		for (auto childVar : object->vars) {
 			if (childVar->value->getType() == typeObject) {
-				gcMarkNode(childVar->value->objectVal);
+				gcMarkNode(childVar->value->toObject()->objectVal);
 			}
 		}
 	}

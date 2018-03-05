@@ -18,6 +18,7 @@ enum DataType {
 	typeUndefined
 };
 
+std::string typeToString(DataType value);
 std::ostream& operator<<(std::ostream& out, DataType value);
 std::string operator+(const std::string& out, DataType value);
 

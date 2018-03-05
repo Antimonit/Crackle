@@ -5,7 +5,7 @@
 #include <c++/ostream>
 #include "DataType.h"
 
-std::string toString(DataType value) {
+std::string typeToString(DataType value) {
 	switch (value) {
 		case typeInt:		return "int";
 		case typeDouble:	return "double";
@@ -19,9 +19,9 @@ std::string toString(DataType value) {
 }
 
 std::ostream& operator<<(std::ostream& out, const DataType value) {
-	return out << toString(value);
+	return out << typeToString(value);
 }
 
 std::string operator+(const std::string& out, const DataType value) {
-	return out + toString(value);
+	return out + typeToString(value);
 }

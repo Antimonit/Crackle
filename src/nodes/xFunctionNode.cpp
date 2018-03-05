@@ -2,6 +2,7 @@
 // Created by DAVE on 7. 2. 2018.
 //
 
+#include <nodes/constant/xConstantVoidNode.h>
 #include "xFunctionNode.h"
 #include "Driver.hpp"
 
@@ -62,7 +63,7 @@ xNode* xFunctionNode::ex(MC::Driver* driver) {
 	}
 
 	if (functionDef->dataType == typeVoid) {
-		return new xConstantNode(typeVoid);
+		return new xConstantVoidNode();
 	} else {
 		return res;
 	}
