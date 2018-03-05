@@ -23,12 +23,14 @@ public:
 
 	virtual DataType getType() const = 0;
 
-	virtual xConstantIntNode* toInt() { throw "Cannot convert " + typeToString(getType()) + " to type int."; }
-	virtual xConstantDoubleNode* toDouble() { throw "Cannot convert " + typeToString(getType()) + " to type double."; }
-	virtual xConstantBoolNode* toBool() { throw "Cannot convert " + typeToString(getType()) + " to type bool."; }
-	virtual xConstantStringNode* toString() { throw "Cannot convert " + typeToString(getType()) + " to type string."; }
-	virtual xConstantVoidNode* toVoid() { throw "Cannot convert " + typeToString(getType()) + " to type void."; }
-	virtual xConstantObjectNode* toObject() { throw "Cannot convert " + typeToString(getType()) + " to type object."; }
+	virtual xConstantNode* clone() const = 0;
+
+	virtual xConstantIntNode* toInt()		const { throw "Cannot convert " + typeToString(getType()) + " to type int."; }
+	virtual xConstantDoubleNode* toDouble() const { throw "Cannot convert " + typeToString(getType()) + " to type double."; }
+	virtual xConstantBoolNode* toBool()		const { throw "Cannot convert " + typeToString(getType()) + " to type bool."; }
+	virtual xConstantStringNode* toString()	const { throw "Cannot convert " + typeToString(getType()) + " to type string."; }
+	virtual xConstantObjectNode* toObject()	const { throw "Cannot convert " + typeToString(getType()) + " to type object."; }
+	virtual xConstantVoidNode* toVoid()		const { throw "Cannot convert " + typeToString(getType()) + " to type void."; }
 
 	virtual void defaultValue() = 0;
 

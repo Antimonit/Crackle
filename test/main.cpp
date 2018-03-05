@@ -15,30 +15,30 @@ int main(const int argc, const char **argv) {
 		MC::DriverTest::testPLUSIntInt();
 		MC::DriverTest::testPLUSDoubleDouble();
 		MC::DriverTest::testPLUSIntDouble();
-		std::cout << "Starting tests 2." << std::endl;
 		MC::DriverTest::testPLUSIntBoolean();
-		std::cout << "Starting tests 3." << std::endl;
 		MC::DriverTest::testINC();
-		std::cout << "Starting tests 4." << std::endl;
+		MC::DriverTest::testDEC();
 
+		std::cout << "Starting iterative fibonacci." << std::endl;
 		ioTest("iterative_fibonacci.txt");
-		std::cout << "Starting tests." << std::endl;
+
+		std::cout << "Starting recursive fibonacci." << std::endl;
 		ioTest("recursive_fibonacci.txt");
-		std::cout << "Starting tests." << std::endl;
+
+		std::cout << "Starting AVL." << std::endl;
 		ioTest("avl.txt");
-		std::cout << "Starting tests." << std::endl;
+
+		std::cout << "All tests passed." << std::endl;
+		return (EXIT_SUCCESS);
 
 	} catch (const std::string& e) {
-		std::cerr << e << std::endl;
+		std::cerr << "Test failed. " << e << std::endl;
 		return (EXIT_FAILURE);
 	} catch (const char* e) {
-		std::cerr << e << std::endl;
+		std::cerr << "Test failed. " << e << std::endl;
 		return (EXIT_FAILURE);
 	} catch (...) {
 		std::cerr << "Test failed." << std::endl;
 		return (EXIT_FAILURE);
 	}
-
-	std::cout << "All tests passed." << std::endl;
-	return (EXIT_SUCCESS);
 }

@@ -16,15 +16,17 @@ public:
 
 	explicit xConstantStringNode(const std::string& value);
 
-	void defaultValue() override { this->stringVal = ""; }
+	virtual void defaultValue() override { this->stringVal = ""; }
 
-	DataType getType() const override { return typeString; }
+	virtual DataType getType() const override { return typeString; }
 
-	std::string print() const override { return "Constant String"; }
+	virtual xConstantNode* clone() const override;
 
-	std::ostream& print(std::ostream& out) const override { return out << stringVal; }
+	virtual std::string print() const override { return "Constant String"; }
 
-	xConstantStringNode* toString() override;
+	virtual std::ostream& print(std::ostream& out) const override { return out << stringVal; }
+
+	virtual xConstantStringNode* toString() const override;
 };
 
 

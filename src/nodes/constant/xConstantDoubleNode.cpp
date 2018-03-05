@@ -13,10 +13,14 @@ xConstantDoubleNode::xConstantDoubleNode(double value) : xConstantNode() {
 	this->doubleVal = value;
 }
 
-xConstantIntNode* xConstantDoubleNode::toInt() {
+xConstantIntNode* xConstantDoubleNode::toInt() const {
 	return new xConstantIntNode((int) doubleVal);
 }
 
-xConstantDoubleNode* xConstantDoubleNode::toDouble() {
+xConstantDoubleNode* xConstantDoubleNode::toDouble() const {
+	return new xConstantDoubleNode(doubleVal);
+}
+
+xConstantNode* xConstantDoubleNode::clone() const {
 	return new xConstantDoubleNode(doubleVal);
 }

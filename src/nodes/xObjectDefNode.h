@@ -8,17 +8,16 @@
 #include "xNode.h"
 
 class xVariableDefNode;
-
 class xObjectDefNode : public xNode {
 public:
 	std::string name;
 	std::vector<xVariableDefNode*> vars;
 
-	xNode* ex(MC::Driver* driver) override;
+	virtual xNode* ex(MC::Driver* driver) override;
 
-	std::string print() const override;
+	virtual std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override;
+	virtual std::ostream& print(std::ostream& out) const override;
 
 };
 

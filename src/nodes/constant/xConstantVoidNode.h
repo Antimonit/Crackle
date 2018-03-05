@@ -16,13 +16,15 @@ public:
 
 	void defaultValue() override { /* do nothing */ }
 
-	DataType getType() const override { return typeVoid; }
+	virtual DataType getType() const override { return typeVoid; }
 
-	std::string print() const override { return "Constant Void"; }
+	virtual xConstantNode* clone() const override;
 
-	std::ostream& print(std::ostream& out) const override { return out << "void"; }
+	virtual std::string print() const override { return "Constant Void"; }
 
-	xConstantVoidNode* toVoid() override;
+	virtual std::ostream& print(std::ostream& out) const override { return out << "void"; }
+
+	virtual xConstantVoidNode* toVoid() const override;
 
 };
 

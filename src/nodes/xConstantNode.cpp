@@ -29,11 +29,3 @@ xConstantNode* xConstantNode::fromType(DataType type) {
 		default: 			throw "Invalid type.";
 	}
 }
-
-//std::ostream& xConstantNode::print(std::ostream& out) const {
-//	DataType type = getType();
-//	switch (type) {
-//		case typeUndefined:	return out << "<undefined>";
-//		default:			return out << "<unknown>";
-//	}
-//}

@@ -16,17 +16,19 @@ public:
 
 	explicit xConstantIntNode(int value);
 
-	void defaultValue() override { this->intVal = 0; }
+	virtual void defaultValue() override { this->intVal = 0; }
 
-	DataType getType() const override { return typeInt; }
+	virtual DataType getType() const override { return typeInt; }
 
-	std::string print() const override { return "Constant Int"; }
+	virtual xConstantNode* clone() const override;
 
-	std::ostream& print(std::ostream& out) const override { return out << intVal; }
+	virtual std::string print() const override { return "Constant Int"; }
 
-	xConstantIntNode* toInt() override;
+	virtual std::ostream& print(std::ostream& out) const override { return out << intVal; }
 
-	xConstantDoubleNode* toDouble() override;
+	virtual xConstantIntNode* toInt() const override;
+
+	virtual xConstantDoubleNode* toDouble() const override;
 };
 
 

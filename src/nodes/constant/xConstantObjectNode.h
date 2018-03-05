@@ -18,23 +18,25 @@ public:
 
 	explicit xConstantObjectNode(xObjectNode* value, const std::string& typeName);
 
-	void defaultValue() override {
+	virtual void defaultValue() override {
 		this->objectVal = nullptr;
 		this->objectTypeName = "null";
 	}
 
-	DataType getType() const override { return typeObject; }
+	virtual DataType getType() const override { return typeObject; }
 
-	std::string print() const override { return "Constant Object"; }
+	virtual xConstantNode* clone() const override;
 
-	std::ostream& print(std::ostream& out) const override {
+	virtual std::string print() const override { return "Constant Object"; }
+
+	virtual std::ostream& print(std::ostream& out) const override {
 		if (objectVal == nullptr)
 			return out << "null";
 		else
 			return out << "<object " << objectTypeName << ">";
 	}
 
-	xConstantObjectNode* toObject() override;
+	virtual xConstantObjectNode* toObject() const override;
 };
 
 

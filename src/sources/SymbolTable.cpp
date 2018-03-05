@@ -6,7 +6,6 @@
 #include "nodes/xConstantNode.h"
 #include "nodes/xFunctionDefNode.h"
 #include "nodes/xObjectDefNode.h"
-#include "headers/types.hpp"
 #include "headers/SymbolTable.hpp"
 
 MC::SymbolTable::~SymbolTable() {

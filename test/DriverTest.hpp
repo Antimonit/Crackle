@@ -79,6 +79,7 @@ namespace MC {
 		static void testEQ();
 
 		static void testINC();
+		static void testDEC();
 
 	};
 

@@ -16,15 +16,17 @@ public:
 
 	explicit xConstantBoolNode(bool value);
 
-	void defaultValue() override { this->boolVal = false; }
+	virtual void defaultValue() override { this->boolVal = false; }
 
-	DataType getType() const override { return typeBool; }
+	virtual DataType getType() const override { return typeBool; }
 
-	std::string print() const override { return "Constant Bool"; }
+	virtual xConstantNode* clone() const override;
 
-	std::ostream& print(std::ostream& out) const override { return out << (boolVal ? "true" : "false"); }
+	virtual std::string print() const override { return "Constant Bool"; }
 
-	xConstantBoolNode* toBool() override;
+	virtual std::ostream& print(std::ostream& out) const override { return out << (boolVal ? "true" : "false"); }
+
+	virtual xConstantBoolNode* toBool() const override;
 };
 
 

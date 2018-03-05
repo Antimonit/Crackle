@@ -15,7 +15,6 @@ namespace MC { // xNode requires
 }
 
 class xConstantNode;
-
 class xNode {
 public:
 
@@ -24,11 +23,11 @@ public:
 	virtual std::string print() const = 0;
 
 	virtual xConstantNode* getValue() {
-		return nullptr;
+		throw "Node does not contain a constant node.";
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const xNode& p) {
-		return p.print(os);
+	friend std::ostream& operator<<(std::ostream& os, const xNode& node) {
+		return node.print(os);
 	}
 
 private:

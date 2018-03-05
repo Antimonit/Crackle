@@ -16,11 +16,11 @@ public:
 	xNode* root;
 	std::vector<xVariableDefNode*> params;	// formal parameters
 
-	xNode* ex(MC::Driver* driver) override;
+	virtual xNode* ex(MC::Driver* driver) override;
 
-	std::string print() const override;
+	virtual std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override;
+	virtual std::ostream& print(std::ostream& out) const override;
 };
 
 

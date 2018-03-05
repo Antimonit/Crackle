@@ -12,7 +12,11 @@ xConstantBoolNode::xConstantBoolNode(bool value) : xConstantNode() {
 	this->boolVal = value;
 }
 
-xConstantBoolNode* xConstantBoolNode::toBool() {
+xConstantBoolNode* xConstantBoolNode::toBool() const {
+	return new xConstantBoolNode(boolVal);
+}
+
+xConstantNode* xConstantBoolNode::clone() const {
 	return new xConstantBoolNode(boolVal);
 }
 

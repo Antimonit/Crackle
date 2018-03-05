@@ -8,7 +8,6 @@
 #include "xNode.h"
 
 class xConstantNode;
-
 class xReturnNode : public xNode {
 public:
 	xConstantNode* value;
@@ -17,12 +16,13 @@ public:
 
 	explicit xReturnNode(xConstantNode* value);
 
-	xNode* ex(MC::Driver* driver) override;
+	virtual xNode* ex(MC::Driver* driver) override;
 
-	std::string print() const override;
+	virtual xConstantNode* getValue() override;
 
-private:
-	std::ostream& print(std::ostream& out) const override;
+	virtual std::string print() const override;
+
+	virtual std::ostream& print(std::ostream& out) const override;
 };
 
 

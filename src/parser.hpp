@@ -6,7 +6,6 @@
 #include <cmath>
 #include <string>
 #include <parser.tab.hh>
-#include <headers/types.hpp>
 #include <utility>
 #include <c++/iostream>
 #include <nodes/xNode.h>
@@ -19,7 +18,6 @@
 #include <nodes/xFunctionNode.h>
 #include <nodes/xFunctionDefNode.h>
 #include <nodes/xConstantNode.h>
-#include "headers/types.hpp"
 #include "headers/SymbolTable.hpp"
 #include "nodes/constant/xConstantIntNode.h"
 #include "nodes/constant/xConstantDoubleNode.h"
@@ -145,7 +143,9 @@ xObjectNode* object(const std::string &name) {
 
 
 xVariableDefNode* variableDef(xVariableNode* typedVariable, xNode* defaultValue) {
-	return new xVariableDefNode(typedVariable->name, xConstantNode::fromType(typedVariable->value->getType()), defaultValue);
+	std::string& name = typedVariable->name;
+	DataType type = typedVariable->value->getType();
+	return new xVariableDefNode(name, xConstantNode::fromType(type), defaultValue);
 }
 
 xVariableNode* typedVariable(const std::string& name, DataType type) {
@@ -153,7 +153,7 @@ xVariableNode* typedVariable(const std::string& name, DataType type) {
 }
 
 xVariableNode* variable(const std::string& name) {
-	return typedVariable(name, typeUndefined);
+	return new xVariableNode(name, nullptr);
 }
 
 

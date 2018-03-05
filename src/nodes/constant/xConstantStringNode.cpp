@@ -12,6 +12,10 @@ xConstantStringNode::xConstantStringNode(const std::string& value) : xConstantNo
 	this->stringVal = value;
 }
 
-xConstantStringNode* xConstantStringNode::toString() {
+xConstantStringNode* xConstantStringNode::toString() const {
+	return new xConstantStringNode(stringVal);
+}
+
+xConstantNode* xConstantStringNode::clone() const {
 	return new xConstantStringNode(stringVal);
 }

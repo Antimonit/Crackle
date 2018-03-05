@@ -24,6 +24,10 @@ xNode* xVariableNode::ex(MC::Driver* driver) {
 	return variable;
 }
 
+xConstantNode* xVariableNode::getValue() {
+	return value;
+}
+
 std::string xVariableNode::print() const {
 	return "Variable node";
 }

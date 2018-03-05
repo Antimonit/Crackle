@@ -13,15 +13,13 @@ public:
 	int oper;
 	std::vector<xNode*> op;
 
-	explicit xOperatorNode(int val) {
-		oper = val;
-	}
+	explicit xOperatorNode(int val);
 
-	xNode* ex(MC::Driver* driver) override;
+	virtual xNode* ex(MC::Driver* driver) override;
 
-	std::string print() const override;
+	virtual std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override;
+	virtual std::ostream& print(std::ostream& out) const override;
 
 private:
 

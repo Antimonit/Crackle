@@ -8,6 +8,10 @@ xConstantVoidNode::xConstantVoidNode() : xConstantNode() {
 	// nothing
 }
 
-xConstantVoidNode* xConstantVoidNode::toVoid() {
+xConstantVoidNode* xConstantVoidNode::toVoid() const {
+	return new xConstantVoidNode();
+}
+
+xConstantNode* xConstantVoidNode::clone() const {
 	return new xConstantVoidNode();
 }

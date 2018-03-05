@@ -14,18 +14,17 @@ public:
 	xConstantNode* value;
 	xNode* defaultValue;
 
-	xVariableDefNode(const std::string& name, xConstantNode* value);
+	explicit xVariableDefNode(const std::string& name, xConstantNode* value);
 
-	xVariableDefNode(const std::string& name, xConstantNode* value, xNode* defaultValue);
-//	virtual ~xVariableDefNode();
+	explicit xVariableDefNode(const std::string& name, xConstantNode* value, xNode* defaultValue);
 
-	xNode* ex(MC::Driver* driver) override;
+	virtual xNode* ex(MC::Driver* driver) override;
 
-	xConstantNode* getValue() override;
+	virtual xConstantNode* getValue() override;
 
-	std::string print() const override;
+	virtual std::string print() const override;
 
-	std::ostream& print(std::ostream& out) const override;
+	virtual std::ostream& print(std::ostream& out) const override;
 
 };
 

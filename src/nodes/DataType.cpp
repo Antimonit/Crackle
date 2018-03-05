@@ -13,7 +13,6 @@ std::string typeToString(DataType value) {
 		case typeBool:		return "bool";
 		case typeVoid:		return "void";
 		case typeObject:	return "object";
-		case typeUndefined:	return "<undefined>";
 		default:			return "<unknown>";
 	}
 }

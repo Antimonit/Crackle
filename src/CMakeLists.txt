@@ -18,15 +18,12 @@ add_library(crackle_lib
         Driver.cpp
         sources/SymbolTable.cpp
         headers/SymbolTable.hpp
-        sources/node_types.cpp
-        headers/types.hpp
         sources/AstPrinter.cpp
         headers/AstPrinter.hpp
         sources/Heap.cpp
         headers/Heap.hpp
         ${FLEX_lexer_OUTPUTS}
         ${BISON_parser_OUTPUTS}
-        nodes/node_types.h
         nodes/DataType.h            nodes/DataType.cpp
         nodes/xNode.cpp             nodes/xNode.h
         nodes/xConstantNode.cpp     nodes/xConstantNode.h
@@ -39,7 +36,14 @@ add_library(crackle_lib
         nodes/xOperatorNode.cpp     nodes/xOperatorNode.h
         nodes/xReturnNode.cpp       nodes/xReturnNode.h
         nodes/xEmptyNode.cpp        nodes/xEmptyNode.h
-        nodes/constant/xConstantIntNode.cpp nodes/constant/xConstantIntNode.h nodes/constant/xConstantObjectNode.cpp nodes/constant/xConstantObjectNode.h nodes/constant/xConstantVoidNode.cpp nodes/constant/xConstantVoidNode.h nodes/constant/xConstantDoubleNode.cpp nodes/constant/xConstantDoubleNode.h nodes/constant/xConstantStringNode.cpp nodes/constant/xConstantStringNode.h nodes/constant/xConstantBoolNode.cpp nodes/constant/xConstantBoolNode.h)
+        nodes/constant/xConstantIntNode.cpp nodes/constant/xConstantIntNode.h
+        nodes/constant/xConstantDoubleNode.cpp nodes/constant/xConstantDoubleNode.h
+        nodes/constant/xConstantBoolNode.cpp nodes/constant/xConstantBoolNode.h
+        nodes/constant/xConstantStringNode.cpp nodes/constant/xConstantStringNode.h
+        nodes/constant/xConstantObjectNode.cpp nodes/constant/xConstantObjectNode.h
+        nodes/constant/xConstantVoidNode.cpp nodes/constant/xConstantVoidNode.h
+        )
+
 target_include_directories(crackle_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(crackle_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

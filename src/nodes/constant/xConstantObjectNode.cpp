@@ -13,6 +13,10 @@ xConstantObjectNode::xConstantObjectNode(xObjectNode* value, const std::string& 
 	this->objectTypeName = typeName;
 }
 
-xConstantObjectNode* xConstantObjectNode::toObject() {
+xConstantObjectNode* xConstantObjectNode::toObject() const {
+	return new xConstantObjectNode(objectVal, objectTypeName);
+}
+
+xConstantNode* xConstantObjectNode::clone() const {
 	return new xConstantObjectNode(objectVal, objectTypeName);
 }
